@@ -1,0 +1,19 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "opencmo"
+version = "0.1.0"
+description = "Open-source AI CMO multi-agent system for indie developers"
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.10"
+dependencies = [
+    "openai-agents>=0.12.4",
+    "crawl4ai",
+    "python-dotenv",
+]
+
+[project.scripts]
+opencmo = "opencmo.cli:main"
