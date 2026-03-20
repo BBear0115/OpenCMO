@@ -21,22 +21,44 @@
 
 ---
 
-## Screenshots
+## 🖼️ Gallery & Interface
+
+Explore the beautiful, dark-themed React SPA dashboard designed for a modern multi-agent marketing workflow.
+
+<details open>
+<summary><b>View Runtime Screenshots</b></summary>
+<br>
 
 <div align="center">
-  <img src="assets/screenshots/dashboard.svg" alt="Dashboard" width="700" />
-  <br/><sub>Project dashboard with SEO, GEO, Community & SERP scores</sub>
+  <img src="assets/screenshots/dashboard-full.png" alt="OpenCMO Dashboard" width="800" />
+  <br/><sub><b>Main Dashboard</b>: Real-time project tracking across SEO, GEO AI visibility, and Community metrics.</sub>
 </div>
 <br/>
+
 <div align="center">
-  <img src="assets/screenshots/chat-agents.svg" alt="AI Chat with Agent Selection" width="700" />
-  <br/><sub>Chat with 10 AI experts — pick one or let CMO auto-route</sub>
+  <img src="assets/screenshots/chat-interface.png" alt="Agent Chat Interface" width="800" />
+  <br/><sub><b>Expert Chat Interface</b>: Chat with 10 AI marketing experts. Pick a specific agent or let the CMO auto-route your query.</sub>
 </div>
 <br/>
+
 <div align="center">
-  <img src="assets/screenshots/monitor-analysis.svg" alt="Multi-Agent Analysis" width="700" />
-  <br/><sub>Multi-agent strategy discussion: 3 roles × 3 rounds → keywords & monitoring plan</sub>
+  <img src="assets/screenshots/monitors-panel.png" alt="Monitors List" width="800" />
+  <br/><sub><b>Monitors & Multi-Agent Analysis</b>: Watch 3 AI roles debate your strategy in real-time to extract the best keywords.</sub>
 </div>
+<br/>
+
+<div align="center">
+  <img src="assets/screenshots/multi-agent-discussion.png" alt="Multi-Agent Discussion" width="800" />
+  <br/><sub><b>Multi-Agent Discussion</b>: See the AI roles debating the product strategy in an interactive dialog modal.</sub>
+</div>
+<br/>
+
+<div align="center">
+  <img src="assets/screenshots/settings-panel.png" alt="Settings & API Key UI" width="800" />
+  <br/><sub><b>Settings</b>: Easily configure your API provider (OpenAI, DeepSeek, Ollama, etc.) safely in the UI.</sub>
+</div>
+
+</details>
 
 ---
 
@@ -82,14 +104,18 @@ graph TD
     Web --> DB
 ```
 
-## Quick Start
+## 🚀 Quick Start
 
 ### 1. Install
 
 ```bash
 git clone https://github.com/study8677/OpenCMO.git
 cd OpenCMO
+
+# Install requirements via pip
 pip install -e ".[all]"
+
+# Initialize crawler dependencies
 crawl4ai-setup
 ```
 
@@ -97,22 +123,31 @@ crawl4ai-setup
 
 ```bash
 cp .env.example .env
-# Edit .env — set your API key:
-#   OPENAI_API_KEY=sk-...          (OpenAI)
-#   or NVIDIA NIM / DeepSeek / Ollama — see .env.example for examples
-```
 
-### 3. Run
+# Edit .env and supply your API key:
+# OPENAI_API_KEY=sk-... 
+```
+*(Supports OpenAI, DeepSeek, NIM, Ollama, etc. See `.env.example`)*
+
+### 3. Run the Application
+
+Start the modern web dashboard to access the UI:
 
 ```bash
-# Web dashboard (recommended)
-opencmo-web                # → http://localhost:8080/app
-
-# CLI mode
-opencmo                    # Interactive terminal
+opencmo-web
 ```
+🚀 **Open [http://localhost:8080/app](http://localhost:8080/app) in your web browser.**
 
-### 4. Use
+<details>
+<summary><b>CLI Mode (Optional)</b></summary>
+
+Alternatively, run the interactive terminal interface:
+```bash
+opencmo
+```
+</details>
+
+### 4. How to Use
 
 1. Go to **Monitors** → paste a URL → click **Start Monitoring**
 2. Watch the AI multi-agent discussion analyze your product in real-time

@@ -21,22 +21,44 @@
 
 ---
 
-## Capturas de pantalla
+## 🖼️ Galería e Interfaz
+
+Explora el hermoso panel React SPA con tema oscuro, diseñado para un moderno flujo de marketing multi-agente.
+
+<details open>
+<summary><b>Ver Capturas de Pantalla</b></summary>
+<br>
 
 <div align="center">
-  <img src="assets/screenshots/dashboard.svg" alt="Dashboard" width="700" />
-  <br/><sub>Dashboard de proyectos — puntuaciones SEO, GEO, Comunidad y SERP</sub>
+  <img src="assets/screenshots/dashboard-full.png" alt="OpenCMO Dashboard" width="800" />
+  <br/><sub><b>Dashboard Principal</b>: Seguimiento de proyectos en tiempo real a través de SEO, GEO visibilidad IA y métricas de Comunidad.</sub>
 </div>
 <br/>
+
 <div align="center">
-  <img src="assets/screenshots/chat-agents.svg" alt="Chat IA" width="700" />
-  <br/><sub>Chatea con 10 expertos IA — elige uno o deja que el CMO enrute automáticamente</sub>
+  <img src="assets/screenshots/chat-interface.png" alt="Interfaz de Chat" width="800" />
+  <br/><sub><b>Interfaz de Chat Experto</b>: Chatea con 10 expertos en marketing de IA. Elige un agente específico o deja que el CMO enrute tu consulta.</sub>
 </div>
 <br/>
+
 <div align="center">
-  <img src="assets/screenshots/monitor-analysis.svg" alt="Análisis multi-agente" width="700" />
-  <br/><sub>Discusión estratégica multi-agente: 3 roles × 3 rondas → keywords y plan de monitoreo</sub>
+  <img src="assets/screenshots/monitors-panel.png" alt="Lista de Monitores" width="800" />
+  <br/><sub><b>Monitores y Análisis Multi-Agente</b>: Observa cómo 3 roles de IA debaten tu estrategia en tiempo real para extraer las mejores palabras clave.</sub>
 </div>
+<br/>
+
+<div align="center">
+  <img src="assets/screenshots/multi-agent-discussion.png" alt="Discusión Multi-Agente" width="800" />
+  <br/><sub><b>Discusión Multi-Agente</b>: Mira a los roles de IA debatiendo la estrategia del producto en un panel de diálogo interactivo.</sub>
+</div>
+<br/>
+
+<div align="center">
+  <img src="assets/screenshots/settings-panel.png" alt="Panel de Configuración y API" width="800" />
+  <br/><sub><b>Configuración</b>: Configura fácilmente tu proveedor de API (OpenAI, DeepSeek, Ollama, etc.) de manera segura.</sub>
+</div>
+
+</details>
 
 ---
 
@@ -44,16 +66,56 @@
 
 Un **sistema de marketing IA multi-agente** para desarrolladores independientes y equipos pequeños. Introduce una URL — el sistema rastrea tu sitio, ejecuta una discusión estratégica multi-agente, y configura automáticamente el monitoreo.
 
-## Inicio rápido
+## 🚀 Inicio rápido
+
+### 1. Instalación
 
 ```bash
 git clone https://github.com/study8677/OpenCMO.git
 cd OpenCMO
+
+# Instalar dependencias a través de pip
 pip install -e ".[all]"
+
+# Inicializar componentes de rastreo
 crawl4ai-setup
-cp .env.example .env  # Configura tu API key
-opencmo-web           # → http://localhost:8080/app
 ```
+
+### 2. Configuración
+
+```bash
+cp .env.example .env
+
+# Edita .env y proporciona tu API key:
+# OPENAI_API_KEY=sk-... 
+```
+*(Soporta OpenAI, DeepSeek, NIM, Ollama, etc. Ver `.env.example`)*
+
+### 3. Ejecutar la Aplicación
+
+Inicia el moderno dashboard web para acceder a la interfaz:
+
+```bash
+opencmo-web
+```
+🚀 **Abre [http://localhost:8080/app](http://localhost:8080/app) en tu navegador web.**
+
+<details>
+<summary><b>Modo CLI (Opcional)</b></summary>
+
+Alternativamente, ejecuta la interfaz terminal interactiva:
+```bash
+opencmo
+```
+</details>
+
+### 4. Cómo usar
+
+1. Ve a **Monitors** → pega una URL → haz clic en **Start Monitoring**
+2. Observa la discusión multi-agente de IA analizando tu producto en tiempo real
+3. El sistema extrae automáticamente el nombre de la marca, la categoría y las keywords
+4. Se ejecuta un escaneo completo (SEO + GEO + Comunidad)
+5. Ve los resultados en el **Dashboard**
 
 ## 🤖 10 Agentes Expertos
 

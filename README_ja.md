@@ -21,22 +21,44 @@
 
 ---
 
-## スクリーンショット
+## 🖼️ ギャラリーとインターフェース
+
+モダンなマルチエージェントマーケティングワークフロー向けにデザインされた、美しいダークテーマのReact SPAダッシュボードをご覧ください。
+
+<details open>
+<summary><b>スクリーンショットを表示</b></summary>
+<br>
 
 <div align="center">
-  <img src="assets/screenshots/dashboard.svg" alt="ダッシュボード" width="700" />
-  <br/><sub>プロジェクトダッシュボード — SEO、GEO、コミュニティ、SERPスコア</sub>
+  <img src="assets/screenshots/dashboard-full.png" alt="OpenCMO ダッシュボード" width="800" />
+  <br/><sub><b>メインダッシュボード</b>：SEO、GEO AI可視性、コミュニティ指標全体にわたるリアルタイムのプロジェクト追跡。</sub>
 </div>
 <br/>
+
 <div align="center">
-  <img src="assets/screenshots/chat-agents.svg" alt="AIチャット" width="700" />
-  <br/><sub>10のAIエキスパートとチャット — 選択するかCMOに自動ルーティング</sub>
+  <img src="assets/screenshots/chat-interface.png" alt="チャットインターフェース" width="800" />
+  <br/><sub><b>エキスパートチャット</b>：10人のAIマーケティング専門家とチャット。エージェントを選択するか、CMOに自動ルーティングをお任せください。</sub>
 </div>
 <br/>
+
 <div align="center">
-  <img src="assets/screenshots/monitor-analysis.svg" alt="マルチエージェント分析" width="700" />
-  <br/><sub>マルチエージェント戦略議論：3役割 × 3ラウンド → キーワードと監視計画</sub>
+  <img src="assets/screenshots/monitors-panel.png" alt="モニターリスト" width="800" />
+  <br/><sub><b>モニターとマルチエージェント分析</b>：最適なキーワードを抽出するために、3人のAIキャラが戦略をリアルタイムで議論している様子を観察します。</sub>
 </div>
+<br/>
+
+<div align="center">
+  <img src="assets/screenshots/multi-agent-discussion.png" alt="マルチエージェントディスカッション" width="800" />
+  <br/><sub><b>マルチエージェントディスカッション</b>：AIキャラクターたちがインタラクティブなダイアログの中で製品戦略を議論する様子をご覧ください。</sub>
+</div>
+<br/>
+
+<div align="center">
+  <img src="assets/screenshots/settings-panel.png" alt="設定とAPIインターフェース" width="800" />
+  <br/><sub><b>設定</b>：クリーンなUIでAPIプロバイダー（OpenAI、DeepSeek、Ollamaなど）を安全に設定します。</sub>
+</div>
+
+</details>
 
 ---
 
@@ -44,16 +66,56 @@
 
 インディー開発者や小規模チーム向けの**マルチエージェントAIマーケティングシステム**です。URLを入力するだけで、サイトをクロールし、マルチエージェント戦略議論を実行し、SEO・AI可視性・コミュニティの監視を自動設定します。
 
-## クイックスタート
+## 🚀 クイックスタート
+
+### 1. インストール
 
 ```bash
 git clone https://github.com/study8677/OpenCMO.git
 cd OpenCMO
+
+# pipによる依存関係のインストール
 pip install -e ".[all]"
+
+# クローラー要素の初期化
 crawl4ai-setup
-cp .env.example .env  # APIキーを設定
-opencmo-web           # → http://localhost:8080/app
 ```
+
+### 2. 設定
+
+```bash
+cp .env.example .env
+
+# .envを編集してAPIキーを入力します：
+# OPENAI_API_KEY=sk-... 
+```
+*(OpenAI, DeepSeek, NIM, Ollama などに対応しています。詳しくは `.env.example` を参照してください)*
+
+### 3. アプリケーションの実行
+
+モダンなWebダッシュボードを起動してUIにアクセスします：
+
+```bash
+opencmo-web
+```
+🚀 **Webブラウザで [http://localhost:8080/app](http://localhost:8080/app) を開きます。**
+
+<details>
+<summary><b>CLIモード (オプション)</b></summary>
+
+または、インタラクティブなターミナルインターフェースを実行します：
+```bash
+opencmo
+```
+</details>
+
+### 4. 使い方
+
+1. **Monitors** に移動します → URLを貼り付けます → **Start Monitoring** をクリックします
+2. AIマルチエージェントの議論がリアルタイムで製品を分析するのを見守ります
+3. システムはブランド名、カテゴリ、およびキーワードを自動抽出します
+4. フル・スキャンが自動で実行されます（SEO + GEO + コミュニティ）
+5. **Dashboard** で結果を確認します
 
 ## 🤖 10のAIエキスパート
 
