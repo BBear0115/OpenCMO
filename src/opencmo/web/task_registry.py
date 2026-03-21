@@ -25,6 +25,10 @@ class TaskRecord:
     completed_at: str | None = None
     error: str | None = None
     progress: list = field(default_factory=list)
+    run_id: int | None = None
+    summary: str = ""
+    findings_count: int = 0
+    recommendations_count: int = 0
 
     def to_dict(self) -> dict:
         return {
@@ -37,6 +41,10 @@ class TaskRecord:
             "completed_at": self.completed_at,
             "error": self.error,
             "progress": self.progress,
+            "run_id": self.run_id,
+            "summary": self.summary,
+            "findings_count": self.findings_count,
+            "recommendations_count": self.recommendations_count,
         }
 
 
@@ -50,26 +58,30 @@ async def _run_and_update(
 ) -> None:
     record.status = "running"
     try:
-        # If URL provided, run AI analysis first to enrich project metadata + keywords
-        if analyze_url:
-            from opencmo.service import analyze_and_enrich_project
+        from opencmo.monitoring import run_monitoring_workflow
 
-            def on_progress(role: str, content: str, round_num: int):
-                record.progress.append({
-                    "role": role,
-                    "content": content,
-                    "round": round_num,
-                })
+        def on_progress(event: dict):
+            record.progress.append(event)
 
-            await analyze_and_enrich_project(project_id, analyze_url, on_progress=on_progress, locale=locale)
-
-        from opencmo.scheduler import run_scheduled_scan
-
-        await run_scheduled_scan(project_id, job_type, job_id, triggered_by="manual")
+        result = await run_monitoring_workflow(
+            record.task_id,
+            project_id,
+            monitor_id,
+            job_type,
+            job_id,
+            analyze_url=analyze_url,
+            locale=locale,
+            on_progress=on_progress,
+        )
+        record.run_id = result["run_id"]
+        record.summary = result["summary"]
+        record.findings_count = len(result["findings"])
+        record.recommendations_count = len(result["recommendations"])
         record.status = "completed"
     except Exception as e:
         record.status = "failed"
         record.error = str(e)
+        record.summary = str(e)
     finally:
         record.completed_at = datetime.now().isoformat()
         _active_monitors.pop(monitor_id, None)

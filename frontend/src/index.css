@@ -21,12 +21,14 @@
 /* Global Styles */
 @layer base {
   :root {
-    --background: #fafafa; /* zinc-50 */
-    --foreground: #09090b; /* zinc-950 */
+    --background: #ffffff; /* ChatGPT main bg */
+    --foreground: #0f172a; /* Slate 900 */
+    --sidebar-bg: #f9f9f9; /* ChatGPT sidebar bg */
+    --border-subtle: rgba(0,0,0,0.06);
   }
 
   * {
-    border-color: var(--color-zinc-200);
+    border-color: var(--border-subtle);
   }
 
   body {

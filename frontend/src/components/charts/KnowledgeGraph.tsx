@@ -74,8 +74,8 @@ export function KnowledgeGraph({ data }: { data: GraphData }) {
 
   // Track previous nodes to detect new ones and animate them
   const prevNodesRef = useRef<Set<string>>(new Set());
-  const animatedMeshesRef = useRef<THREE.Mesh[]>([]);
-  const animationFrameRef = useRef<number>();
+  const animatedMeshesRef = useRef<any[]>([]);
+  const animationFrameRef = useRef<number | undefined>(undefined);
 
   // Measure container
   useEffect(() => {
@@ -159,8 +159,8 @@ export function KnowledgeGraph({ data }: { data: GraphData }) {
         mesh.scale.set(scale, scale, scale);
         
         // Fade out as it expands
-        if (mesh.material && (mesh.material as THREE.Material).transparent) {
-          (mesh.material as THREE.MeshBasicMaterial).opacity = 0.8 * (1 - cycle);
+        if (mesh.material?.transparent) {
+          mesh.material.opacity = 0.8 * (1 - cycle);
         }
       });
       animationFrameRef.current = requestAnimationFrame(renderLoop);
@@ -286,7 +286,7 @@ export function KnowledgeGraph({ data }: { data: GraphData }) {
     if (n.type === "brand") {
       ctx.fillStyle = "#4f46e5"; // Indigo for brand text
     } else if ((node as NewNodeData).__isNew) {
-      ctx.fillStyle = NODE_COLORS_CSS[n.type]; // Colored text for new nodes to grab attention
+      ctx.fillStyle = NODE_COLORS_CSS[n.type] ?? "#1e293b"; // Colored text for new nodes to grab attention
     }
     
     ctx.fillText(text, canvas.width / 2, canvas.height / 2);

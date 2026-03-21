@@ -8,7 +8,7 @@ export function CompetitorPanel({ projectId }: { projectId: number }) {
   const addComp = useAddCompetitor(projectId);
   const delComp = useDeleteCompetitor(projectId);
   const discover = useDiscoverCompetitors(projectId);
-  const { t, locale } = useI18n();
+  const { locale } = useI18n();
   const isZh = locale === "zh";
 
   const [showManual, setShowManual] = useState(false);

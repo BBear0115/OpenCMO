@@ -30,8 +30,8 @@ export function ChatContainer({
 
       {/* When no messages: show agent grid as quick-start */}
       {!hasMessages ? (
-        <div className="flex flex-1 flex-col">
-          <div className="flex-1 overflow-y-auto rounded-2xl border border-slate-200 bg-white p-6">
+        <div className="flex flex-1 flex-col mx-auto w-full max-w-3xl">
+          <div className="flex-1 overflow-y-auto p-2">
             <AgentGrid onSelect={(prompt) => sendMessage(prompt)} />
           </div>
           <ChatInput onSend={sendMessage} disabled={isStreaming} />

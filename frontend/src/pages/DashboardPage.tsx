@@ -17,16 +17,16 @@ export function DashboardPage() {
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out">
-      <div className="mb-8 flex items-center justify-between">
+      <div className="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-zinc-900">{t("dashboard.title")}</h1>
-          <p className="text-sm text-zinc-500 mt-1">Overview of your AI marketing campaigns</p>
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900">{t("dashboard.title")}</h1>
+          <p className="text-[15px] text-slate-500 mt-1.5">Overview of your AI marketing campaigns</p>
         </div>
         <Link
           to="/monitors"
-          className="flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-600/20 transition-all hover:bg-indigo-500 hover:scale-[1.02] hover:shadow-indigo-600/30 active:scale-95"
+          className="inline-flex items-center justify-center gap-2 rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-medium text-white transition-all duration-200 hover:bg-slate-800 hover:shadow-md active:scale-95"
         >
-          <Plus size={16} className="text-indigo-100" />
+          <Plus size={16} />
           {t("dashboard.newMonitor")}
         </Link>
       </div>
@@ -37,7 +37,7 @@ export function DashboardPage() {
           action={
             <Link
               to="/monitors"
-              className="flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-600/20 transition-all hover:bg-indigo-500 hover:scale-[1.02] active:scale-95"
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-slate-900 px-6 py-3 text-sm font-medium text-white transition-all duration-200 hover:bg-slate-800 hover:shadow-md active:scale-95 mt-4"
             >
               <Plus size={16} />
               {t("dashboard.createMonitor")}

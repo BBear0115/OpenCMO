@@ -40,15 +40,15 @@ export function Sidebar({
   return (
     <>
       <aside
-        className={`fixed inset-y-0 left-0 z-30 flex w-64 transform flex-col bg-zinc-950/80 backdrop-blur-2xl border-r border-white/5 shadow-2xl transition-transform lg:static lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-30 flex w-64 transform flex-col bg-[#f9f9f9] border-r border-[#ececec] transition-transform lg:static lg:translate-x-0 ${
           open ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <div className="flex h-14 items-center justify-between border-b border-white/10 px-4">
-          <Link to="/" className="text-lg font-bold text-zinc-100 tracking-tight" onClick={onClose}>
+        <div className="flex h-14 items-center justify-between px-4 mt-2">
+          <Link to="/" className="text-lg font-semibold text-slate-800 tracking-tight" onClick={onClose}>
             OpenCMO
           </Link>
-          <button className="text-zinc-400 hover:text-zinc-100 transition-colors lg:hidden" onClick={onClose}>
+          <button className="text-slate-400 hover:text-slate-800 transition-colors lg:hidden" onClick={onClose}>
             <X size={20} />
           </button>
         </div>
@@ -61,13 +61,13 @@ export function Sidebar({
                 key={to}
                 to={to}
                 onClick={onClose}
-                className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-300 ${
+                className={`flex items-center gap-3 rounded-lg px-3 py-2 text-[14px] font-medium transition-all duration-200 ${
                   active
-                    ? "bg-indigo-500/15 text-indigo-50 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] ring-1 ring-indigo-500/30"
-                    : "text-zinc-400 hover:bg-white/5 hover:text-zinc-100 hover:scale-[1.02] active:scale-[0.98]"
+                    ? "bg-black/[0.04] text-slate-900"
+                    : "text-slate-600 hover:bg-black/[0.03] hover:text-slate-900 active:scale-[0.98]"
                 }`}
               >
-                <Icon size={18} className={`transition-colors ${active ? "text-indigo-400" : "text-zinc-500"}`} />
+                <Icon size={18} className={`transition-colors ${active ? "text-slate-800" : "text-slate-500"}`} />
                 {t(labelKey)}
               </Link>
             );
@@ -75,8 +75,8 @@ export function Sidebar({
         </nav>
 
         {projects && projects.length > 0 && (
-          <div className="border-t border-white/10 p-3">
-            <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-widest text-zinc-500">
+          <div className="pt-4 pb-2 px-3">
+            <p className="mb-1.5 px-3 text-[11px] font-semibold text-slate-400">
               {t("nav.projects")}
             </p>
             <div className="space-y-0.5">
@@ -85,13 +85,13 @@ export function Sidebar({
                   key={p.id}
                   to={`/projects/${p.id}`}
                   onClick={onClose}
-                  className={`group flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm transition-all duration-300 ${
+                  className={`group flex items-center gap-2 rounded-lg px-3 py-1.5 text-[13px] transition-all duration-200 ${
                     pathname === `/projects/${p.id}`
-                      ? "bg-white/10 text-zinc-100 shadow-sm"
-                      : "text-zinc-400 hover:bg-white/5 hover:text-zinc-200"
+                      ? "bg-black/[0.04] text-slate-900 font-medium"
+                      : "text-slate-600 hover:bg-black/[0.03] hover:text-slate-900"
                   }`}
                 >
-                  <FolderOpen size={14} className="transition-colors group-hover:text-indigo-400" />
+                  <FolderOpen size={14} className="transition-colors text-slate-400 group-hover:text-slate-600" />
                   <span className="truncate">{p.brand_name}</span>
                 </Link>
               ))}
@@ -100,12 +100,12 @@ export function Sidebar({
         )}
 
         {/* Settings button at bottom */}
-        <div className="border-t border-white/10 p-3">
+        <div className="p-3 mb-2">
           <button
             onClick={() => setShowSettings(true)}
-            className="group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-zinc-400 transition-all duration-300 hover:bg-white/5 hover:text-zinc-100 hover:scale-[1.02] active:scale-[0.98]"
+            className="group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-[14px] font-medium text-slate-600 transition-all duration-200 hover:bg-black/[0.03] hover:text-slate-900 active:scale-[0.98]"
           >
-            <Settings size={18} className="transition-transform group-hover:rotate-45" />
+            <Settings size={18} className="transition-transform group-hover:rotate-45 text-slate-500 group-hover:text-slate-700" />
             {t("settings.title")}
           </button>
         </div>

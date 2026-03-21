@@ -135,6 +135,56 @@ CREATE TABLE IF NOT EXISTS competitor_keywords (
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     UNIQUE(competitor_id, keyword)
 );
+
+CREATE TABLE IF NOT EXISTS scan_runs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    task_id TEXT NOT NULL UNIQUE,
+    monitor_id INTEGER,
+    project_id INTEGER NOT NULL REFERENCES projects(id),
+    job_type TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'pending',
+    summary TEXT NOT NULL DEFAULT '',
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    completed_at TEXT
+);
+
+CREATE TABLE IF NOT EXISTS scan_run_steps (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    run_id INTEGER NOT NULL REFERENCES scan_runs(id),
+    stage TEXT NOT NULL,
+    agent TEXT,
+    status TEXT NOT NULL,
+    summary TEXT NOT NULL DEFAULT '',
+    detail TEXT NOT NULL DEFAULT '',
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS scan_findings (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    run_id INTEGER NOT NULL REFERENCES scan_runs(id),
+    domain TEXT NOT NULL,
+    severity TEXT NOT NULL,
+    title TEXT NOT NULL,
+    summary TEXT NOT NULL,
+    confidence REAL,
+    evidence_json TEXT NOT NULL DEFAULT '[]',
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS scan_recommendations (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    run_id INTEGER NOT NULL REFERENCES scan_runs(id),
+    domain TEXT NOT NULL,
+    priority TEXT NOT NULL,
+    owner_type TEXT NOT NULL,
+    action_type TEXT NOT NULL,
+    title TEXT NOT NULL,
+    summary TEXT NOT NULL,
+    rationale TEXT NOT NULL,
+    confidence REAL,
+    evidence_json TEXT NOT NULL DEFAULT '[]',
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
 """
 
 
@@ -244,6 +294,23 @@ async def delete_project(project_id: int) -> bool:
             (project_id,),
         )
         await db.execute("DELETE FROM competitors WHERE project_id = ?", (project_id,))
+        # Delete monitoring artifacts
+        await db.execute(
+            """DELETE FROM scan_findings WHERE run_id IN
+               (SELECT id FROM scan_runs WHERE project_id = ?)""",
+            (project_id,),
+        )
+        await db.execute(
+            """DELETE FROM scan_recommendations WHERE run_id IN
+               (SELECT id FROM scan_runs WHERE project_id = ?)""",
+            (project_id,),
+        )
+        await db.execute(
+            """DELETE FROM scan_run_steps WHERE run_id IN
+               (SELECT id FROM scan_runs WHERE project_id = ?)""",
+            (project_id,),
+        )
+        await db.execute("DELETE FROM scan_runs WHERE project_id = ?", (project_id,))
         # Delete scheduled jobs
         await db.execute("DELETE FROM scheduled_jobs WHERE project_id = ?", (project_id,))
         # Delete the project itself
@@ -586,6 +653,238 @@ async def get_discussion_snapshots(discussion_id: int) -> list[dict]:
             }
             for r in rows
         ]
+    finally:
+        await db.close()
+
+
+async def create_scan_run(task_id: str, monitor_id: int | None, project_id: int, job_type: str) -> int:
+    """Create or return a persisted monitoring run."""
+    db = await get_db()
+    try:
+        await db.execute(
+            """INSERT OR IGNORE INTO scan_runs (task_id, monitor_id, project_id, job_type)
+               VALUES (?, ?, ?, ?)""",
+            (task_id, monitor_id, project_id, job_type),
+        )
+        await db.commit()
+        cursor = await db.execute("SELECT id FROM scan_runs WHERE task_id = ?", (task_id,))
+        row = await cursor.fetchone()
+        return row[0]
+    finally:
+        await db.close()
+
+
+async def update_scan_run(
+    run_id: int,
+    *,
+    status: str | None = None,
+    summary: str | None = None,
+    completed: bool = False,
+) -> None:
+    """Update a persisted monitoring run."""
+    db = await get_db()
+    try:
+        parts: list[str] = []
+        params: list = []
+        if status is not None:
+            parts.append("status = ?")
+            params.append(status)
+        if summary is not None:
+            parts.append("summary = ?")
+            params.append(summary)
+        if completed:
+            parts.append("completed_at = datetime('now')")
+        if not parts:
+            return
+        params.append(run_id)
+        await db.execute(f"UPDATE scan_runs SET {', '.join(parts)} WHERE id = ?", params)
+        await db.commit()
+    finally:
+        await db.close()
+
+
+async def add_scan_run_step(
+    run_id: int,
+    *,
+    stage: str,
+    status: str,
+    summary: str = "",
+    agent: str | None = None,
+    detail: str | None = None,
+) -> int:
+    """Append a persisted monitoring step event."""
+    db = await get_db()
+    try:
+        cursor = await db.execute(
+            """INSERT INTO scan_run_steps (run_id, stage, agent, status, summary, detail)
+               VALUES (?, ?, ?, ?, ?, ?)""",
+            (run_id, stage, agent, status, summary, detail or summary),
+        )
+        await db.commit()
+        return cursor.lastrowid
+    finally:
+        await db.close()
+
+
+async def replace_scan_artifacts(
+    run_id: int,
+    findings: list[dict],
+    recommendations: list[dict],
+) -> None:
+    """Replace persisted findings and recommendations for a run."""
+    db = await get_db()
+    try:
+        await db.execute("DELETE FROM scan_findings WHERE run_id = ?", (run_id,))
+        await db.execute("DELETE FROM scan_recommendations WHERE run_id = ?", (run_id,))
+
+        for finding in findings:
+            await db.execute(
+                """INSERT INTO scan_findings
+                   (run_id, domain, severity, title, summary, confidence, evidence_json)
+                   VALUES (?, ?, ?, ?, ?, ?, ?)""",
+                (
+                    run_id,
+                    finding["domain"],
+                    finding["severity"],
+                    finding["title"],
+                    finding["summary"],
+                    finding.get("confidence"),
+                    json.dumps(finding.get("evidence_refs", [])),
+                ),
+            )
+
+        for rec in recommendations:
+            await db.execute(
+                """INSERT INTO scan_recommendations
+                   (run_id, domain, priority, owner_type, action_type, title, summary, rationale, confidence, evidence_json)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                (
+                    run_id,
+                    rec["domain"],
+                    rec["priority"],
+                    rec["owner_type"],
+                    rec["action_type"],
+                    rec["title"],
+                    rec["summary"],
+                    rec["rationale"],
+                    rec.get("confidence"),
+                    json.dumps(rec.get("evidence_refs", [])),
+                ),
+            )
+
+        await db.commit()
+    finally:
+        await db.close()
+
+
+async def get_task_findings(task_id: str) -> list[dict]:
+    """Return persisted findings for a monitoring task."""
+    db = await get_db()
+    try:
+        cursor = await db.execute(
+            """SELECT f.domain, f.severity, f.title, f.summary, f.confidence, f.evidence_json
+               FROM scan_findings f
+               JOIN scan_runs r ON r.id = f.run_id
+               WHERE r.task_id = ?
+               ORDER BY
+                 CASE f.severity
+                   WHEN 'critical' THEN 0
+                   WHEN 'warning' THEN 1
+                   ELSE 2
+                 END,
+                 f.id""",
+            (task_id,),
+        )
+        rows = await cursor.fetchall()
+        return [
+            {
+                "domain": row[0],
+                "severity": row[1],
+                "title": row[2],
+                "summary": row[3],
+                "confidence": row[4],
+                "evidence_refs": json.loads(row[5] or "[]"),
+            }
+            for row in rows
+        ]
+    finally:
+        await db.close()
+
+
+async def get_task_recommendations(task_id: str) -> list[dict]:
+    """Return persisted recommendations for a monitoring task."""
+    db = await get_db()
+    try:
+        cursor = await db.execute(
+            """SELECT rec.domain, rec.priority, rec.owner_type, rec.action_type,
+                      rec.title, rec.summary, rec.rationale, rec.confidence, rec.evidence_json
+               FROM scan_recommendations rec
+               JOIN scan_runs r ON r.id = rec.run_id
+               WHERE r.task_id = ?
+               ORDER BY
+                 CASE rec.priority
+                   WHEN 'high' THEN 0
+                   WHEN 'medium' THEN 1
+                   ELSE 2
+                 END,
+                 rec.id""",
+            (task_id,),
+        )
+        rows = await cursor.fetchall()
+        return [
+            {
+                "domain": row[0],
+                "priority": row[1],
+                "owner_type": row[2],
+                "action_type": row[3],
+                "title": row[4],
+                "summary": row[5],
+                "rationale": row[6],
+                "confidence": row[7],
+                "evidence_refs": json.loads(row[8] or "[]"),
+            }
+            for row in rows
+        ]
+    finally:
+        await db.close()
+
+
+async def get_latest_monitoring_summary(project_id: int) -> dict | None:
+    """Return summary info for the latest persisted monitoring run."""
+    db = await get_db()
+    try:
+        cursor = await db.execute(
+            """SELECT r.id, r.status, r.summary, r.created_at, r.completed_at
+               FROM scan_runs r
+               WHERE r.project_id = ?
+               ORDER BY r.id DESC
+               LIMIT 1""",
+            (project_id,),
+        )
+        row = await cursor.fetchone()
+        if not row:
+            return None
+
+        findings_cur = await db.execute(
+            "SELECT COUNT(*) FROM scan_findings WHERE run_id = ?",
+            (row[0],),
+        )
+        findings_count = (await findings_cur.fetchone())[0]
+        recs_cur = await db.execute(
+            "SELECT COUNT(*) FROM scan_recommendations WHERE run_id = ?",
+            (row[0],),
+        )
+        recommendations_count = (await recs_cur.fetchone())[0]
+
+        return {
+            "run_id": row[0],
+            "status": row[1],
+            "summary": row[2],
+            "created_at": row[3],
+            "completed_at": row[4],
+            "findings_count": findings_count,
+            "recommendations_count": recommendations_count,
+        }
     finally:
         await db.close()
 

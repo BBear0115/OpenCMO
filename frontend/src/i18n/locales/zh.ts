@@ -44,6 +44,8 @@ export const zh: Record<TranslationKey, string> = {
   "score.geoScore": "GEO 评分",
   "score.communityHits": "社区命中",
   "score.serpKeywords": "SERP 关键词",
+  "score.findings": "发现项",
+  "score.recommendations": "行动建议",
   "score.tracked": "{{count}} 个跟踪中",
 
   // Scan History
@@ -143,8 +145,12 @@ export const zh: Record<TranslationKey, string> = {
   "settings.apiKeySet": "API 密钥已配置",
   "settings.apiKeyNotSet": "未配置 API 密钥",
 
+  // Settings — shared
+  "settings.configured": "已配置",
+  "settings.notConfigured": "未配置",
+
   // Settings — Reddit
-  "settings.redditSection": "Reddit 连接",
+  "settings.redditSection": "Reddit 发布",
   "settings.redditClientId": "Client ID",
   "settings.redditClientIdPlaceholder": "你的 Reddit 应用 Client ID",
   "settings.redditClientSecret": "Client Secret",
@@ -157,7 +163,49 @@ export const zh: Record<TranslationKey, string> = {
   "settings.redditConfigured": "Reddit 已连接",
   "settings.redditNotConfigured": "Reddit 未连接",
   "settings.autoPublish": "自动发布",
-  "settings.autoPublishHint": "允许 AI 向 Reddit 发布帖子和回复。",
+  "settings.autoPublishHint": "允许 AI 向 Reddit 和 Twitter 发布帖子和回复。",
+
+  // Settings — Twitter
+  "settings.twitterSection": "Twitter / X 发布",
+  "settings.twitterApiKey": "API Key",
+  "settings.twitterApiSecret": "API Secret",
+  "settings.twitterAccessToken": "Access Token",
+  "settings.twitterAccessSecret": "Access Token Secret",
+  "settings.twitterHint": "在 developer.twitter.com 创建应用并开启读写权限。",
+  "settings.twitterConfigured": "Twitter 已连接",
+  "settings.twitterNotConfigured": "Twitter 未连接",
+
+  // Settings — GEO
+  "settings.geoSection": "GEO 检测平台",
+  "settings.anthropicKey": "Anthropic API Key（Claude）",
+  "settings.googleAiKey": "Google AI API Key（Gemini）",
+  "settings.geoChatgpt": "启用 ChatGPT GEO",
+  "settings.geoChatgptHint": "使用你的 OpenAI API 密钥检测 ChatGPT 中的品牌可见度。",
+  "settings.geoHint": "启用更多平台以获得更全面的 AI 可见度覆盖。Perplexity 和 You.com 无需密钥即可使用。",
+
+  // Settings — SEO
+  "settings.seoSection": "SEO 增强",
+  "settings.pagespeedKey": "Google PageSpeed API Key",
+  "settings.pagespeedHint": "无密钥也可使用，但有速率限制。",
+  "settings.pagespeedNotConfigured": "PageSpeed API 密钥未设置（限速模式）",
+
+  // Settings — SERP
+  "settings.serpSection": "SERP 排名追踪",
+  "settings.dataforseoLogin": "DataForSEO 登录名",
+  "settings.dataforseoPassword": "DataForSEO 密码",
+  "settings.dataforseoHint": "关键词排名数据的替代来源（默认使用 Google 爬取）。",
+  "settings.dataforseoNotConfigured": "DataForSEO 未配置（使用 Google 爬取）",
+
+  // Settings — Email
+  "settings.emailSection": "邮件报告",
+  "settings.smtpHost": "SMTP 服务器",
+  "settings.smtpPort": "SMTP 端口",
+  "settings.smtpUser": "SMTP 用户名",
+  "settings.smtpPass": "SMTP 密码",
+  "settings.reportEmail": "报告接收邮箱",
+  "settings.reportEmailHint": "接收监控报告的邮箱地址。",
+  "settings.emailConfigured": "邮件已配置",
+  "settings.emailNotConfigured": "邮件未配置",
 
   // Schedule presets
   "schedule.label": "监控频率",

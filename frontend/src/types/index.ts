@@ -45,12 +45,64 @@ export interface TaskRecord {
   completed_at: string | null;
   error: string | null;
   progress: AnalysisProgress[];
+  run_id?: number | null;
+  summary?: string;
+  findings_count?: number;
+  recommendations_count?: number;
 }
 
 export interface AnalysisProgress {
-  role: string;
-  content: string;
-  round: number;
+  role?: string;
+  content?: string;
+  round?: number;
+  stage?: string;
+  status?: "started" | "running" | "completed" | "failed";
+  agent?: string;
+  summary?: string;
+  detail?: string;
+}
+
+export interface Finding {
+  domain: string;
+  severity: "critical" | "warning" | "info";
+  title: string;
+  summary: string;
+  confidence: number | null;
+  evidence_refs: Array<{
+    domain: string;
+    source: string;
+    key: string;
+    value: string;
+    url?: string | null;
+  }>;
+}
+
+export interface Recommendation {
+  domain: string;
+  priority: "high" | "medium" | "low";
+  owner_type: string;
+  action_type: string;
+  title: string;
+  summary: string;
+  rationale: string;
+  confidence: number | null;
+  evidence_refs: Array<{
+    domain: string;
+    source: string;
+    key: string;
+    value: string;
+    url?: string | null;
+  }>;
+}
+
+export interface MonitoringSummary {
+  run_id: number;
+  status: "pending" | "running" | "completed" | "failed";
+  summary: string;
+  created_at: string;
+  completed_at: string | null;
+  findings_count: number;
+  recommendations_count: number;
 }
 
 export interface SeoScan {
@@ -162,6 +214,7 @@ export interface ProjectSummary {
     seo?: { scanned_at: string; score: number | null };
     geo?: { scanned_at: string; score: number };
   } | null;
+  latest_monitoring?: MonitoringSummary | null;
 }
 
 export interface ChatSessionSummary {
@@ -176,7 +229,29 @@ export interface AISettings {
   api_key_masked: string;
   base_url: string;
   model: string;
+  // Reddit
   reddit_configured: boolean;
   reddit_username: string;
   auto_publish: boolean;
+  // Twitter
+  twitter_configured: boolean;
+  twitter_api_key_masked: string;
+  // GEO
+  anthropic_key_set: boolean;
+  anthropic_key_masked: string;
+  google_ai_key_set: boolean;
+  google_ai_key_masked: string;
+  geo_chatgpt_enabled: boolean;
+  // SEO
+  pagespeed_key_set: boolean;
+  pagespeed_key_masked: string;
+  // SERP
+  dataforseo_configured: boolean;
+  dataforseo_login: string;
+  // Email
+  email_configured: boolean;
+  smtp_host: string;
+  smtp_port: string;
+  smtp_user: string;
+  report_email: string;
 }

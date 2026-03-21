@@ -18,13 +18,13 @@ export function ProjectPage() {
   if (error) return <ErrorAlert message={error.message} />;
   if (!data) return <ErrorAlert message={t("common.projectNotFound")} />;
 
-  const { project, latest, previous } = data;
+  const { project, latest, previous, latest_monitoring } = data;
 
   return (
     <div>
       <ProjectHeader project={project} />
       <ProjectTabs projectId={projectId} />
-      <ScorePanel latest={latest} previous={previous} />
+      <ScorePanel latest={latest} previous={previous} latestMonitoring={latest_monitoring} />
       <ScanHistoryTable latest={latest} />
     </div>
   );

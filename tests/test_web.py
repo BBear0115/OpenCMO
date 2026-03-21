@@ -169,6 +169,7 @@ def test_api_v1_projects_crud(client):
     resp = client.get(f"/api/v1/projects/{pid}/summary")
     assert resp.status_code == 200
     assert "latest" in resp.json()
+    assert "latest_monitoring" in resp.json()
 
     # 404
     resp = client.get("/api/v1/projects/9999")
@@ -231,6 +232,53 @@ def test_api_v1_monitor_run_conflict(client):
 
     resp = client.post(f"/api/v1/monitors/{mid}/run")
     assert resp.status_code == 409
+
+
+def test_api_v1_task_artifacts_endpoints(client):
+    pid = _seed_project()
+    run_id = asyncio.run(storage.create_scan_run("task_artifacts_1", 1, pid, "full"))
+    asyncio.run(storage.replace_scan_artifacts(
+        run_id,
+        [{
+            "domain": "seo",
+            "severity": "warning",
+            "title": "Weak SEO baseline",
+            "summary": "No strong rankings yet.",
+            "confidence": 0.8,
+            "evidence_refs": [],
+        }],
+        [{
+            "domain": "seo",
+            "priority": "high",
+            "owner_type": "content",
+            "action_type": "build_rankable_content",
+            "title": "Build comparison pages",
+            "summary": "Create pages for tracked keywords.",
+            "rationale": "Needed for rankings.",
+            "confidence": 0.75,
+            "evidence_refs": [],
+        }],
+    ))
+
+    task_registry._tasks["task_artifacts_1"] = task_registry.TaskRecord(
+        task_id="task_artifacts_1",
+        monitor_id=1,
+        project_id=pid,
+        job_type="full",
+        status="completed",
+        run_id=run_id,
+        summary="done",
+        findings_count=1,
+        recommendations_count=1,
+    )
+
+    resp = client.get("/api/v1/tasks/task_artifacts_1/findings")
+    assert resp.status_code == 200
+    assert resp.json()[0]["title"] == "Weak SEO baseline"
+
+    resp = client.get("/api/v1/tasks/task_artifacts_1/recommendations")
+    assert resp.status_code == 200
+    assert resp.json()[0]["title"] == "Build comparison pages"
 
 
 # ---------------------------------------------------------------------------

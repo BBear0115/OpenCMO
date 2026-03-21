@@ -35,7 +35,7 @@ export function ChatInput({
   };
 
   return (
-    <div className="mt-3 flex items-end gap-2">
+    <div className="mt-4 flex items-end relative bg-slate-50 rounded-[1.5rem] ring-1 ring-slate-200/60 p-1 transition-shadow focus-within:ring-slate-300 focus-within:shadow-sm">
       <textarea
         ref={textareaRef}
         value={value}
@@ -45,14 +45,14 @@ export function ChatInput({
         disabled={disabled}
         placeholder={t("chat.placeholder")}
         rows={1}
-        className="max-h-32 flex-1 resize-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm transition-shadow placeholder:text-slate-400 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100 disabled:opacity-50"
+        className="max-h-48 flex-1 resize-none bg-transparent px-4 py-3 text-[15px] text-slate-800 placeholder:text-slate-400 focus:outline-none disabled:opacity-50"
       />
       <button
         onClick={handleSubmit}
         disabled={disabled || !value.trim()}
-        className="flex h-11 w-11 items-center justify-center rounded-2xl bg-indigo-600 text-white shadow-sm transition-all hover:bg-indigo-700 hover:shadow-md disabled:opacity-50"
+        className="mb-1 mr-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-900 text-white shadow-sm transition-transform hover:scale-105 active:scale-95 disabled:opacity-40 disabled:hover:scale-100"
       >
-        <Send size={16} />
+        <Send size={16} className="-ml-0.5" />
       </button>
     </div>
   );

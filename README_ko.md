@@ -2,69 +2,302 @@
   <img src="assets/logo.png" alt="OpenCMO Logo" width="120" />
 </div>
 
-<h1 align="center">🚀 OpenCMO</h1>
+<h1 align="center">OpenCMO</h1>
 
 <p align="center">
-  <strong>오픈 소스 AI 마케팅 최고 책임자(CMO) — 단 하나의 도구로 완성하는 마케팅 팀.</strong><br/>
-  <sub>10명의 엘리트 AI 전문가, 실시간 전략 모니터링, 그리고 멋진 모던 웹 인터페이스를 갖춘 강력한 시스템입니다.</sub>
+  <strong>오픈소스 AI 최고 마케팅 책임자 — 하나의 도구로 완성하는 전담 마케팅 팀</strong><br/>
+  <sub>25명 이상의 전문 AI 에이전트, SEO/GEO/SERP/커뮤니티 실시간 모니터링, 인터랙티브 3D 지식 그래프를 갖춘 강력한 멀티 에이전트 시스템.</sub>
 </p>
 
 <div align="center">
-  <a href="README.md">🇺🇸 English</a> | <a href="README_zh.md">🇨🇳 中文</a> | <a href="README_ja.md">🇯🇵 日本語</a> | <a href="README_ko.md">🇰🇷 한국어</a> | <a href="README_es.md">🇪🇸 Español</a>
+  <a href="README.md">English</a> | <a href="README_zh.md">中文</a> | <a href="README_ja.md">日本語</a> | <a href="README_ko.md">한국어</a> | <a href="README_es.md">Español</a>
 </div>
 
 <p align="center">
   <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.10+-blue.svg?style=for-the-badge&logo=python" alt="Python 3.10+"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache%202.0-green.svg?style=for-the-badge" alt="License"></a>
   <a href="https://github.com/study8677/OpenCMO/stargazers"><img src="https://img.shields.io/github/stars/study8677/OpenCMO?style=for-the-badge&color=yellow&logo=github" alt="Stars"></a>
-  <img src="https://img.shields.io/badge/react-SPA-61DAFB.svg?style=for-the-badge&logo=react" alt="React SPA Component">
+  <img src="https://img.shields.io/badge/react-SPA-61DAFB.svg?style=for-the-badge&logo=react" alt="React SPA">
 </p>
 
 ---
 
-## 🌟 OpenCMO란 무엇인가요?
+## OpenCMO란?
 
-OpenCMO는 인디 해커, 스타트업 및 소규모 팀을 위한 **멀티 에이전트 AI 마케팅 에코시스템**입니다. 제품의 URL만 제공하면 OpenCMO가 다음과 같이 도와줍니다:
-1. 제품과 대상을 이해하기 위해 **웹사이트를 심층적으로 분석**합니다.
-2. 최적의 키워드 및 타겟 커뮤니티를 찾기 위해 **멀티 에이전트 전략 토론**을 진행합니다.
-3. SEO, AI 검색 노출(GEO) 및 커뮤니티(Reddit, Hacker News 등) 전반의 **지속적인 모니터링을 자동화**합니다.
+OpenCMO는 인디 해커, 스타트업, 소규모 팀을 위한 **멀티 에이전트 AI 마케팅 에코시스템**입니다. 제품 URL만 입력하면 OpenCMO가 다음을 수행합니다:
+
+1. **웹사이트 심층 분석** — 제품 특성과 타겟 오디언스를 파악합니다.
+2. **멀티 에이전트 전략 토론 진행** — 최적의 키워드, 포지셔닝, 타겟 커뮤니티를 식별합니다.
+3. **지속적 모니터링 자동화** — SEO, AI 검색 가시성(GEO), SERP 키워드 순위, 개발자 커뮤니티(Reddit, Hacker News, Dev.to)를 포괄합니다.
+4. **20개 이상의 플랫폼용 콘텐츠 생성** — Reddit과 Twitter 자동 게시를 지원합니다.
 
 ---
 
-## 🕸️ 인터랙티브 지식 그래프 (Knowledge Graph)
+## 인터페이스 및 사용자 경험
 
-OpenCMO는 추상적인 마케팅 데이터를 눈부신 3D 네트워크 다이어그램으로 변환합니다.
+글래스모피즘 디자인의 모던한 React SPA. 최대한의 가시성과 제어력을 제공합니다.
 
 <div align="center">
-  <img src="assets/knowledge_graph_demo.png" alt="Marketing Knowledge Graph" width="850" style="border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.5);" />
+  <img src="assets/screenshots/dashboard-full.png" alt="OpenCMO Dashboard" width="850" />
+  <p><i>실시간 프로젝트 대시보드 — SEO, GEO(AI 가시성), SERP 순위, 커뮤니티 참여도를 한눈에 확인.</i></p>
 </div>
-
-- 🔵 **다이나믹 탐색**: 브랜드를 둘러싼 여러 요소들을 줌/드래그하여 탐색할 수 있습니다.
-- 🟢 **6가지 노드 차원**: 브랜드(보라), 키워드(청록), 토론(주황), SERP 랭킹(초록), 경쟁사(빨강) 등을 시각적으로 구별합니다.
-- ⚡ **실시간 동기화**: 백그라운드 스크래핑이 완료될 때마다 30초마다 갱신됩니다.
 
 ---
 
-## ⚙️ 빠른 시작 가이드 (Quick Start)
+## 인터랙티브 지식 그래프
+
+**지식 그래프**는 마케팅 인텔리전스의 핵심 — 전체 마케팅 에코시스템을 시각화하는 인터랙티브 3D 포스 다이렉티드 네트워크입니다.
+
+<div align="center">
+  <img src="assets/screenshots/graph-page.png" alt="3D Knowledge Graph" width="850" />
+  <p><i>브랜드, 키워드, 커뮤니티 토론, 경쟁사, SERP 순위를 연결하는 동적 3D 네트워크 맵.</i></p>
+</div>
+
+**핵심 기능:**
+- **인터랙티브 탐색** — 줌, 드래그, 팬으로 브랜드의 디지털 영역을 탐색합니다.
+- **6가지 노드 차원** — 브랜드(보라), 키워드(청록), 커뮤니티 토론(호박), SERP 순위(초록), 경쟁사(빨강), 중복 키워드(주황).
+- **경쟁 인텔리전스** — 경쟁사 URL을 추가하여 빨간 점선으로 공유 전장을 시각화합니다.
+- **실시간 동기화** — 새로운 인사이트 발견 시 30초마다 그래프를 자동 업데이트합니다.
+- **AI 기반 경쟁사 발견** — 경쟁사를 자동 식별하고 키워드 중복을 추적합니다.
+
+---
+
+## 기능 하이라이트
+
+### SEO 감사
+
+Google PageSpeed Insights API를 활용하여 성능 점수, Core Web Vitals(LCP, CLS, TBT), Schema.org, robots.txt, 사이트맵을 지속적으로 감사합니다.
+
+<div align="center">
+  <img src="assets/screenshots/seo-page.png" alt="SEO Audit Dashboard" width="850" />
+  <p><i>성능 추이 차트와 Core Web Vitals 상세 분석.</i></p>
+</div>
+
+### GEO 감지 (AI 검색 가시성)
+
+Perplexity, You.com, ChatGPT, Claude, Gemini에서 브랜드의 AI 검색 엔진 가시성을 모니터링합니다.
+
+<div align="center">
+  <img src="assets/screenshots/geo-page.png" alt="GEO Visibility Tracking" width="850" />
+  <p><i>AI 검색 플랫폼에서의 브랜드 가시성 점수 추이.</i></p>
+</div>
+
+### SERP 트래킹
+
+타겟 키워드의 검색 순위를 지속적으로 추적합니다. 웹 크롤링 또는 DataForSEO API를 지원합니다.
+
+<div align="center">
+  <img src="assets/screenshots/serp-page.png" alt="SERP Keyword Rankings" width="850" />
+  <p><i>키워드 포지션 목록과 순위 이력 차트.</i></p>
+</div>
+
+### 커뮤니티 모니터링
+
+Reddit, Hacker News, Dev.to에서 브랜드 언급과 관련 토론을 자동 스캔합니다.
+
+<div align="center">
+  <img src="assets/screenshots/community-page.png" alt="Community Monitoring" width="850" />
+  <p><i>플랫폼 전반의 스캔 이력과 추적 중인 토론.</i></p>
+</div>
+
+---
+
+## AI 마케팅 팀
+
+OpenCMO에는 **25명 이상의 전문 AI 에이전트**가 탑재되어 있으며, 3개 카테고리로 구성됩니다:
+
+### 마켓 인텔리전스 에이전트
+
+| 에이전트 | 담당 영역 |
+| :--- | :--- |
+| **CMO 에이전트** | 오케스트레이터. 태스크를 최적의 전문가에게 자동 라우팅. |
+| **SEO 감사관** | Google PageSpeed API로 Core Web Vitals, Schema.org, robots.txt, 사이트맵 감사. |
+| **GEO 전문가** | Perplexity, You.com, ChatGPT, Claude, Gemini에서 브랜드 가시성 모니터링. |
+| **커뮤니티 레이더** | Reddit, Hacker News, Dev.to에서 브랜드 언급과 관련 토론 스캔. |
+
+### 콘텐츠 제작 에이전트 (글로벌)
+
+| 에이전트 | 대상 플랫폼 |
+| :--- | :--- |
+| **Twitter/X 전문가** | 트윗, 훅, 바이럴 스레드 |
+| **Reddit 전략가** | 자연스러운 게시물과 서브레딧 스마트 댓글 |
+| **LinkedIn 프로** | 전문적인 소트 리더십 게시물 |
+| **Product Hunt 전문가** | 태그라인, 설명, 메이커 코멘트 |
+| **Hacker News 포맷터** | 기술적인 "Show HN" 게시물 |
+| **Blog/SEO 라이터** | 2000단어 이상의 SEO 최적화 장문 기사 |
+| **Dev.to 전문가** | 개발자 커뮤니티 기사 |
+
+### 콘텐츠 제작 에이전트 (중국어 플랫폼)
+
+| 에이전트 | 대상 플랫폼 |
+| :--- | :--- |
+| **知乎 전문가** | 知乎 Q&A 플랫폼 |
+| **小红书 전문가** | RED(小红书) 소셜 커머스 |
+| **V2EX 전문가** | V2EX 개발자 포럼 |
+| **掘金 전문가** | 掘金 개발자 커뮤니티 |
+| **即刻 전문가** | 即刻 소셜 플랫폼 |
+| **微信 전문가** | 微信 에코시스템 |
+| **OSChina 전문가** | 开源中国 |
+| **GitCode 전문가** | GitCode 오픈소스 플랫폼 |
+| **少数派 전문가** | SSPAI 생산성 |
+| **InfoQ 전문가** | InfoQ China 테크 미디어 |
+| **阮一峰 위클리** | 阮一峰 과학기술 애호자 주간 투고 포맷 |
+
+---
+
+## 플랫폼 연동
+
+모든 연동은 웹 대시보드의 **설정 패널**에서 직접 구성 가능 — `.env` 파일 수동 편집이 필요 없습니다.
+
+<div align="center">
+  <img src="assets/screenshots/settings-panel.png" alt="Settings Panel" width="600" />
+  <p><i>통합 설정 패널 — 모든 API 키와 플랫폼 연동을 Web UI에서 설정.</i></p>
+</div>
+
+### 모니터링 및 분석 (자동)
+
+| 기능 | 플랫폼 | 방식 |
+| :--- | :--- | :--- |
+| **커뮤니티 모니터링** | Reddit, Hacker News, Dev.to | 공개 API (인증 불필요) |
+| **GEO 감지** | Perplexity, You.com | 웹 크롤링 (인증 불필요) |
+| **GEO 감지** | ChatGPT, Claude, Gemini | API 호출 (설정에서 키 구성) |
+| **SEO 감사** | Google PageSpeed Insights | HTTP API (선택적 키로 한도 증가) |
+| **SERP 트래킹** | Google, DataForSEO | 웹 크롤링 또는 DataForSEO API |
+
+### 퍼블리싱 (사용자 제어)
+
+| 플랫폼 | 방식 | 설정 |
+| :--- | :--- | :--- |
+| **Reddit** | PRAW (게시 + 댓글) | 설정에서 Reddit 앱 인증 정보 구성 |
+| **Twitter/X** | Tweepy (트윗) | 설정에서 Twitter API 인증 정보 구성 |
+
+### 리포팅
+
+| 기능 | 방식 | 설정 |
+| :--- | :--- | :--- |
+| **이메일 리포트** | SMTP | 설정에서 SMTP 인증 정보 구성 |
+
+> 기타 에이전트(LinkedIn, Product Hunt, 중국어 플랫폼 등)는 바로 사용 가능한 콘텐츠를 생성합니다. 대상 플랫폼에 복사하여 붙여넣기만 하면 됩니다.
+
+---
+
+## 멀티 에이전트 토론의 작동 원리
+
+URL을 제출하면 OpenCMO는 전문 에이전트들의 **3라운드 협력 토론**을 진행합니다:
+
+```mermaid
+sequenceDiagram
+    participant PA as 프로덕트 애널리스트
+    participant SEO as SEO 스페셜리스트
+    participant CS as 커뮤니티 스트래티지스트
+    participant SD as 전략 디렉터
+
+    Note over PA,CS: 라운드 1 — 독립 분석
+    PA->>PA: 제품, 기능, 오디언스 식별
+    SEO->>SEO: 검색 키워드와 경쟁 용어 제안
+    CS->>CS: 커뮤니티 토픽과 플랫폼 제안
+
+    Note over PA,CS: 라운드 2 — 협력적 정제
+    PA->>SEO: 제품 인사이트 공유
+    SEO->>CS: 키워드 전략 공유
+    CS->>PA: 커뮤니티 페인 포인트 피드백
+
+    Note over SD: 라운드 3 — 경영진 합의
+    SD->>SD: 토론 내용을 종합하여<br/>최종 브랜드 전략을 수립
+```
+
+에이전트들이 서로의 분석을 읽고 반응하게 함으로써, 단일 AI 응답보다 훨씬 풍부한 전략을 도출합니다.
+
+<div align="center">
+  <img src="assets/screenshots/multi-agent-discussion.png" alt="Multi-Agent Discussion" width="850" />
+  <p><i>멀티 에이전트 분석 토론 — 여러 전문 에이전트가 실시간으로 협력.</i></p>
+</div>
+
+---
+
+## AI 채팅 인터페이스A
+
+25명 이상의 전문 에이전트와 직접 대화하세요. CMO 에이전트가 자동으로 최적의 전문가에게 라우팅합니다. SSE 스트리밍을 통한 실시간 응답.
+
+<div align="center">
+  <img src="assets/screenshots/chat-interface.png" alt="AI Chat Interface" width="850" />
+  <p><i>전문가 선택 그리드와 스트리밍 채팅 — 마케팅 전문가에게 언제든지 접근.</i></p>
+</div>
+
+---
+
+## 빠른 시작 가이드
+
+OpenCMO는 모든 OpenAI 호환 API를 지원합니다 (**OpenAI, DeepSeek, NVIDIA NIM, Ollama** 등).
+
+### 1. 설치
 
 ```bash
 git clone https://github.com/study8677/OpenCMO.git
 cd OpenCMO
 
-# 의존성 설치
+# 모든 Python 의존성 설치
 pip install -e ".[all]"
 
-# 환경 변수 설정
-cp .env.example .env
+# 크롤러 초기 설정
+crawl4ai-setup
+```
 
-# 웹 대시보드 실행
+### 2. 설정
+
+```bash
+cp .env.example .env
+```
+`.env`에 프로바이더 인증 정보를 설정합니다. *OpenAI 예시:*
+```env
+OPENAI_API_KEY=sk-yourAPIKeyHere
+OPENCMO_MODEL_DEFAULT=gpt-4o
+```
+
+> **팁:** 웹 대시보드의 **설정** 패널에서 모든 API 키를 직접 구성할 수도 있습니다. 초기 설정 후에는 `.env` 수동 편집이 필요하지 않습니다.
+
+### 3. 대시보드 실행
+
+```bash
 opencmo-web
 ```
-🚀 브라우저에서 [http://localhost:8080/app](http://localhost:8080/app) 접속!
+브라우저에서 [http://localhost:8080/app](http://localhost:8080/app) 을 엽니다.
+
+> *터미널 선호? `opencmo`를 실행하면 인터랙티브 CLI 챗봇 모드를 이용할 수 있습니다.*
+
+### 4. 프론트엔드 개발 (선택)
+
+```bash
+cd frontend
+npm install
+npm run dev     # 개발 서버 localhost:5173 (API를 :8080으로 프록시)
+npm run build   # 프로덕션 빌드
+```
+
+---
+
+## 로드맵
+
+- [x] **25명 이상의 AI 마케팅 전문가** — 채팅과 인텔리전트 라우팅
+- [x] **멀티 에이전트 URL 분석** — 협력 토론을 통한 분석
+- [x] **React SPA** — 다국어 지원 (EN/ZH)
+- [x] **API 비종속** — OpenAI, Anthropic, DeepSeek, NVIDIA, Ollama
+- [x] **인터랙티브 3D 지식 그래프** — 경쟁 인텔리전스 포함
+- [x] **커뮤니티 모니터링** — Reddit, Hacker News, Dev.to
+- [x] **GEO 감지** — Perplexity, You.com, ChatGPT, Claude, Gemini
+- [x] **SEO 감사** — Core Web Vitals, Schema.org, robots.txt
+- [x] **SERP 트래킹** — 키워드 순위 모니터링
+- [x] **자동 게시** — Reddit (게시 + 댓글)과 Twitter
+- [x] **이메일 리포트** — SMTP 전송
+- [x] **AI 기반 경쟁사 발견** — 키워드 중복 분석
+- [x] **통합 설정 패널** — Web UI에서 모든 API 키 설정
+- [ ] LinkedIn, Product Hunt 등 직접 게시
+- [ ] 커스텀 브랜드 보이스 파인 튜닝
+- [ ] 엔터프라이즈급 전체 사이트 SEO 크롤
 
 ---
 
 <p align="center">
-  Made with ❤️ by the Open Source Community. <br/>
-  <b>OpenCMO가 도움이 되었다면 GitHub에서 ⭐를 눌러주세요!</b>
+  오픈소스 커뮤니티가 정성을 다해 만들었습니다.<br/>
+  <b>OpenCMO가 도움이 되셨다면, GitHub에서 스타를 눌러주세요!</b>
 </p>

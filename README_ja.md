@@ -2,96 +2,301 @@
   <img src="assets/logo.png" alt="OpenCMO Logo" width="120" />
 </div>
 
-<h1 align="center">🚀 OpenCMO</h1>
+<h1 align="center">OpenCMO</h1>
 
 <p align="center">
-  <strong>オープンソースAI最高マーケティング責任者(CMO) — 1つのツールがあなたの専属チームに。</strong><br/>
-  <sub>10人のエリートAI専門家、リアルタイム監視、そして美しい最新のWebダッシュボードを備えた強力なマルチエージェントシステム。</sub>
+  <strong>オープンソース AI 最高マーケティング責任者 — 1つのツールで完結する、あなた専属のマーケティングチーム</strong><br/>
+  <sub>25名以上の専門AIエージェント、SEO/GEO/SERP/コミュニティのリアルタイム監視、インタラクティブ3Dナレッジグラフを搭載した強力なマルチエージェントシステム。</sub>
 </p>
 
 <div align="center">
-  <a href="README.md">🇺🇸 English</a> | <a href="README_zh.md">🇨🇳 中文</a> | <a href="README_ja.md">🇯🇵 日本語</a> | <a href="README_ko.md">🇰🇷 한국어</a> | <a href="README_es.md">🇪🇸 Español</a>
+  <a href="README.md">English</a> | <a href="README_zh.md">中文</a> | <a href="README_ja.md">日本語</a> | <a href="README_ko.md">한국어</a> | <a href="README_es.md">Español</a>
 </div>
 
 <p align="center">
   <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.10+-blue.svg?style=for-the-badge&logo=python" alt="Python 3.10+"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache%202.0-green.svg?style=for-the-badge" alt="License"></a>
-  <a href="https://github.com/study8677/OpenCMO/stargazers"><img src="https://img.shields.io/github/stars/study8677/OpenCMO?style=for-the-badge&color=yellow&logo=github" alt="Stars"></a>
-  <img src="https://img.shields.io/badge/react-SPA-61DAFB.svg?style=for-the-badge&logo=react" alt="React SPA Component">
+  <a href="https://github.com/study8677/OpenCMO/stargazers"><img src="https://img.shields.io/badge/react-SPA-61DAFB.svg?style=for-the-badge&logo=react" alt="React SPA"></a>
 </p>
 
 ---
 
-## 🌟 OpenCMOとは？
+## OpenCMOとは？
 
-OpenCMOは、インディーハッカーやスモールチーム向けに調整された**マルチエージェントAIマーケティング・エコシステム**です。URLを提供するだけで、OpenCMOが次を行います：
-1. 製品とオーディエンスを理解するため**ウェブサイトを深く分析**。
-2. 最高のキーワード、ポジショニングを見つけるため**マルチエージェント戦略会議を主催**。
-3. SEO、AI検索可視性（GEO）、およびコミュニティ（Reddit、Hacker News、Dev.to）における**継続的監視を自動化**。
+OpenCMOは、インディーハッカー、スタートアップ、少人数チームのための**マルチエージェントAIマーケティングエコシステム**です。製品のURLを入力するだけで、OpenCMOが以下を実行します：
+
+1. **ウェブサイトを深層分析** — 製品特性とターゲットオーディエンスを把握。
+2. **マルチエージェント戦略ディベート** — 最適なキーワード、ポジショニング、ターゲットコミュニティを特定。
+3. **継続的モニタリングを自動化** — SEO、AI検索可視性（GEO）、SERPキーワードランキング、開発者コミュニティ（Reddit、Hacker News、Dev.to）を網羅。
+4. **20以上のプラットフォーム向けコンテンツ生成** — RedditとTwitterへの自動投稿にも対応。
 
 ---
 
-## ✨ インターフェースと体験
+## インターフェースとユーザー体験
 
-暗いテーマの美しいReact SPAダッシュボードで、最大限の明確さとコントロールを提供します。
+グラスモーフィズムデザインを採用したモダンなReact SPA。最大限の視認性とコントロールを実現。
 
 <div align="center">
-  <img src="assets/screenshots/dashboard-full.png" alt="OpenCMO Dashboard Overview" width="850" style="border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.3);" />
-  <p><i>リアルタイムダッシュボード — SEOやコミュニティエンゲージメントを一目で追跡。</i></p>
+  <img src="assets/screenshots/dashboard-full.png" alt="OpenCMO Dashboard" width="850" />
+  <p><i>リアルタイムプロジェクトダッシュボード — SEO、GEO（AI可視性）、SERPランキング、コミュニティエンゲージメントを一目で把握。</i></p>
 </div>
 
 ---
 
-## 🕸️ インタラクティブ・ナレッジグラフ
+## インタラクティブ・ナレッジグラフ
 
-提供データを動的で美しい**力学モデルによるネットワーク図**（ナレッジグラフ）へと変換します。
+**ナレッジグラフ**はマーケティングインテリジェンスの中核 — マーケティングエコシステム全体を可視化するインタラクティブ3Dフォースダイレクテッドネットワーク。
 
 <div align="center">
-  <img src="assets/knowledge_graph_demo.png" alt="Marketing Knowledge Graph" width="850" style="border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.5);" />
+  <img src="assets/screenshots/graph-page.png" alt="3D Knowledge Graph" width="850" />
+  <p><i>ブランド、キーワード、コミュニティ討論、競合他社、SERPランキングを結ぶ動的3Dネットワークマップ。</i></p>
 </div>
 
-### ゲームチェンジャーである理由：
-- 🔵 **インタラクティブ探索**: ズームとドラッグでマーケティング宇宙を探索。
-- 🟢 **6つのノード次元**: ブランド（紫）、キーワード（シアン）、コミュニティの議論（琥珀）、検索順位（緑）、競合（赤）、重複するキーワード（オレンジ）を可視化。
-- ⚡ **リアルタイム同期**: 新しい洞察が抽出されると30秒ごとに自動更新。
+**主要機能：**
+- **インタラクティブ探索** — ズーム、ドラッグ、パンでブランドのデジタル空間を探索。
+- **6つのノード次元** — ブランド（紫）、キーワード（シアン）、コミュニティ討論（アンバー）、SERP順位（グリーン）、競合（レッド）、重複キーワード（オレンジ）。
+- **競合インテリジェンス** — 競合URLを追加し、赤い点線で共通の戦場を可視化。
+- **リアルタイム同期** — 新しい洞察発見のたびに30秒ごとにグラフを自動更新。
+- **AI駆動の競合発見** — 競合を自動識別し、キーワードの重複を追跡。
 
 ---
 
-## 👥 あなたのAIマーケティングチーム
+## 機能ハイライト
 
-| 役割 | 専門性 | 責任 |
+### SEO監査
+
+Googleの PageSpeed Insights API を活用し、パフォーマンススコア、Core Web Vitals（LCP、CLS、TBT）、Schema.org、robots.txt、サイトマップを継続的に監査。
+
+<div align="center">
+  <img src="assets/screenshots/seo-page.png" alt="SEO Audit Dashboard" width="850" />
+  <p><i>パフォーマンス推移チャートとCore Web Vitalsの詳細分析。</i></p>
+</div>
+
+### GEO検出（AI検索可視性）
+
+Perplexity、You.com、ChatGPT、Claude、GeminiにおけるブランドのAI検索エンジン可視性を監視。
+
+<div align="center">
+  <img src="assets/screenshots/geo-page.png" alt="GEO Visibility Tracking" width="850" />
+  <p><i>AI検索プラットフォームにおけるブランド可視性スコアの推移。</i></p>
+</div>
+
+### SERPトラッキング
+
+ターゲットキーワードの検索順位を継続追跡。ウェブクローリングまたはDataForSEO APIに対応。
+
+<div align="center">
+  <img src="assets/screenshots/serp-page.png" alt="SERP Keyword Rankings" width="850" />
+  <p><i>キーワードポジション一覧と順位履歴チャート。</i></p>
+</div>
+
+### コミュニティモニタリング
+
+Reddit、Hacker News、Dev.toでのブランド言及と関連ディスカッションを自動スキャン。
+
+<div align="center">
+  <img src="assets/screenshots/community-page.png" alt="Community Monitoring" width="850" />
+  <p><i>プラットフォーム横断のスキャン履歴とトラッキング中のディスカッション。</i></p>
+</div>
+
+---
+
+## AIマーケティングチーム
+
+OpenCMOには**25名以上の専門AIエージェント**が搭載されており、3つのカテゴリに分類されます：
+
+### マーケットインテリジェンスエージェント
+
+| エージェント | 担当領域 |
+| :--- | :--- |
+| **CMOエージェント** | オーケストレーター。タスクを最適なエキスパートに自動ルーティング。 |
+| **SEO監査エージェント** | Google PageSpeed APIでCore Web Vitals、Schema.org、robots.txt、サイトマップを監査。 |
+| **GEOスペシャリスト** | Perplexity、You.com、ChatGPT、Claude、Geminiでのブランド可視性を監視。 |
+| **コミュニティレーダー** | Reddit、Hacker News、Dev.toでブランド言及と関連ディスカッションをスキャン。 |
+
+### コンテンツ作成エージェント（グローバル）
+
+| エージェント | 対象プラットフォーム |
+| :--- | :--- |
+| **Twitter/X エキスパート** | ツイート、フック、バイラルスレッド |
+| **Reddit ストラテジスト** | 自然な投稿とサブレディットへのスマートリプライ |
+| **LinkedIn プロ** | プロフェッショナルなソートリーダーシップ投稿 |
+| **Product Hunt エキスパート** | タグライン、説明文、メーカーコメント |
+| **Hacker News フォーマッター** | テクニカルな "Show HN" 投稿 |
+| **Blog/SEO ライター** | 2000語以上のSEO最適化長文記事 |
+| **Dev.to エキスパート** | 開発者コミュニティ向け記事 |
+
+### コンテンツ作成エージェント（中国語プラットフォーム）
+
+| エージェント | 対象プラットフォーム |
+| :--- | :--- |
+| **知乎エキスパート** | 知乎 Q&Aプラットフォーム |
+| **小紅書エキスパート** | RED（小紅書）ソーシャルコマース |
+| **V2EX エキスパート** | V2EX 開発者フォーラム |
+| **掘金エキスパート** | 掘金 開発者コミュニティ |
+| **即刻エキスパート** | 即刻 ソーシャルプラットフォーム |
+| **微信エキスパート** | 微信エコシステム |
+| **OSChina エキスパート** | 開源中国 |
+| **GitCode エキスパート** | GitCode オープンソースプラットフォーム |
+| **少数派エキスパート** | SSPAI プロダクティビティ |
+| **InfoQ エキスパート** | InfoQ China テックメディア |
+| **阮一峰ウィークリー** | 阮一峰科技愛好者週刊 投稿フォーマット |
+
+---
+
+## プラットフォーム連携
+
+すべての連携はWebダッシュボードの**設定パネル**から直接設定可能 — `.env`ファイルの手動編集は不要です。
+
+<div align="center">
+  <img src="assets/screenshots/settings-panel.png" alt="Settings Panel" width="600" />
+  <p><i>統合設定パネル — すべてのAPIキーとプラットフォーム連携をWeb UIから設定。</i></p>
+</div>
+
+### モニタリングと分析（自動）
+
+| 機能 | プラットフォーム | 方式 |
 | :--- | :--- | :--- |
-| **👔 CMOエージェント** | 全体統括 | 最適な専門家へのタスクの割り当て。 |
-| **🐦 Twitter/X 専門家** | マイクロブログ | 魅力的なツイートとスレッドの作成。 |
-| **👽 Reddit 戦略家**| コミュニティ | ライブなサブレディット向けの自然な投稿と返信。 |
-| **💼 LinkedIn プロ** | B2B | 専門的な思考のリーダーシップ投稿。 |
-| **💻 Hacker News** | ギーク | 技術的な "Show HN" 投稿の作成。 |
-| **📝 Blog/SEO**| 長文コンテンツ | 2000語以上のSEO最適化記事の執筆。 |
-| **🔍 SEO監査役** | テクニカルSEO | Core Web Vitalsやサイトマップの監査。 |
-| **🤖 GEO専門家** | 生成AI | ChatGPTやClaudeにおけるブランド言及の監視。 |
+| **コミュニティ監視** | Reddit, Hacker News, Dev.to | パブリックAPI（認証不要） |
+| **GEO検出** | Perplexity, You.com | ウェブクローリング（認証不要） |
+| **GEO検出** | ChatGPT, Claude, Gemini | API呼び出し（設定でキーを構成） |
+| **SEO監査** | Google PageSpeed Insights | HTTP API（オプションキーで上限増加） |
+| **SERPトラッキング** | Google, DataForSEO | ウェブクローリングまたはDataForSEO API |
+
+### パブリッシング（ユーザー制御）
+
+| プラットフォーム | 方式 | セットアップ |
+| :--- | :--- | :--- |
+| **Reddit** | PRAW（投稿＋リプライ） | 設定でRedditアプリ認証情報を構成 |
+| **Twitter/X** | Tweepy（ツイート） | 設定でTwitter API認証情報を構成 |
+
+### レポーティング
+
+| 機能 | 方式 | セットアップ |
+| :--- | :--- | :--- |
+| **メールレポート** | SMTP | 設定でSMTP認証情報を構成 |
+
+> その他のエージェント（LinkedIn、Product Hunt、中国語プラットフォームなど）はすぐに使えるコンテンツを生成します。ターゲットプラットフォームにコピー＆ペーストするだけです。
 
 ---
 
-## ⚙️ クイックスタートガイド
+## マルチエージェント・ディベートの仕組み
+
+URLを送信すると、OpenCMOは専門エージェントによる**3ラウンドの協調ディスカッション**を実行します：
+
+```mermaid
+sequenceDiagram
+    participant PA as プロダクトアナリスト
+    participant SEO as SEOスペシャリスト
+    participant CS as コミュニティストラテジスト
+    participant SD as 戦略ディレクター
+
+    Note over PA,CS: ラウンド1 — 独立分析
+    PA->>PA: 製品・機能・オーディエンスを特定
+    SEO->>SEO: 検索キーワードと競合ワードを提案
+    CS->>CS: コミュニティトピックとプラットフォームを提案
+
+    Note over PA,CS: ラウンド2 — 協調的精錬
+    PA->>SEO: 製品インサイトを共有
+    SEO->>CS: キーワード戦略を共有
+    CS->>PA: コミュニティの課題をフィードバック
+
+    Note over SD: ラウンド3 — エグゼクティブコンセンサス
+    SD->>SD: ディスカッションを統合し<br/>最終的なブランド戦略を策定
+```
+
+エージェント同士が互いの分析を読み、反応することで、単発のAI応答よりも遥かに豊かな戦略を生み出します。
+
+<div align="center">
+  <img src="assets/screenshots/multi-agent-discussion.png" alt="Multi-Agent Discussion" width="850" />
+  <p><i>マルチエージェント分析ディスカッション — 複数の専門エージェントがリアルタイムで協調。</i></p>
+</div>
+
+---
+
+## AIチャットインターフェース
+
+25名以上の専門エージェントと直接対話。CMOエージェントが自動で最適なエキスパートにルーティング。SSEストリーミングによるリアルタイム応答。
+
+<div align="center">
+  <img src="assets/screenshots/chat-interface.png" alt="AI Chat Interface" width="850" />
+  <p><i>エキスパート選択グリッドとストリーミングチャット — マーケティングの専門家にいつでもアクセス。</i></p>
+</div>
+
+---
+
+## クイックスタートガイド
+
+OpenCMOはOpenAI互換のあらゆるAPIに対応（**OpenAI、DeepSeek、NVIDIA NIM、Ollama**など）。
+
+### 1. インストール
 
 ```bash
 git clone https://github.com/study8677/OpenCMO.git
 cd OpenCMO
 
-# 依存関係のインストール
+# すべてのPython依存関係をインストール
 pip install -e ".[all]"
 
-# .envの設定
-cp .env.example .env
+# クローラーの初期設定
+crawl4ai-setup
+```
 
-# WEBダッシュボードの起動
+### 2. 設定
+
+```bash
+cp .env.example .env
+```
+`.env`にプロバイダーの認証情報を設定します。*OpenAIの例：*
+```env
+OPENAI_API_KEY=sk-yourAPIKeyHere
+OPENCMO_MODEL_DEFAULT=gpt-4o
+```
+
+> **ヒント：** Webダッシュボードの**設定**パネルからすべてのAPIキーを直接設定することもできます。初期セットアップ後は`.env`の手動編集は不要です。
+
+### 3. ダッシュボードの起動
+
+```bash
 opencmo-web
 ```
-🚀 ブラウザで [http://localhost:8080/app](http://localhost:8080/app) を開いてください。
+ブラウザで [http://localhost:8080/app](http://localhost:8080/app) を開きます。
+
+> *ターミナル派？ `opencmo` を実行すれば、インタラクティブCLIチャットボットモードが利用できます。*
+
+### 4. フロントエンド開発（オプション）
+
+```bash
+cd frontend
+npm install
+npm run dev     # 開発サーバー localhost:5173（APIを:8080にプロキシ）
+npm run build   # プロダクションビルド
+```
+
+---
+
+## ロードマップ
+
+- [x] **25名以上のAIマーケティングエキスパート** — チャットとインテリジェントルーティング
+- [x] **マルチエージェントURL分析** — 協調ディベートによる分析
+- [x] **React SPA** — 多言語対応（EN/ZH）
+- [x] **API非依存** — OpenAI、Anthropic、DeepSeek、NVIDIA、Ollama
+- [x] **インタラクティブ3Dナレッジグラフ** — 競合インテリジェンス付き
+- [x] **コミュニティ監視** — Reddit、Hacker News、Dev.to
+- [x] **GEO検出** — Perplexity、You.com、ChatGPT、Claude、Gemini
+- [x] **SEO監査** — Core Web Vitals、Schema.org、robots.txt
+- [x] **SERPトラッキング** — キーワードランキング監視
+- [x] **自動投稿** — Reddit（投稿＋リプライ）とTwitter
+- [x] **メールレポート** — SMTP送信
+- [x] **AI駆動の競合発見** — キーワード重複分析
+- [x] **統合設定パネル** — Web UIからすべてのAPIキーを設定
+- [ ] LinkedIn、Product Huntなどへの直接投稿
+- [ ] カスタムブランドボイスのファインチューニング
+- [ ] エンタープライズグレードのフルサイトSEOクロール
 
 ---
 
 <p align="center">
-  Made with ❤️ by the Open Source Community. <br/>
-  <b>役に立ったら、GitHubで⭐をお願いします！</b>
+  オープンソースコミュニティによって丁寧に作られました。<br/>
+  <b>OpenCMOが役に立ったら、GitHubでスターをお願いします！</b>
 </p>

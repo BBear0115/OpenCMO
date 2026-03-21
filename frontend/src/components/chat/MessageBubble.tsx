@@ -4,25 +4,26 @@ import { Bot, User, CheckCircle, Loader2 } from "lucide-react";
 
 export function MessageBubble({ message }: { message: ChatMessage }) {
   const isUser = message.role === "user";
+  const avatarClassName = isUser ? "bg-slate-200" : "bg-black";
+  const containerClassName = isUser ? "text-right" : "";
+  const bubbleClassName = isUser
+    ? "bg-slate-100 text-slate-900 rounded-3xl rounded-tr-sm"
+    : "text-slate-800";
 
   return (
     <div className={`flex gap-3 ${isUser ? "flex-row-reverse" : ""}`}>
       <div
-        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl ${
-          isUser
-            ? "bg-indigo-100"
-            : "bg-gradient-to-br from-slate-100 to-slate-50"
-        }`}
+        className={`mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${avatarClassName}`}
       >
         {isUser ? (
-          <User size={16} className="text-indigo-600" />
+          <User size={16} className="text-slate-600" />
         ) : (
-          <Bot size={16} className="text-slate-600" />
+          <Bot size={16} className="text-white" />
         )}
       </div>
-      <div className={`max-w-[80%] ${isUser ? "text-right" : ""}`}>
+      <div className={`max-w-[80%] ${containerClassName}`}>
         {!isUser && message.agent && (
-          <span className="mb-1 inline-block rounded-lg bg-violet-50 px-2 py-0.5 text-[10px] font-semibold text-violet-600">
+          <span className="mb-2 inline-block font-semibold text-slate-800 text-[13px]">
             {message.agent}
           </span>
         )}
@@ -48,11 +49,7 @@ export function MessageBubble({ message }: { message: ChatMessage }) {
           </div>
         )}
         <div
-          className={`inline-block rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
-            isUser
-              ? "bg-indigo-600 text-white"
-              : "bg-slate-50 text-slate-800 ring-1 ring-inset ring-slate-100"
-          }`}
+          className={`inline-block px-4 py-3 text-[15px] leading-relaxed ${bubbleClassName}`}
         >
           {isUser ? (
             <p className="whitespace-pre-wrap">{message.content}</p>

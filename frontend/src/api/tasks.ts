@@ -1,5 +1,5 @@
 import { apiJson } from "./client";
-import type { TaskRecord } from "../types";
+import type { TaskRecord, Finding, Recommendation } from "../types";
 
 export function getTask(taskId: string): Promise<TaskRecord> {
   return apiJson<TaskRecord>(`/tasks/${taskId}`);
@@ -7,4 +7,12 @@ export function getTask(taskId: string): Promise<TaskRecord> {
 
 export function listTasks(): Promise<TaskRecord[]> {
   return apiJson<TaskRecord[]>("/tasks");
+}
+
+export function getTaskFindings(taskId: string): Promise<Finding[]> {
+  return apiJson<Finding[]>(`/tasks/${taskId}/findings`);
+}
+
+export function getTaskRecommendations(taskId: string): Promise<Recommendation[]> {
+  return apiJson<Recommendation[]>(`/tasks/${taskId}/recommendations`);
 }

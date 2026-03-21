@@ -42,6 +42,8 @@ export const en = {
   "score.geoScore": "GEO Score",
   "score.communityHits": "Community Hits",
   "score.serpKeywords": "SERP Keywords",
+  "score.findings": "Findings",
+  "score.recommendations": "Actions",
   "score.tracked": "{{count}} tracked",
 
   // Scan History
@@ -141,8 +143,12 @@ export const en = {
   "settings.apiKeySet": "API key is configured",
   "settings.apiKeyNotSet": "No API key configured",
 
+  // Settings — shared
+  "settings.configured": "configured",
+  "settings.notConfigured": "not configured",
+
   // Settings — Reddit
-  "settings.redditSection": "Reddit Connection",
+  "settings.redditSection": "Reddit Publishing",
   "settings.redditClientId": "Client ID",
   "settings.redditClientIdPlaceholder": "Your Reddit app Client ID",
   "settings.redditClientSecret": "Client Secret",
@@ -155,7 +161,49 @@ export const en = {
   "settings.redditConfigured": "Reddit connected",
   "settings.redditNotConfigured": "Reddit not connected",
   "settings.autoPublish": "Auto Publish",
-  "settings.autoPublishHint": "Allow AI to publish posts and replies to Reddit.",
+  "settings.autoPublishHint": "Allow AI to publish posts and replies to Reddit and Twitter.",
+
+  // Settings — Twitter
+  "settings.twitterSection": "Twitter / X Publishing",
+  "settings.twitterApiKey": "API Key",
+  "settings.twitterApiSecret": "API Secret",
+  "settings.twitterAccessToken": "Access Token",
+  "settings.twitterAccessSecret": "Access Token Secret",
+  "settings.twitterHint": "Create an app at developer.twitter.com with Read and Write permissions.",
+  "settings.twitterConfigured": "Twitter connected",
+  "settings.twitterNotConfigured": "Twitter not connected",
+
+  // Settings — GEO
+  "settings.geoSection": "GEO Detection Platforms",
+  "settings.anthropicKey": "Anthropic API Key (Claude)",
+  "settings.googleAiKey": "Google AI API Key (Gemini)",
+  "settings.geoChatgpt": "Enable ChatGPT GEO",
+  "settings.geoChatgptHint": "Uses your OpenAI API key to check ChatGPT visibility.",
+  "settings.geoHint": "Enable more platforms to get broader AI visibility coverage. Perplexity and You.com work without keys.",
+
+  // Settings — SEO
+  "settings.seoSection": "SEO Enhancement",
+  "settings.pagespeedKey": "Google PageSpeed API Key",
+  "settings.pagespeedHint": "Works without a key but with lower rate limits.",
+  "settings.pagespeedNotConfigured": "PageSpeed API key not set (rate-limited mode)",
+
+  // Settings — SERP
+  "settings.serpSection": "SERP Tracking",
+  "settings.dataforseoLogin": "DataForSEO Login",
+  "settings.dataforseoPassword": "DataForSEO Password",
+  "settings.dataforseoHint": "Alternative to Google crawling for keyword ranking data.",
+  "settings.dataforseoNotConfigured": "DataForSEO not configured (using Google crawling)",
+
+  // Settings — Email
+  "settings.emailSection": "Email Reports",
+  "settings.smtpHost": "SMTP Host",
+  "settings.smtpPort": "SMTP Port",
+  "settings.smtpUser": "SMTP Username",
+  "settings.smtpPass": "SMTP Password",
+  "settings.reportEmail": "Report Recipient",
+  "settings.reportEmailHint": "Email address to receive monitoring reports.",
+  "settings.emailConfigured": "Email configured",
+  "settings.emailNotConfigured": "Email not configured",
 
   // Schedule presets
   "schedule.label": "Monitoring Frequency",

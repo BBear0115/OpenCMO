@@ -2,92 +2,195 @@
   <img src="assets/logo.png" alt="OpenCMO Logo" width="120" />
 </div>
 
-<h1 align="center">🚀 OpenCMO</h1>
+<h1 align="center">OpenCMO</h1>
 
 <p align="center">
   <strong>The Open-Source AI Chief Marketing Officer — Your Full Marketing Team in One Tool.</strong><br/>
-  <sub>A powerful multi-agent system featuring 10 elite AI experts, real-time strategy monitoring, and a stunning modern web dashboard.</sub>
+  <sub>A powerful multi-agent system featuring 25+ specialized AI experts, real-time monitoring across SEO/GEO/SERP/Community, and a modern web dashboard with interactive 3D knowledge graph.</sub>
 </p>
 
 <div align="center">
-  <a href="README.md">🇺🇸 English</a> | <a href="README_zh.md">🇨🇳 中文</a> | <a href="README_ja.md">🇯🇵 日本語</a> | <a href="README_ko.md">🇰🇷 한국어</a> | <a href="README_es.md">🇪🇸 Español</a>
+  <a href="README.md">English</a> | <a href="README_zh.md">中文</a> | <a href="README_ja.md">日本語</a> | <a href="README_ko.md">한국어</a> | <a href="README_es.md">Español</a>
 </div>
 
 <p align="center">
   <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.10+-blue.svg?style=for-the-badge&logo=python" alt="Python 3.10+"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache%202.0-green.svg?style=for-the-badge" alt="License"></a>
   <a href="https://github.com/study8677/OpenCMO/stargazers"><img src="https://img.shields.io/github/stars/study8677/OpenCMO?style=for-the-badge&color=yellow&logo=github" alt="Stars"></a>
-  <img src="https://img.shields.io/badge/react-SPA-61DAFB.svg?style=for-the-badge&logo=react" alt="React SPA Component">
+  <img src="https://img.shields.io/badge/react-SPA-61DAFB.svg?style=for-the-badge&logo=react" alt="React SPA">
 </p>
 
 ---
 
-## 🌟 What is OpenCMO?
+## What is OpenCMO?
 
 OpenCMO is a **multi-agent AI marketing ecosystem** tailored for indie hackers, startups, and small teams. Simply provide your product's URL, and OpenCMO will:
+
 1. **Analyze your website** deeply to understand your product and audience.
-2. **Orchestrate a multi-agent strategy debate** to pinpoint the best keywords, positioning, and target communities.
-3. **Automate continuous monitoring** across SEO, AI search visibility (GEO), and developer communities (Reddit, Hacker News, Dev.to).
+2. **Orchestrate a multi-agent strategy debate** to identify the best keywords, positioning, and target communities.
+3. **Automate continuous monitoring** across SEO, AI search visibility (GEO), SERP keyword rankings, and developer communities (Reddit, Hacker News, Dev.to).
+4. **Generate platform-specific content** for 20+ platforms and auto-publish to Reddit and Twitter.
 
 ---
 
-## ✨ Interface & Experience
+## Interface & Experience
 
-Our system comes beautifully packaged in a dark-themed, glassmorphic React Single Page Application (SPA), designed for maximum clarity and control. 
+A modern React SPA with glassmorphic design, built for maximum clarity and control.
 
 <div align="center">
-  <img src="assets/screenshots/dashboard-full.png" alt="OpenCMO Dashboard Overview" width="850" style="border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.3);" />
-  <p><i>Real-time Project Dashboard — Track your SEO, GEO (AI Visibility), and Community Engagement at a glance.</i></p>
+  <img src="assets/screenshots/dashboard-full.png" alt="OpenCMO Dashboard Overview" width="850" />
+  <p><i>Real-time Project Dashboard — Track your SEO, GEO (AI Visibility), SERP rankings, and Community Engagement at a glance.</i></p>
 </div>
 
 ---
 
-## 🕸️ Interactive Knowledge Graph
+## Interactive Knowledge Graph
 
-The **Knowledge Graph** is the beating heart of your market intelligence. We transform abstract data into an interactive, visually stunning force-directed network diagram.
+The **Knowledge Graph** is the heart of your market intelligence — an interactive 3D force-directed network that visualizes your entire marketing ecosystem.
 
 <div align="center">
-  <img src="assets/knowledge_graph_demo.png" alt="Marketing Knowledge Graph" width="850" style="border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.5);" />
-  <p><i>A dynamic, 3D force-directed map of your entire marketing ecosystem.</i></p>
+  <img src="assets/screenshots/graph-page.png" alt="3D Knowledge Graph" width="850" />
+  <p><i>A dynamic, 3D force-directed map of your brand, keywords, discussions, competitors, and SERP rankings.</i></p>
 </div>
 
-### Why it's a Game-Changer:
-- 🔵 **Interactive Exploration**: Zoom, drag, and pan across your brand's digital unvierse. 
-- 🟢 **6 Node Dimensions**: Visually distinguish your Brand (Purple), Keywords (Cyan), Community Discussions (Amber), SERP Rankings (Green), Competitors (Red), and Overlapping Keywords (Orange).
-- 🔴 **Competitor Intel**: Add competitor URLs to instantly visualize shared battlegrounds—marked by glowing, red dashed connection lines.
-- ⚡ **Real-Time Sync**: Graph automatically re-balances every 30 seconds as new insights are scraped.
+**Key capabilities:**
+- **Interactive exploration** — Zoom, drag, and pan across your brand's digital universe.
+- **6 node dimensions** — Brand (purple), Keywords (cyan), Community Discussions (amber), SERP Rankings (green), Competitors (red), Overlapping Keywords (orange).
+- **Competitor intelligence** — Add competitor URLs to visualize shared battlegrounds with red dashed connection lines.
+- **Real-time sync** — Graph re-balances every 30 seconds as new insights are discovered.
+- **AI-powered competitor discovery** — Automatically identify competitors and track overlapping keywords.
 
 ---
 
-## 👥 Meet Your AI Marketing Team
+## Feature Highlights
 
-OpenCMO ships with **10 specialized AI agents** that work together cohesively.
+### SEO Audit
 
-| Agent Role | Specialty | Core Responsibility |
+Continuously audit performance scores, Core Web Vitals (LCP, CLS, TBT), Schema.org, robots.txt, and sitemaps via the Google PageSpeed Insights API.
+
+<div align="center">
+  <img src="assets/screenshots/seo-page.png" alt="SEO Audit Dashboard" width="850" />
+  <p><i>Performance trend chart and Core Web Vitals detailed analysis.</i></p>
+</div>
+
+### GEO Detection (AI Search Visibility)
+
+Monitor your brand's visibility across AI search engines: Perplexity, You.com, ChatGPT, Claude, and Gemini.
+
+<div align="center">
+  <img src="assets/screenshots/geo-page.png" alt="GEO Visibility Tracking" width="850" />
+  <p><i>Brand visibility score trends across AI search platforms.</i></p>
+</div>
+
+### SERP Tracking
+
+Continuously track your target keywords' search positions. Supports web crawling or the DataForSEO API.
+
+<div align="center">
+  <img src="assets/screenshots/serp-page.png" alt="SERP Keyword Rankings" width="850" />
+  <p><i>Keyword position table and ranking history chart.</i></p>
+</div>
+
+### Community Monitoring
+
+Automatically scan for brand mentions and relevant discussions across Reddit, Hacker News, and Dev.to.
+
+<div align="center">
+  <img src="assets/screenshots/community-page.png" alt="Community Monitoring" width="850" />
+  <p><i>Cross-platform scan history and tracked discussions.</i></p>
+</div>
+
+---
+
+## Your AI Marketing Team
+
+OpenCMO ships with **25+ specialized AI agents** organized into three categories:
+
+### Market Intelligence Agents
+
+| Agent | Responsibility |
+| :--- | :--- |
+| **CMO Agent** | The orchestrator. Routes tasks to the right expert automatically. |
+| **SEO Auditor** | Audits Core Web Vitals, Schema.org, robots.txt, and sitemaps via Google PageSpeed API. |
+| **GEO Specialist** | Monitors your brand visibility across Perplexity, You.com, ChatGPT, Claude, and Gemini. |
+| **Community Radar** | Scans Reddit, Hacker News, and Dev.to for brand mentions and relevant discussions. |
+
+### Content Creation Agents (Global)
+
+| Agent | Platform |
+| :--- | :--- |
+| **Twitter/X Expert** | Tweets, hooks, and viral threads |
+| **Reddit Strategist** | Authentic posts and smart replies to live subreddits |
+| **LinkedIn Pro** | Professional thought-leadership posts |
+| **Product Hunt Expert** | Taglines, descriptions, and maker comments |
+| **Hacker News Formatter** | Technical "Show HN" posts |
+| **Blog/SEO Writer** | Long-form SEO-optimized articles (2000+ words) |
+| **Dev.to Expert** | Developer community articles |
+
+### Content Creation Agents (Chinese Platforms)
+
+| Agent | Platform |
+| :--- | :--- |
+| **Zhihu Expert** | Zhihu Q&A platform |
+| **Xiaohongshu Expert** | RED social commerce |
+| **V2EX Expert** | V2EX developer forum |
+| **Juejin Expert** | Juejin developer community |
+| **Jike Expert** | Jike social platform |
+| **WeChat Expert** | WeChat ecosystem |
+| **OSChina Expert** | OSChina open-source community |
+| **GitCode Expert** | GitCode open-source platform |
+| **SSPAI Expert** | SSPAI productivity |
+| **InfoQ Expert** | InfoQ China tech media |
+| **Ruanyifeng Expert** | Ruanyifeng Weekly submission formatting |
+
+---
+
+## Platform Integrations
+
+All integrations are configurable via the built-in **Settings panel** in the web dashboard — no `.env` editing required.
+
+<div align="center">
+  <img src="assets/screenshots/settings-panel.png" alt="Settings Panel" width="600" />
+  <p><i>Unified Settings Panel — Configure all API keys and platform integrations from the web UI.</i></p>
+</div>
+
+### Monitoring & Analysis (automatic)
+
+| Capability | Platforms | How |
 | :--- | :--- | :--- |
-| **👔 CMO Agent** | Orchestration | The brain of the operation. Routes tasks to the perfect expert automatically. |
-| **🐦 Twitter/X Xpert** | Micro-blogging | Crafts engaging tweets, hooks, and viral threads. |
-| **👽 Reddit Strategist**| Community Building | Drafts authentic, anti-promotional posts and smart replies to live subreddits. |
-| **💼 LinkedIn Pro** | B2B Networking | Forms highly professional, thought-leadership posts. |
-| **🚀 Product Hunt** | Launch Tactics | Prepares impactful taglines, descriptions, and maker comments. |
-| **💻 Hacker News** | Tech Crowd | Formats highly technical "Show HN" posts and handles critical feedback. |
-| **📝 Blog/SEO Writer**| Long-form Content | Writes deeply comprehensive, SEO-optimized articles (2000+ words). |
-| **🔍 SEO Auditor** | Technical SEO | Audits Core Web Vitals, Schema.org, robots.txt, and sitemaps. |
-| **🤖 GEO Specialist** | Generative Engine | Monitors your brand presence across Perplexity, ChatGPT, Claude, and Gemini. |
-| **👀 Community Radar** | Social Listening | Scours Reddit, HN, and Dev.to and alerts you to relevant discussions. |
+| **Community Monitoring** | Reddit, Hacker News, Dev.to | Public APIs (no auth required) |
+| **GEO Detection** | Perplexity, You.com | Web crawling (no auth required) |
+| **GEO Detection** | ChatGPT, Claude, Gemini | API calls (configure keys in Settings) |
+| **SEO Audit** | Google PageSpeed Insights | HTTP API (optional key for higher limits) |
+| **SERP Tracking** | Google, DataForSEO | Web crawling or DataForSEO API |
+
+### Publishing (user-controlled)
+
+| Platform | Method | Setup |
+| :--- | :--- | :--- |
+| **Reddit** | PRAW (post + reply) | Configure Reddit app credentials in Settings |
+| **Twitter/X** | Tweepy (tweets) | Configure Twitter API credentials in Settings |
+
+### Reporting
+
+| Feature | Method | Setup |
+| :--- | :--- | :--- |
+| **Email Reports** | SMTP | Configure SMTP credentials in Settings |
+
+> All other agents (LinkedIn, Product Hunt, Chinese platforms, etc.) generate ready-to-use content that you copy-paste to the target platform.
 
 ---
 
-## 🧩 How It Works: Multi-Agent Debate
+## How It Works: Multi-Agent Debate
 
-When you submit a URL, OpenCMO doesn't just run a single LLM prompt. It hosts a **3-round collaborative discussion** among specialized agents.
+When you submit a URL, OpenCMO hosts a **3-round collaborative discussion** among specialized agents:
 
 ```mermaid
 sequenceDiagram
-    participant PA as 🔍 Product Analyst
-    participant SEO as 📈 SEO Specialist
-    participant CS as 💬 Community Strategist
-    participant SD as 🎯 Strategy Director
+    participant PA as Product Analyst
+    participant SEO as SEO Specialist
+    participant CS as Community Strategist
+    participant SD as Strategy Director
 
     Note over PA,CS: Round 1 — Independent Analysis
     PA->>PA: Identify product, features, audience
@@ -100,16 +203,32 @@ sequenceDiagram
     CS->>PA: Shares community pain points
 
     Note over SD: Round 3 — Executive Consensus
-    SD->>SD: Synthesizes the 6-message thread<br/>into a finalized Brand Strategy.
+    SD->>SD: Synthesizes the discussion thread<br/>into a finalized Brand Strategy.
 ```
 
-By allowing agents to read and react to each other, OpenCMO produces strategies that are fundamentally richer, avoiding the tunnel-vision of single-pass AI responses.
+By allowing agents to read and react to each other, OpenCMO produces strategies that are fundamentally richer than single-pass AI responses.
+
+<div align="center">
+  <img src="assets/screenshots/multi-agent-discussion.png" alt="Multi-Agent Discussion" width="850" />
+  <p><i>Multi-Agent Analysis Discussion — Multiple specialized agents collaborating in real-time.</i></p>
+</div>
 
 ---
 
-## ⚙️ Quick Start Guide
+## AI Chat Interface
 
-OpenCMO supports any OpenAI-compatible API, giving you total freedom over your LLM backend (**OpenAI, DeepSeek, NVIDIA NIM, Ollama**, etc.).
+Chat directly with 25+ specialized agents. The CMO agent auto-routes to the optimal expert. Real-time responses via SSE streaming.
+
+<div align="center">
+  <img src="assets/screenshots/chat-interface.png" alt="AI Chat Interface" width="850" />
+  <p><i>Expert selection grid and streaming chat — Instant access to marketing specialists.</i></p>
+</div>
+
+---
+
+## Quick Start Guide
+
+OpenCMO supports any OpenAI-compatible API (**OpenAI, DeepSeek, NVIDIA NIM, Ollama**, etc.).
 
 ### 1. Installation
 
@@ -129,60 +248,56 @@ crawl4ai-setup
 ```bash
 cp .env.example .env
 ```
-Edit `.env` to include your provider. *Example for OpenAI:*
+Edit `.env` with your provider credentials. *Example for OpenAI:*
 ```env
 OPENAI_API_KEY=sk-yourAPIKeyHere
 OPENCMO_MODEL_DEFAULT=gpt-4o
 ```
+
+> **Tip:** You can also configure all API keys directly from the web dashboard's **Settings** panel — no `.env` editing needed after initial setup.
 
 ### 3. Launch the Dashboard
 
 ```bash
 opencmo-web
 ```
-🚀 **Boom! Your CMO is live.** Open [http://localhost:8080/app](http://localhost:8080/app) in your browser.
+Open [http://localhost:8080/app](http://localhost:8080/app) in your browser.
 
 > *Prefer the terminal? Run `opencmo` for an interactive CLI chatbot mode.*
 
----
+### 4. Frontend Development (optional)
 
-## 📸 More Interface Previews
-
-<details>
-<summary><b>Click to expand our beautiful UI gallery</b></summary>
-<br>
-
-**1. Multi-Agent Discussion Modal**  
-<img src="assets/screenshots/multi-agent-discussion.png" alt="Multi-Agent Discussion" width="800" />
-
-**2. Chat Interface with Experts**  
-<img src="assets/screenshots/chat-interface.png" alt="Agent Chat Interface" width="800" />
-
-**3. Monitors & Analysis Panel**  
-<img src="assets/screenshots/monitors-panel.png" alt="Monitors List" width="800" />
-
-**4. Settings & Safe Key Storage**  
-<img src="assets/screenshots/settings-panel.png" alt="Settings & API Key UI" width="800" />
-
-</details>
+```bash
+cd frontend
+npm install
+npm run dev     # Dev server at localhost:5173 (proxies API to :8080)
+npm run build   # Production build
+```
 
 ---
 
-## 🗺️ Roadmap & Features
+## Roadmap
 
-- [x] **10 AI Marketing Experts** with chat and routing.
-- [x] **Intelligent URL Analysis** via agent debate.
-- [x] **Dark-themed React SPA** with multi-language (EN/ZH) support.
-- [x] **API Agnostic** (OpenAI, Anthropic, DeepSeek, Local Ollama).
-- [x] **Interactive Knowledge Graph** for visual strategy mapping.
-- [x] **Smart Reddit Integration** (Thread discovery & AI replies).
-- [ ] Automated Cross-Platform Publishing (Twitter, LinkedIn).
-- [ ] Enterprise-grade full-site SEO crawls.
-- [ ] Custom Brand Voice fine-tuning.
+- [x] **25+ AI Marketing Experts** with chat and intelligent routing
+- [x] **Multi-agent URL analysis** via collaborative debate
+- [x] **React SPA** with multi-language support (EN/ZH)
+- [x] **API agnostic** — OpenAI, Anthropic, DeepSeek, NVIDIA, Ollama
+- [x] **Interactive 3D Knowledge Graph** with competitor intelligence
+- [x] **Community monitoring** — Reddit, Hacker News, Dev.to
+- [x] **GEO detection** — Perplexity, You.com, ChatGPT, Claude, Gemini
+- [x] **SEO audit** — Core Web Vitals, Schema.org, robots.txt
+- [x] **SERP tracking** — Keyword ranking monitoring
+- [x] **Auto-publishing** — Reddit (post + reply) and Twitter
+- [x] **Email reports** via SMTP
+- [x] **AI-powered competitor discovery** and keyword overlap analysis
+- [x] **Unified Settings panel** — configure all API keys from the web UI
+- [ ] Direct publishing to LinkedIn, Product Hunt, and more
+- [ ] Custom Brand Voice fine-tuning
+- [ ] Enterprise-grade full-site SEO crawls
 
 ---
 
 <p align="center">
-  Made with ❤️ by the Open Source Community. <br/>
-  <b>If OpenCMO saves you time, please give it a ⭐ on GitHub!</b>
+  Made with care by the Open Source Community. <br/>
+  <b>If OpenCMO saves you time, please give it a star on GitHub!</b>
 </p>
