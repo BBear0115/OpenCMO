@@ -44,11 +44,7 @@ OpenCMO 是一个专为独立开发者、初创公司和小团队设计的 **多
 
 <div align="center">
   <video src="https://github.com/study8677/OpenCMO/raw/main/assets/demo.mp4" width="850" controls></video>
-  <p>
-    <a href="https://www.bilibili.com/video/BV1T5AMzoEKV/">
-      <img src="https://img.shields.io/badge/高清版本-Bilibili-00A1D6?style=for-the-badge&logo=bilibili&logoColor=white" alt="在B站观看高清版" />
-    </a>
-  </p>
+  <p><i>在 <a href="https://www.bilibili.com/video/BV1T5AMzoEKV/">Bilibili</a> 观看高清版本</i></p>
 </div>
 
 ---

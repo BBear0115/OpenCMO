@@ -44,11 +44,7 @@ A modern React SPA with glassmorphic design, built for maximum clarity and contr
 
 <div align="center">
   <video src="https://github.com/study8677/OpenCMO/raw/main/assets/demo.mp4" width="850" controls></video>
-  <p>
-    <a href="https://www.bilibili.com/video/BV1T5AMzoEKV/">
-      <img src="https://img.shields.io/badge/HD_Version-Bilibili-00A1D6?style=for-the-badge&logo=bilibili&logoColor=white" alt="Watch HD on Bilibili" />
-    </a>
-  </p>
+  <p><i>Watch the HD version on <a href="https://www.bilibili.com/video/BV1T5AMzoEKV/">Bilibili</a></i></p>
 </div>
 
 ---
