@@ -1085,6 +1085,11 @@ async def api_v1_task_recommendations(task_id: str):
     return JSONResponse(await storage.get_task_recommendations(task_id))
 
 
+@app.get("/api/v1/monitors/{monitor_id}/runs")
+async def api_v1_monitor_runs(monitor_id: int):
+    return JSONResponse(await storage.list_scan_runs_by_monitor(monitor_id))
+
+
 # ---------------------------------------------------------------------------
 # REST API v1 — Report
 # ---------------------------------------------------------------------------

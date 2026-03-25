@@ -1,5 +1,5 @@
 import { apiJson } from "./client";
-import type { Monitor, TaskRecord } from "../types";
+import type { Monitor, MonitorRun, TaskRecord } from "../types";
 
 export function listMonitors(): Promise<Monitor[]> {
   return apiJson<Monitor[]>("/monitors");
@@ -32,4 +32,8 @@ export function deleteMonitor(id: number): Promise<{ ok: boolean }> {
 
 export function runMonitor(id: number): Promise<TaskRecord> {
   return apiJson<TaskRecord>(`/monitors/${id}/run`, { method: "POST" });
+}
+
+export function getMonitorRuns(monitorId: number): Promise<MonitorRun[]> {
+  return apiJson<MonitorRun[]>(`/monitors/${monitorId}/runs`);
 }

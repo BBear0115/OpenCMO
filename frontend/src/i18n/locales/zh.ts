@@ -132,6 +132,17 @@ export const zh: Record<TranslationKey, string> = {
   "runScan.done": "完成",
   "runScan.failed": "失败",
   "runScan.run": "运行",
+  "runScan.viewResults": "查看结果",
+  "runScan.rerun": "重新运行",
+  "runHistory.title": "运行历史",
+  "runHistory.loading": "正在加载运行历史...",
+  "runHistory.empty": "暂无运行记录",
+  "runHistory.findings": "发现项",
+  "runHistory.recommendations": "建议项",
+  "runHistory.status.pending": "排队中",
+  "runHistory.status.running": "运行中",
+  "runHistory.status.completed": "已完成",
+  "runHistory.status.failed": "失败",
 
   // Keywords
   "keywords.addPlaceholder": "添加关键词...",

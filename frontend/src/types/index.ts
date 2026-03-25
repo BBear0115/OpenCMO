@@ -35,6 +35,18 @@ export interface Monitor {
   next_run_at: string | null;
 }
 
+export interface MonitorRun {
+  id: number;
+  task_id: string;
+  job_type: string;
+  status: "pending" | "running" | "completed" | "failed";
+  summary: string | null;
+  created_at: string;
+  completed_at: string | null;
+  findings_count: number;
+  recommendations_count: number;
+}
+
 export interface TaskRecord {
   task_id: string;
   monitor_id: number;

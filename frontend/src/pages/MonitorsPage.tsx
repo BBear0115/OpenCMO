@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMonitors, useCreateMonitor, useDeleteMonitor } from "../hooks/useMonitors";
 import { LoadingSpinner } from "../components/common/LoadingSpinner";
 import { ErrorAlert } from "../components/common/ErrorAlert";
@@ -16,17 +16,30 @@ export function MonitorsPage() {
   const deleteMonitor = useDeleteMonitor();
   const { t, locale } = useI18n();
   const isZh = locale === "zh";
-  const [analysisTask, setAnalysisTask] = useState<{ taskId: string; url: string } | null>(null);
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+  const [selectedTaskUrl, setSelectedTaskUrl] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
 
   // Poll task to know when it finishes (for the minimized bar)
-  const { data: taskData } = useTaskPoll(analysisTask?.taskId ?? null);
+  const { data: taskData } = useTaskPoll(selectedTaskId);
   const taskDone = taskData?.status === "completed" || taskData?.status === "failed";
 
-  // Auto-clear finished tasks after 3s
-  if (taskDone && analysisTask && !dialogOpen) {
-    setTimeout(() => setAnalysisTask(null), 3000);
-  }
+  useEffect(() => {
+    if (!taskDone || !selectedTaskId || dialogOpen) return;
+
+    const timeoutId = window.setTimeout(() => {
+      setSelectedTaskId(null);
+      setSelectedTaskUrl(null);
+    }, 3000);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [dialogOpen, selectedTaskId, taskDone]);
+
+  const handleSelectRun = (taskId: string, url: string) => {
+    setSelectedTaskId(taskId);
+    setSelectedTaskUrl(url);
+    setDialogOpen(true);
+  };
 
   if (isLoading) return <LoadingSpinner />;
   if (error) return <ErrorAlert message={error.message} />;
@@ -38,22 +51,21 @@ export function MonitorsPage() {
         onSubmit={async (data) => {
           const result = await createMonitor.mutateAsync({ ...data, locale });
           if (result.task_id) {
-            setAnalysisTask({ taskId: result.task_id, url: data.url });
-            setDialogOpen(true);
+            handleSelectRun(result.task_id, data.url);
           }
         }}
         isLoading={createMonitor.isPending}
       />
 
       {/* Minimized analysis bar — shown when dialog is closed but task is still running */}
-      {analysisTask && !dialogOpen && !taskDone && (
+      {selectedTaskId && selectedTaskUrl && !dialogOpen && !taskDone && (
         <button
           onClick={() => setDialogOpen(true)}
           className="flex w-full items-center gap-3 rounded-xl bg-indigo-50 px-4 py-3 text-sm text-indigo-700 ring-1 ring-inset ring-indigo-200 transition-colors hover:bg-indigo-100"
         >
           <Loader2 size={16} className="animate-spin" />
           <span className="flex-1 truncate text-left">
-            {isZh ? "AI 正在分析" : "AI analyzing"}: {analysisTask.url}
+            {isZh ? "AI 正在分析" : "AI analyzing"}: {selectedTaskUrl}
           </span>
           <span className="flex items-center gap-1 text-xs font-medium">
             <Eye size={14} />
@@ -71,13 +83,14 @@ export function MonitorsPage() {
         <MonitorList
           monitors={monitors}
           onDelete={(id) => deleteMonitor.mutate(id)}
+          onSelectRun={handleSelectRun}
         />
       )}
 
-      {analysisTask && dialogOpen && (
+      {selectedTaskId && dialogOpen && (
         <AnalysisDialog
-          taskId={analysisTask.taskId}
-          url={analysisTask.url}
+          taskId={selectedTaskId}
+          url={selectedTaskUrl ?? ""}
           onClose={() => setDialogOpen(false)}
         />
       )}

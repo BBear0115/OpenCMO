@@ -3,6 +3,7 @@ import { Link } from "react-router";
 import { Trash2, Clock, ExternalLink, ChevronDown, ChevronUp } from "lucide-react";
 import type { Monitor } from "../../types";
 import { RunScanButton } from "./RunScanButton";
+import { RunHistoryPanel } from "./RunHistoryPanel";
 import { ScheduleSelector, cronToHuman } from "./ScheduleSelector";
 import { useUpdateMonitor } from "../../hooks/useMonitors";
 import { useI18n } from "../../i18n";
@@ -10,9 +11,11 @@ import { useI18n } from "../../i18n";
 export function MonitorList({
   monitors,
   onDelete,
+  onSelectRun,
 }: {
   monitors: Monitor[];
   onDelete: (id: number) => void;
+  onSelectRun: (taskId: string, url: string) => void;
 }) {
   const { t, locale } = useI18n();
   const updateMonitor = useUpdateMonitor();
@@ -104,7 +107,11 @@ export function MonitorList({
 
             {/* Actions */}
             <div className="flex items-center justify-between border-t border-zinc-100 pt-3">
-              <RunScanButton monitorId={m.id} projectId={m.project_id} />
+              <RunScanButton
+                monitorId={m.id}
+                projectId={m.project_id}
+                onViewResults={(taskId) => onSelectRun(taskId, m.url)}
+              />
               <button
                 onClick={() => onDelete(m.id)}
                 title="Delete monitor"
@@ -113,6 +120,11 @@ export function MonitorList({
                 <Trash2 size={16} />
               </button>
             </div>
+
+            <RunHistoryPanel
+              monitorId={m.id}
+              onSelectRun={(taskId) => onSelectRun(taskId, m.url)}
+            />
           </div>
         );
       })}

@@ -130,6 +130,17 @@ export const en = {
   "runScan.done": "Done",
   "runScan.failed": "Failed",
   "runScan.run": "Run",
+  "runScan.viewResults": "View Results",
+  "runScan.rerun": "Re-run",
+  "runHistory.title": "Run History",
+  "runHistory.loading": "Loading run history...",
+  "runHistory.empty": "No run history",
+  "runHistory.findings": "findings",
+  "runHistory.recommendations": "recommendations",
+  "runHistory.status.pending": "Pending",
+  "runHistory.status.running": "Running",
+  "runHistory.status.completed": "Completed",
+  "runHistory.status.failed": "Failed",
 
   // Keywords
   "keywords.addPlaceholder": "Add keyword...",

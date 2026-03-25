@@ -851,6 +851,33 @@ async def create_scan_run(task_id: str, monitor_id: int | None, project_id: int,
         await db.close()
 
 
+async def list_scan_runs_by_monitor(monitor_id: int, limit: int = 10) -> list[dict]:
+    """List past scan runs for a monitor, newest first."""
+    db = await get_db()
+    try:
+        cursor = await db.execute(
+            """SELECT r.id, r.task_id, r.job_type, r.status, r.summary, r.created_at, r.completed_at,
+                      (SELECT COUNT(*) FROM scan_findings WHERE run_id = r.id) AS findings_count,
+                      (SELECT COUNT(*) FROM scan_recommendations WHERE run_id = r.id) AS recs_count
+               FROM scan_runs r
+               WHERE r.monitor_id = ?
+               ORDER BY r.created_at DESC
+               LIMIT ?""",
+            (monitor_id, limit),
+        )
+        rows = await cursor.fetchall()
+        return [
+            {
+                "id": r[0], "task_id": r[1], "job_type": r[2], "status": r[3],
+                "summary": r[4], "created_at": r[5], "completed_at": r[6],
+                "findings_count": r[7], "recommendations_count": r[8],
+            }
+            for r in rows
+        ]
+    finally:
+        await db.close()
+
+
 async def update_scan_run(
     run_id: int,
     *,
