@@ -44,7 +44,7 @@ export function ChatPage() {
   if (!chat.sessionReady) return <LoadingSpinner />;
 
   return (
-    <div className="flex h-[calc(100vh-7rem)] gap-4">
+    <div className="flex h-[calc(100vh-7rem)] gap-4 overflow-hidden">
       <ChatSidebar
         sessions={chat.sessions}
         activeSessionId={chat.sessionId}

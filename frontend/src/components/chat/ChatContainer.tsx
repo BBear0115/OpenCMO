@@ -22,7 +22,7 @@ export function ChatContainer({
   return (
     <div className="flex flex-1 min-h-0 flex-col">
       {/* Agent badge */}
-      <div className="mb-3">
+      <div className="mb-3 shrink-0">
         <p className="text-xs text-slate-400">
           {t("chat.agent", { name: currentAgent })}
         </p>
@@ -30,17 +30,21 @@ export function ChatContainer({
 
       {/* When no messages: show agent grid as quick-start */}
       {!hasMessages ? (
-        <div className="flex flex-1 flex-col mx-auto w-full max-w-3xl">
-          <div className="flex-1 overflow-y-auto p-2">
+        <div className="flex flex-1 min-h-0 flex-col mx-auto w-full max-w-3xl">
+          <div className="flex-1 min-h-0 overflow-y-auto p-2">
             <AgentGrid onSelect={(prompt) => sendMessage(prompt)} />
           </div>
-          <ChatInput onSend={sendMessage} disabled={isStreaming} />
+          <div className="shrink-0">
+            <ChatInput onSend={sendMessage} disabled={isStreaming} />
+          </div>
         </div>
       ) : (
-        <>
+        <div className="flex flex-1 min-h-0 flex-col">
           <MessageList messages={messages} isStreaming={isStreaming} />
-          <ChatInput onSend={sendMessage} disabled={isStreaming} />
-        </>
+          <div className="shrink-0">
+            <ChatInput onSend={sendMessage} disabled={isStreaming} />
+          </div>
+        </div>
       )}
     </div>
   );
