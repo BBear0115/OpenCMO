@@ -1,10 +1,8 @@
-import html2pdf from "html2pdf.js";
-
 const LOGO_URL = "/logo.png";
 
 /**
  * Convert a logo image URL to a base64 data-URI so it can be
- * embedded reliably in the off-screen PDF container.
+ * embedded reliably in the print window.
  */
 async function loadLogoAsDataURI(): Promise<string> {
   try {
@@ -22,177 +20,218 @@ async function loadLogoAsDataURI(): Promise<string> {
 }
 
 /**
- * Inject print-optimised styles into the off-screen container.
- * These override the Tailwind prose defaults so headings, paragraphs,
- * lists and blockquotes render at comfortable reading sizes.
+ * Build a self-contained print stylesheet that produces premium,
+ * highly-readable A4 pages via the browser's native print engine.
  */
-function injectPrintStyles(container: HTMLDivElement) {
-  const style = document.createElement("style");
-  style.textContent = `
-    /* ---- Base typography ---- */
-    .pdf-body {
-      font-family: 'Helvetica Neue', Helvetica, Arial, 'PingFang SC', 'Microsoft YaHei', sans-serif;
-      font-size: 15px;
-      line-height: 1.85;
-      color: #1e293b;
-      word-break: break-word;
+function buildPrintCSS(): string {
+  return `
+    @page {
+      size: A4;
+      margin: 22mm 20mm 22mm 20mm;
     }
 
-    /* ---- Headings ---- */
-    .pdf-body h1 {
-      font-size: 26px;
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'PingFang SC', 'Helvetica Neue', Helvetica, Arial, 'Microsoft YaHei', sans-serif;
+      font-size: 14.5px;
+      line-height: 1.85;
+      color: #1e293b;
+      background: #fff;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    /* ---- Header ---- */
+    .report-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      border-bottom: 3px solid #6366f1;
+      padding-bottom: 18px;
+      margin-bottom: 32px;
+    }
+    .report-header img {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      object-fit: contain;
+    }
+    .report-header-title {
+      font-size: 22px;
       font-weight: 800;
       color: #0f172a;
-      margin: 38px 0 16px;
-      padding-bottom: 10px;
-      border-bottom: 3px solid #6366f1;
-      letter-spacing: -0.4px;
+      letter-spacing: -0.3px;
       line-height: 1.3;
     }
-    .pdf-body h1:first-child {
+    .report-header-sub {
+      font-size: 12px;
+      color: #94a3b8;
+      margin-top: 3px;
+    }
+
+    /* ---- Content ---- */
+    .report-content h1 {
+      font-size: 24px;
+      font-weight: 800;
+      color: #0f172a;
+      margin: 34px 0 14px;
+      padding-bottom: 8px;
+      border-bottom: 2.5px solid #6366f1;
+      letter-spacing: -0.3px;
+      line-height: 1.35;
+      page-break-after: avoid;
+      break-after: avoid;
+    }
+    .report-content h1:first-child {
       margin-top: 0;
     }
 
-    .pdf-body h2 {
-      font-size: 20px;
+    .report-content h2 {
+      font-size: 19px;
       font-weight: 700;
       color: #1e293b;
-      margin: 32px 0 12px;
-      padding-bottom: 8px;
+      margin: 28px 0 10px;
+      padding-bottom: 6px;
       border-bottom: 1.5px solid #e2e8f0;
       line-height: 1.35;
+      page-break-after: avoid;
+      break-after: avoid;
     }
 
-    .pdf-body h3 {
-      font-size: 17px;
+    .report-content h3 {
+      font-size: 16px;
       font-weight: 700;
       color: #334155;
-      margin: 24px 0 10px;
+      margin: 22px 0 8px;
       line-height: 1.4;
+      page-break-after: avoid;
+      break-after: avoid;
     }
 
-    .pdf-body h4 {
-      font-size: 15px;
+    .report-content h4 {
+      font-size: 14.5px;
       font-weight: 700;
       color: #475569;
-      margin: 20px 0 8px;
+      margin: 18px 0 6px;
+      page-break-after: avoid;
+      break-after: avoid;
     }
 
-    /* ---- Paragraphs ---- */
-    .pdf-body p {
-      margin: 0 0 14px;
+    .report-content p {
+      margin: 0 0 13px;
       text-align: justify;
+      orphans: 3;
+      widows: 3;
     }
 
-    /* ---- Lists ---- */
-    .pdf-body ul, .pdf-body ol {
-      margin: 8px 0 16px;
-      padding-left: 24px;
+    .report-content ul, .report-content ol {
+      margin: 6px 0 14px;
+      padding-left: 22px;
     }
-    .pdf-body li {
-      margin-bottom: 7px;
+    .report-content li {
+      margin-bottom: 6px;
       line-height: 1.7;
     }
-    .pdf-body li::marker {
-      color: #6366f1;
-      font-weight: 600;
-    }
 
-    /* ---- Blockquotes ---- */
-    .pdf-body blockquote {
-      margin: 16px 0;
-      padding: 12px 18px;
+    .report-content blockquote {
+      margin: 14px 0;
+      padding: 10px 16px;
       border-left: 4px solid #6366f1;
       background: #f8fafc;
-      border-radius: 0 8px 8px 0;
+      border-radius: 0 6px 6px 0;
       color: #334155;
-      font-style: italic;
     }
-    .pdf-body blockquote p {
-      margin-bottom: 6px;
+    .report-content blockquote p {
+      margin-bottom: 4px;
     }
 
-    /* ---- Bold / Strong text ---- */
-    .pdf-body strong {
+    .report-content strong {
       font-weight: 700;
       color: #0f172a;
     }
 
-    /* ---- Code ---- */
-    .pdf-body code {
-      font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
-      font-size: 13px;
+    .report-content code {
+      font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
+      font-size: 12.5px;
       background: #f1f5f9;
-      padding: 2px 6px;
-      border-radius: 4px;
+      padding: 1px 5px;
+      border-radius: 3px;
       color: #6366f1;
     }
 
-    .pdf-body pre {
+    .report-content pre {
       background: #1e293b;
       color: #e2e8f0;
-      padding: 16px;
-      border-radius: 10px;
+      padding: 14px;
+      border-radius: 8px;
       overflow: auto;
-      margin: 12px 0 18px;
-      font-size: 13px;
-      line-height: 1.6;
+      margin: 10px 0 16px;
+      font-size: 12.5px;
+      line-height: 1.55;
+      page-break-inside: avoid;
     }
-    .pdf-body pre code {
+    .report-content pre code {
       background: none;
       padding: 0;
       color: inherit;
     }
 
-    /* ---- Tables ---- */
-    .pdf-body table {
+    .report-content table {
       width: 100%;
       border-collapse: collapse;
-      margin: 16px 0;
-      font-size: 14px;
+      margin: 14px 0;
+      font-size: 13px;
+      page-break-inside: avoid;
     }
-    .pdf-body th {
+    .report-content th {
       background: #f1f5f9;
       font-weight: 700;
       text-align: left;
-      padding: 10px 14px;
+      padding: 8px 12px;
       border-bottom: 2px solid #cbd5e1;
       color: #334155;
     }
-    .pdf-body td {
-      padding: 9px 14px;
+    .report-content td {
+      padding: 7px 12px;
       border-bottom: 1px solid #e2e8f0;
       color: #475569;
     }
 
-    /* ---- Horizontal rules ---- */
-    .pdf-body hr {
+    .report-content hr {
       border: none;
       border-top: 1.5px solid #e2e8f0;
-      margin: 28px 0;
+      margin: 24px 0;
     }
 
-    /* ---- Page break hints (for html2pdf) ---- */
-    .pdf-body h1, .pdf-body h2, .pdf-body h3 {
-      page-break-after: avoid;
-      break-after: avoid;
-    }
-    .pdf-body p, .pdf-body li {
-      orphans: 3;
-      widows: 3;
+    /* ---- Footer ---- */
+    .report-footer {
+      border-top: 1px solid #e2e8f0;
+      margin-top: 36px;
+      padding-top: 12px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: #94a3b8;
     }
   `;
-  container.appendChild(style);
 }
 
 /**
- * Capture a specific DOM element and download it as a beautifully
- * formatted A4 PDF with the OpenCMO logo in the header and a
- * branded footer on every page.
+ * Open a new print-optimised window with the report content and
+ * trigger the browser's native Print dialog (Save as PDF).
+ *
+ * This approach uses the browser's built-in rendering and pagination
+ * engine instead of html2canvas, so it handles long documents without
+ * freezing or running out of memory.
  */
 export async function downloadAsPDF({
   elementId,
-  filename = "report.pdf",
+  filename: _filename = "report.pdf",
   title = "AI CMO Report",
   subtitle,
 }: {
@@ -208,102 +247,65 @@ export async function downloadAsPDF({
   }
 
   const logoDataURI = await loadLogoAsDataURI();
+  const dateStr = new Date().toLocaleDateString("zh-CN");
 
-  // ---- build the off-screen container ----
-  const container = document.createElement("div");
-  Object.assign(container.style, {
-    position: "absolute",
-    left: "-9999px",
-    top: "-9999px",
-    width: "750px",
-    padding: "48px 44px 36px",
-    background: "#ffffff",
-  });
+  const logoHTML = logoDataURI
+    ? `<img src="${logoDataURI}" alt="logo" />`
+    : "";
 
-  // inject print-quality styles
-  injectPrintStyles(container);
+  const subtitleHTML = subtitle
+    ? `<div class="report-header-sub">${subtitle}</div>`
+    : "";
 
-  // ---- branded header ----
-  const header = document.createElement("div");
-  Object.assign(header.style, {
-    display: "flex",
-    alignItems: "center",
-    gap: "16px",
-    borderBottom: "3px solid #6366f1",
-    paddingBottom: "20px",
-    marginBottom: "36px",
-  });
+  const htmlContent = `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>${title}</title>
+  <style>${buildPrintCSS()}</style>
+</head>
+<body>
+  <div class="report-header">
+    ${logoHTML}
+    <div>
+      <div class="report-header-title">${title}</div>
+      ${subtitleHTML}
+      <div class="report-header-sub">Generated by OpenCMO · ${dateStr}</div>
+    </div>
+  </div>
 
-  if (logoDataURI) {
-    const logo = document.createElement("img");
-    logo.src = logoDataURI;
-    Object.assign(logo.style, {
-      width: "48px",
-      height: "48px",
-      borderRadius: "12px",
-      objectFit: "contain",
-    });
-    header.appendChild(logo);
-  }
+  <div class="report-content">
+    ${element.innerHTML}
+  </div>
 
-  const headerText = document.createElement("div");
-  headerText.style.flex = "1";
-  headerText.innerHTML = [
-    `<div style="font-size:24px;font-weight:800;color:#0f172a;letter-spacing:-0.4px;line-height:1.3">${title}</div>`,
-    subtitle
-      ? `<div style="margin-top:4px;font-size:13px;color:#64748b">${subtitle}</div>`
-      : "",
-    `<div style="margin-top:4px;font-size:12px;color:#94a3b8">Generated by OpenCMO · ${new Date().toLocaleDateString("zh-CN")}</div>`,
-  ].join("\n");
-  header.appendChild(headerText);
-  container.appendChild(header);
-
-  // ---- body content ----
-  const body = document.createElement("div");
-  body.className = "pdf-body";
-  body.innerHTML = element.innerHTML;
-  container.appendChild(body);
-
-  // ---- footer ----
-  const footer = document.createElement("div");
-  Object.assign(footer.style, {
-    borderTop: "1.5px solid #e2e8f0",
-    marginTop: "44px",
-    paddingTop: "16px",
-    display: "flex",
-    justifyContent: "space-between",
-    fontSize: "11px",
-    color: "#94a3b8",
-    fontFamily: "'Helvetica Neue', Helvetica, Arial, 'PingFang SC', sans-serif",
-  });
-  footer.innerHTML = `
+  <div class="report-footer">
     <span>OpenCMO — AI-Powered Marketing Intelligence</span>
     <span>${new Date().toISOString().slice(0, 10)}</span>
-  `;
-  container.appendChild(footer);
+  </div>
+</body>
+</html>`;
 
-  document.body.appendChild(container);
+  // Open a new window, write the styled HTML, and trigger print
+  const printWindow = window.open("", "_blank");
+  if (!printWindow) {
+    alert("Please allow popups to download the PDF.");
+    return;
+  }
 
-  // ---- generate PDF ----
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const opt: any = {
-    margin: [14, 10, 14, 10],
-    filename,
-    image: { type: "jpeg", quality: 0.98 },
-    html2canvas: {
-      scale: 2,
-      useCORS: true,
-      logging: false,
-      letterRendering: true,
-    },
-    jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-    pagebreak: { mode: ["avoid-all", "css", "legacy"] },
+  printWindow.document.write(htmlContent);
+  printWindow.document.close();
+
+  // Wait for fonts and images to load, then print
+  printWindow.onload = () => {
+    setTimeout(() => {
+      printWindow.print();
+    }, 300);
   };
 
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (html2pdf() as any).set(opt).from(container).save();
-  } finally {
-    document.body.removeChild(container);
-  }
+  // Fallback: if onload doesn't fire (some browsers), trigger after a delay
+  setTimeout(() => {
+    if (!printWindow.closed) {
+      printWindow.print();
+    }
+  }, 1500);
 }
