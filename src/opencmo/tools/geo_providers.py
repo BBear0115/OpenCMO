@@ -140,7 +140,8 @@ class GeoProvider(ABC):
         if self.status == "disabled":
             return False
         if self.requires_auth:
-            return all(os.environ.get(v) for v in self.auth_env_vars)
+            from opencmo import llm
+            return all(llm.get_key(v) for v in self.auth_env_vars)
         return True
 
     @abstractmethod
@@ -312,9 +313,10 @@ class ChatGPTProvider(GeoProvider):
 
     @property
     def is_enabled(self) -> bool:
+        from opencmo import llm
         return (
-            os.environ.get("OPENCMO_GEO_CHATGPT") == "1"
-            and bool(os.environ.get("OPENAI_API_KEY"))
+            llm.get_key("OPENCMO_GEO_CHATGPT") == "1"
+            and bool(llm.get_key("OPENAI_API_KEY"))
         )
 
     async def check_visibility(
@@ -329,8 +331,12 @@ class ChatGPTProvider(GeoProvider):
         snippet_chars = _get_snippet_chars()
         try:
             from openai import AsyncOpenAI
+            from opencmo import llm
 
-            client = AsyncOpenAI()
+            client = AsyncOpenAI(
+                api_key=llm.get_key("OPENAI_API_KEY"),
+                base_url=llm.get_key("OPENAI_BASE_URL") or None,
+            )
             response = await client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[
@@ -376,7 +382,8 @@ class ClaudeProvider(GeoProvider):
     def is_enabled(self) -> bool:
         if not _HAS_ANTHROPIC:
             return False
-        return bool(os.environ.get("ANTHROPIC_API_KEY"))
+        from opencmo import llm
+        return bool(llm.get_key("ANTHROPIC_API_KEY"))
 
     async def check_visibility(
         self, brand_name: str, category: str
@@ -389,7 +396,10 @@ class ClaudeProvider(GeoProvider):
     ) -> GeoProviderResult:
         snippet_chars = _get_snippet_chars()
         try:
-            client = anthropic.AsyncAnthropic()
+            from opencmo import llm
+            client = anthropic.AsyncAnthropic(
+                api_key=llm.get_key("ANTHROPIC_API_KEY"),
+            )
             response = await client.messages.create(
                 model="claude-sonnet-4-20250514",
                 max_tokens=1024,
@@ -435,7 +445,8 @@ class GeminiProvider(GeoProvider):
     def is_enabled(self) -> bool:
         if not _HAS_GENAI:
             return False
-        return bool(os.environ.get("GOOGLE_AI_API_KEY"))
+        from opencmo import llm
+        return bool(llm.get_key("GOOGLE_AI_API_KEY"))
 
     async def check_visibility(
         self, brand_name: str, category: str
@@ -448,7 +459,8 @@ class GeminiProvider(GeoProvider):
     ) -> GeoProviderResult:
         snippet_chars = _get_snippet_chars()
         try:
-            genai.configure(api_key=os.environ["GOOGLE_AI_API_KEY"])
+            from opencmo import llm
+            genai.configure(api_key=llm.get_key("GOOGLE_AI_API_KEY"))
             model = genai.GenerativeModel("gemini-1.5-flash")
             response = await model.generate_content_async(query)
             content = response.text or ""

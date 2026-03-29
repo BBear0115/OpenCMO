@@ -138,7 +138,8 @@ class DataForSeoProvider(SerpProvider):
     def is_enabled(self) -> bool:
         import os
 
-        return bool(os.environ.get("DATAFORSEO_LOGIN") and os.environ.get("DATAFORSEO_PASSWORD"))
+        from opencmo import llm
+        return bool(llm.get_key("DATAFORSEO_LOGIN") and llm.get_key("DATAFORSEO_PASSWORD"))
 
     async def check_ranking(
         self, keyword: str, target_domain: str, num_results: int = 20
@@ -174,7 +175,8 @@ class TavilySerpProvider(SerpProvider):
     def is_enabled(self) -> bool:
         import os
 
-        return bool(os.environ.get("TAVILY_API_KEY"))
+        from opencmo import llm
+        return bool(llm.get_key("TAVILY_API_KEY"))
 
     async def check_ranking(
         self, keyword: str, target_domain: str, num_results: int = 20

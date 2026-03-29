@@ -69,7 +69,8 @@ async def save_blog_draft_impl(payload: dict) -> dict:
 
 
 def _auto_publish_enabled() -> bool:
-    return os.environ.get("OPENCMO_AUTO_PUBLISH", "0") == "1"
+    from opencmo import llm
+    return llm.get_key("OPENCMO_AUTO_PUBLISH", "0") == "1"
 
 
 # ---------------------------------------------------------------------------
@@ -95,10 +96,11 @@ async def publish_reddit_post_impl(
     if not _HAS_PRAW:
         return {"ok": False, "error": "praw not installed. pip install praw"}
 
-    client_id = os.environ.get("REDDIT_CLIENT_ID")
-    client_secret = os.environ.get("REDDIT_CLIENT_SECRET")
-    username = os.environ.get("REDDIT_USERNAME")
-    password = os.environ.get("REDDIT_PASSWORD")
+    from opencmo import llm
+    client_id = llm.get_key("REDDIT_CLIENT_ID")
+    client_secret = llm.get_key("REDDIT_CLIENT_SECRET")
+    username = llm.get_key("REDDIT_USERNAME")
+    password = llm.get_key("REDDIT_PASSWORD")
 
     if not all([client_id, client_secret, username, password]):
         return {"ok": False, "error": "Reddit credentials not configured (REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, REDDIT_USERNAME, REDDIT_PASSWORD)"}
@@ -147,10 +149,11 @@ async def publish_reddit_reply_impl(
     if not _HAS_PRAW:
         return {"ok": False, "error": "praw not installed. pip install praw"}
 
-    client_id = os.environ.get("REDDIT_CLIENT_ID")
-    client_secret = os.environ.get("REDDIT_CLIENT_SECRET")
-    username = os.environ.get("REDDIT_USERNAME")
-    password = os.environ.get("REDDIT_PASSWORD")
+    from opencmo import llm
+    client_id = llm.get_key("REDDIT_CLIENT_ID")
+    client_secret = llm.get_key("REDDIT_CLIENT_SECRET")
+    username = llm.get_key("REDDIT_USERNAME")
+    password = llm.get_key("REDDIT_PASSWORD")
 
     if not all([client_id, client_secret, username, password]):
         return {"ok": False, "error": "Reddit credentials not configured (REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, REDDIT_USERNAME, REDDIT_PASSWORD)"}
@@ -211,10 +214,11 @@ async def publish_tweet_impl(text: str, *, dry_run: bool = True) -> dict:
     if not _HAS_TWEEPY:
         return {"ok": False, "error": "tweepy not installed. pip install tweepy"}
 
-    api_key = os.environ.get("TWITTER_API_KEY")
-    api_secret = os.environ.get("TWITTER_API_SECRET")
-    access_token = os.environ.get("TWITTER_ACCESS_TOKEN")
-    access_secret = os.environ.get("TWITTER_ACCESS_SECRET")
+    from opencmo import llm
+    api_key = llm.get_key("TWITTER_API_KEY")
+    api_secret = llm.get_key("TWITTER_API_SECRET")
+    access_token = llm.get_key("TWITTER_ACCESS_TOKEN")
+    access_secret = llm.get_key("TWITTER_ACCESS_SECRET")
 
     if not all([api_key, api_secret, access_token, access_secret]):
         return {"ok": False, "error": "Twitter credentials not configured (TWITTER_API_KEY, TWITTER_API_SECRET, TWITTER_ACCESS_TOKEN, TWITTER_ACCESS_SECRET)"}

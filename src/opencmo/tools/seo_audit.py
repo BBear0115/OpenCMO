@@ -128,7 +128,8 @@ async def _fetch_core_web_vitals(url: str) -> dict | None:
 
     Returns dict with keys: performance, lcp, cls, tbt; or None on failure.
     """
-    api_key = os.environ.get("PAGESPEED_API_KEY", "")
+    from opencmo import llm
+    api_key = llm.get_key("PAGESPEED_API_KEY", "")
     params: dict[str, str] = {
         "url": url,
         "category": "performance",

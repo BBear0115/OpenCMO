@@ -15,8 +15,8 @@ async def web_search(query: str) -> str:
     Args:
         query: The search query string.
     """
-    # 1. Try Tavily first (regardless of LLM provider)
-    if os.environ.get("TAVILY_API_KEY"):
+    from opencmo import llm
+    if llm.get_key("TAVILY_API_KEY"):
         try:
             from tavily import AsyncTavilyClient
 

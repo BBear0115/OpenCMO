@@ -14,12 +14,14 @@ logger = logging.getLogger(__name__)
 
 
 def _get_smtp_config() -> dict | None:
-    """Read SMTP config from env. Returns None if any required var is missing."""
-    host = os.environ.get("OPENCMO_SMTP_HOST")
-    port = os.environ.get("OPENCMO_SMTP_PORT")
-    user = os.environ.get("OPENCMO_SMTP_USER")
-    password = os.environ.get("OPENCMO_SMTP_PASS")
-    recipient = os.environ.get("OPENCMO_REPORT_EMAIL")
+    """Read SMTP config from env/ContextVar. Returns None if any required var is missing."""
+    from opencmo import llm
+
+    host = llm.get_key("OPENCMO_SMTP_HOST")
+    port = llm.get_key("OPENCMO_SMTP_PORT")
+    user = llm.get_key("OPENCMO_SMTP_USER")
+    password = llm.get_key("OPENCMO_SMTP_PASS")
+    recipient = llm.get_key("OPENCMO_REPORT_EMAIL")
 
     if not all([host, port, user, password, recipient]):
         return None

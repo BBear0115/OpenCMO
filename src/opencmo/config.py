@@ -1,48 +1,13 @@
-"""ENV-driven configuration system — supports OpenAI, NVIDIA, DeepSeek, and any OpenAI-compatible API."""
+"""ENV-driven configuration system — supports OpenAI, NVIDIA, DeepSeek, and any OpenAI-compatible API.
 
-import os
+This module provides the get_model() function used by the openai-agents framework.
+LLM client creation is delegated to opencmo.llm for ContextVar-based key isolation.
+"""
 
 from dotenv import load_dotenv
 
 # Load .env EARLY — before any agent module calls get_model() at import time.
 load_dotenv()
-
-_MODEL_DEFAULT = "gpt-4o"
-
-# Cached client instance
-_custom_client = None
-
-
-def _get_model_name(agent_name: str) -> str:
-    """Resolve model name string from env vars."""
-    specific = os.environ.get(f"OPENCMO_MODEL_{agent_name.upper()}")
-    if specific:
-        return specific
-    return os.environ.get("OPENCMO_MODEL_DEFAULT", _MODEL_DEFAULT)
-
-
-def _get_custom_client():
-    """Create or return a cached AsyncOpenAI client for custom base URLs."""
-    global _custom_client
-    if _custom_client is None:
-        from openai import AsyncOpenAI
-
-        _custom_client = AsyncOpenAI(
-            base_url=os.environ.get("OPENAI_BASE_URL"),
-            api_key=os.environ.get("OPENAI_API_KEY"),
-        )
-    return _custom_client
-
-
-def reset_client():
-    """Reset the cached client so next call uses current env vars."""
-    global _custom_client
-    _custom_client = None
-
-
-def is_custom_provider() -> bool:
-    """True if a non-default OPENAI_BASE_URL is configured."""
-    return bool(os.environ.get("OPENAI_BASE_URL"))
 
 
 def get_model(agent_name: str):
@@ -55,21 +20,43 @@ def get_model(agent_name: str):
     configured with a custom client (works with NVIDIA, DeepSeek, etc.).
     Otherwise returns a plain model name string (uses OpenAI default).
     """
-    model_name = _get_model_name(agent_name)
+    from opencmo import llm
 
-    if is_custom_provider():
+    model_name = llm.get_key(f"OPENCMO_MODEL_{agent_name.upper()}")
+    if not model_name:
+        model_name = llm.get_key("OPENCMO_MODEL_DEFAULT", "gpt-4o")
+
+    base_url = llm.get_key("OPENAI_BASE_URL")
+    if base_url:
         from agents import OpenAIChatCompletionsModel
+        from openai import AsyncOpenAI
 
+        client = AsyncOpenAI(
+            base_url=base_url,
+            api_key=llm.get_key("OPENAI_API_KEY"),
+        )
         return OpenAIChatCompletionsModel(
             model=model_name,
-            openai_client=_get_custom_client(),
+            openai_client=client,
         )
 
     return model_name
 
 
+def is_custom_provider() -> bool:
+    """True if a non-default OPENAI_BASE_URL is configured."""
+    from opencmo import llm
+    return bool(llm.get_key("OPENAI_BASE_URL"))
+
+
 async def apply_runtime_settings():
-    """Load API settings from DB and apply to os.environ + reset client cache."""
+    """Load API settings from DB and apply to os.environ.
+
+    Called once at startup to populate env from DB-stored settings.
+    After this, llm.get_key() will find values via os.environ fallback.
+    """
+    import os
+
     from opencmo import storage
 
     for key in ("OPENAI_API_KEY", "OPENAI_BASE_URL", "OPENCMO_MODEL_DEFAULT"):
@@ -77,5 +64,3 @@ async def apply_runtime_settings():
         if val:
             os.environ[key] = val
         # If DB value was cleared but env had it from .env, keep it
-
-    reset_client()

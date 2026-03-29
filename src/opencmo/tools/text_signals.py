@@ -20,16 +20,18 @@ class SentimentSignal:
 
 
 def _get_llm_client():
+    from opencmo import llm
     from openai import AsyncOpenAI
 
     return AsyncOpenAI(
-        api_key=os.environ.get("OPENAI_API_KEY"),
-        base_url=os.environ.get("OPENAI_BASE_URL") or None,
+        api_key=llm.get_key("OPENAI_API_KEY"),
+        base_url=llm.get_key("OPENAI_BASE_URL") or None,
     )
 
 
 def _get_model() -> str:
-    return os.environ.get("OPENCMO_MODEL_DEFAULT", "gpt-4o")
+    from opencmo import llm
+    return llm.get_key("OPENCMO_MODEL_DEFAULT", "gpt-4o")
 
 
 async def analyze_geo_sentiment(

@@ -45,9 +45,11 @@ async def _sync_runtime_job(job_id: int) -> None:
 
 
 async def _hydrate_publish_settings(channel: str) -> None:
+    """Load publish-related keys from DB into env for non-BYOK flows."""
+    from opencmo import llm
     for key in _PUBLISH_ENV_KEYS.get(channel, ()):
-        value = await storage.get_setting(key)
-        if value:
+        value = await llm.get_key_async(key)
+        if value and not os.environ.get(key):
             os.environ[key] = value
 
 
@@ -359,7 +361,13 @@ async def get_status_summary() -> list[dict]:
 
 
 async def _llm_call(client, model: str, messages: list[dict]) -> str:
-    """Single LLM chat completion call, returns content string."""
+    """Single LLM chat completion call, returns content string.
+
+    Uses the centralized llm module when client is None.
+    """
+    if client is None:
+        from opencmo import llm
+        return await llm.chat_completion_messages(messages)
     resp = await client.chat.completions.create(
         model=model, messages=messages, temperature=0.7,
     )
@@ -410,13 +418,10 @@ async def analyze_url_with_ai(url: str, on_progress=None, locale: str = "en") ->
 
     # 2. Filter: use LLM to extract only useful product info, discard nav/footer/ads
     try:
-        from openai import AsyncOpenAI
+        from opencmo import llm
 
-        client = AsyncOpenAI(
-            api_key=os.environ.get("OPENAI_API_KEY"),
-            base_url=os.environ.get("OPENAI_BASE_URL") or None,
-        )
-        model = os.environ.get("OPENCMO_MODEL_DEFAULT", "gpt-4o")
+        client = await llm.get_openai_client()
+        model = await llm.get_model()
 
         filter_resp = await _llm_call(client, model, [
             {
@@ -603,13 +608,10 @@ async def discover_competitors(project_id: int, on_progress=None) -> list[dict]:
     kw_text = ", ".join(k["keyword"] for k in keywords_list) if keywords_list else "N/A"
 
     try:
-        from openai import AsyncOpenAI
+        from opencmo import llm
 
-        client = AsyncOpenAI(
-            api_key=os.environ.get("OPENAI_API_KEY"),
-            base_url=os.environ.get("OPENAI_BASE_URL") or None,
-        )
-        model = os.environ.get("OPENCMO_MODEL_DEFAULT", "gpt-4o")
+        client = await llm.get_openai_client()
+        model = await llm.get_model()
 
         emit("system", f"Discovering competitors for {brand}...", 0)
 

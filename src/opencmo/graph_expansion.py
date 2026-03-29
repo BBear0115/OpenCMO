@@ -72,16 +72,23 @@ async def _web_search_direct(query: str) -> str:
 
 
 def _get_llm_client():
+    """Get LLM client — delegates to centralized llm module.
+
+    Note: This is sync because it's called in contexts where we need
+    the client immediately. The client is created with ContextVar-aware keys.
+    """
+    from opencmo import llm
     from openai import AsyncOpenAI
 
     return AsyncOpenAI(
-        api_key=os.environ.get("OPENAI_API_KEY"),
-        base_url=os.environ.get("OPENAI_BASE_URL") or None,
+        api_key=llm.get_key("OPENAI_API_KEY"),
+        base_url=llm.get_key("OPENAI_BASE_URL") or None,
     )
 
 
 def _get_model() -> str:
-    return os.environ.get("OPENCMO_MODEL_DEFAULT", "gpt-4o")
+    from opencmo import llm
+    return llm.get_key("OPENCMO_MODEL_DEFAULT", "gpt-4o")
 
 
 async def _llm_call(client, model: str, messages: list[dict]) -> str:

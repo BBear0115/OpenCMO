@@ -102,43 +102,28 @@ def _simple_markdown_to_html(markdown_text: str) -> str:
 
 async def _generate_llm_markdown(system_prompt: str, user_prompt: str) -> str:
     """Generate markdown with the configured LLM."""
-    api_key = await _get_runtime_setting("OPENAI_API_KEY")
+    from opencmo import llm
+
+    api_key = await llm.get_key_async("OPENAI_API_KEY")
     if not api_key:
         raise RuntimeError("OPENAI_API_KEY is not configured.")
 
-    from openai import AsyncOpenAI
-
-    client = AsyncOpenAI(
-        api_key=api_key,
-        base_url=(await _get_runtime_setting("OPENAI_BASE_URL")) or None,
+    timeout = await _get_report_timeout_seconds()
+    return await llm.chat_completion(
+        system_prompt, user_prompt,
+        temperature=0.5,
+        timeout=timeout,
     )
-    model = await _get_report_model()
-    response = await asyncio.wait_for(
-        client.chat.completions.create(
-            model=model,
-            temperature=0.5,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt},
-            ],
-        ),
-        timeout=await _get_report_timeout_seconds(),
-    )
-    return response.choices[0].message.content.strip()
 
 
 async def _get_runtime_setting(key: str, default: str | None = None) -> str | None:
-    value = await storage.get_setting(key)
-    if value not in (None, ""):
-        return value
-    env_value = os.environ.get(key)
-    if env_value not in (None, ""):
-        return env_value
-    return default
+    from opencmo import llm
+    return await llm.get_key_async(key, default)
 
 
 async def _get_report_model() -> str:
-    return (await _get_runtime_setting("OPENCMO_MODEL_DEFAULT", _REPORT_MODEL_DEFAULT)) or _REPORT_MODEL_DEFAULT
+    from opencmo import llm
+    return await llm.get_model()
 
 
 async def _get_report_timeout_seconds() -> float:

@@ -87,7 +87,12 @@ _INJECTABLE_KEYS = frozenset({
 
 @app.middleware("http")
 async def byok_middleware(request: Request, call_next):
-    """Read per-user API keys from X-User-Keys header and inject into env."""
+    """Read per-user API keys from X-User-Keys header and inject via ContextVar.
+
+    Uses ContextVar instead of os.environ for per-request key isolation,
+    preventing race conditions where concurrent requests could overwrite
+    each other's API keys.
+    """
     raw = request.headers.get("X-User-Keys")
     if not raw:
         return await call_next(request)
@@ -101,28 +106,21 @@ async def byok_middleware(request: Request, call_next):
     except Exception:
         return await call_next(request)
 
-    # Save originals, inject user keys
-    originals: dict[str, str | None] = {}
-    for k, v in user_keys.items():
-        if k in _INJECTABLE_KEYS and isinstance(v, str) and v.strip():
-            originals[k] = os.environ.get(k)
-            os.environ[k] = v.strip()
+    # Filter to allowed keys only
+    filtered = {
+        k: v for k, v in user_keys.items()
+        if k in _INJECTABLE_KEYS and isinstance(v, str) and v.strip()
+    }
+    if not filtered:
+        return await call_next(request)
 
+    # Inject into ContextVar (Task-local, no race condition)
+    from opencmo import llm
+    token = llm.set_request_keys(filtered)
     try:
-        # Also reset the OpenAI client so it picks up new key/url
-        from opencmo import config
-        config.reset_client()
         response = await call_next(request)
     finally:
-        # Restore originals
-        for k, orig in originals.items():
-            if orig is not None:
-                os.environ[k] = orig
-            else:
-                os.environ.pop(k, None)
-        if originals:
-            from opencmo import config
-            config.reset_client()
+        llm.reset_request_keys(token)
 
     return response
 

@@ -7,7 +7,7 @@ import os
 from dataclasses import asdict, dataclass, field
 from typing import Callable
 
-from opencmo import storage
+from opencmo import llm, storage
 
 ProgressCallback = Callable[[dict], None]
 
@@ -125,7 +125,7 @@ async def _build_project_context(
         agent="Project Context Builder",
     ))
 
-    if analyze_url and os.environ.get("OPENAI_API_KEY"):
+    if analyze_url and llm.get_key("OPENAI_API_KEY"):
         def relay(role: str, content: str, round_num: int):
             if on_progress:
                 label = role.replace("_", " ").title()

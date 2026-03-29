@@ -19,7 +19,8 @@ def _mask_key(key: str) -> str:
 
 
 async def _get_setting(name: str) -> str:
-    return await storage.get_setting(name) or os.environ.get(name, "")
+    from opencmo import llm
+    return (await llm.get_key_async(name)) or ""
 
 
 @router.get("/settings")
@@ -127,5 +128,4 @@ async def api_v1_settings_save(request: Request):
             else:
                 await storage.delete_setting(key)
                 os.environ.pop(key, None)
-    config.reset_client()
     return JSONResponse({"ok": True})

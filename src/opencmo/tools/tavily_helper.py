@@ -19,7 +19,8 @@ class TavilyResult:
 
 def tavily_available() -> bool:
     """Return True if the Tavily API key is configured."""
-    return bool(os.environ.get("TAVILY_API_KEY"))
+    from opencmo import llm
+    return bool(llm.get_key("TAVILY_API_KEY"))
 
 
 async def tavily_search(
@@ -87,7 +88,8 @@ async def tavily_extract(
     try:
         from tavily import AsyncTavilyClient
 
-        client = AsyncTavilyClient(api_key=os.environ["TAVILY_API_KEY"])
+        from opencmo import llm
+        client = AsyncTavilyClient(api_key=llm.get_key("TAVILY_API_KEY"))
         response = await client.extract(
             urls=[url],
             extract_depth=extract_depth,
