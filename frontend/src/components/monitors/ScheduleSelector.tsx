@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Clock, Zap, Sun, CalendarDays, CalendarRange, Settings2 } from "lucide-react";
 import { useI18n } from "../../i18n";
+import type { TranslationKey } from "../../i18n";
 
 const PRESETS = [
   { key: "hourly",    cron: "0 * * * *",   icon: Zap,           color: "text-amber-500" },
@@ -97,8 +98,13 @@ export function ScheduleSelector({
 
 /**
  * Convert a cron expression to a human-readable description.
+ * Accepts a translation function `t` for locale-aware output.
  */
-export function cronToHuman(cron: string, locale: string): string {
+export function cronToHuman(
+  cron: string,
+  _locale: string,
+  t?: (key: TranslationKey, params?: Record<string, string | number>) => string,
+): string {
   const parts = cron.trim().split(/\s+/);
   if (parts.length !== 5) return cron;
 
@@ -108,49 +114,46 @@ export function cronToHuman(cron: string, locale: string): string {
   const dayOfWeek = parts[4] ?? "*";
 
   const timeStr = `${hour.padStart(2, "0")}:${min.padStart(2, "0")}`;
-  const isZh = locale === "zh";
+
+  // Fallback for callers that don't pass t
+  if (!t) {
+    if (hour === "*" && min === "0") return "Every hour";
+    if (hour === "*" && min === "*") return "Every minute";
+    return cron;
+  }
 
   // Every minute / every hour
   if (hour === "*" && min === "0") {
-    return isZh ? "每小时" : "Every hour";
+    return t("cron.everyHour");
   }
   if (hour === "*" && min === "*") {
-    return isZh ? "每分钟" : "Every minute";
+    return t("cron.everyMinute");
   }
 
   // Every N hours
   const hourMatch = hour.match(/^\*\/(\d+)$/);
   if (hourMatch) {
-    const n = hourMatch[1];
-    return isZh ? `每 ${n} 小时` : `Every ${n} hours`;
+    return t("cron.everyNHours", { n: hourMatch[1]! });
   }
 
   // Specific day of week
   if (dayOfWeek !== "*" && dayOfMonth === "*") {
-    const days = isZh
-      ? ["日", "一", "二", "三", "四", "五", "六"]
-      : ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
     const dayIdx = parseInt(dayOfWeek);
-    const dayName = days[dayIdx] ?? dayOfWeek;
-    return isZh ? `每周${dayName} ${timeStr}` : `${dayName} ${timeStr}`;
+    const dayKey = `cron.day.${dayIdx}` as TranslationKey;
+    const dayName = t(dayKey);
+    return t("cron.weeklyAt", { day: dayName, time: timeStr });
   }
 
   // Specific day of month
   if (dayOfMonth !== "*") {
     const d = parseInt(dayOfMonth);
-    return isZh ? `每月 ${d} 日 ${timeStr}` : `${d}${ordinal(d)} ${timeStr}`;
+    return t("cron.monthlyAt", { day: d, time: timeStr });
   }
 
   // Daily at specific time
   if (hour !== "*" && dayOfWeek === "*" && dayOfMonth === "*") {
-    return isZh ? `每天 ${timeStr}` : `Daily ${timeStr}`;
+    return t("cron.dailyAt", { time: timeStr });
   }
 
   return cron;
-}
-
-function ordinal(n: number): string {
-  const s = ["th", "st", "nd", "rd"];
-  const v = n % 100;
-  return s[(v - 20) % 10] || s[v] || s[0] || "th";
 }

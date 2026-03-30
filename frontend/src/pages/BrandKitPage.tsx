@@ -7,13 +7,19 @@ import {
 import { useBrandKit, useSaveBrandKit } from "../hooks/useBrandKit";
 import { LoadingSpinner } from "../components/common/LoadingSpinner";
 import { ErrorAlert } from "../components/common/ErrorAlert";
+import { useI18n } from "../i18n";
+import type { TranslationKey } from "../i18n";
 
 function TagInput({
   tags,
   onChange,
+  placeholder,
+  morePlaceholder,
 }: {
   tags: string[];
   onChange: (tags: string[]) => void;
+  placeholder: string;
+  morePlaceholder: string;
 }) {
   const [input, setInput] = useState("");
 
@@ -52,7 +58,7 @@ function TagInput({
         value={input}
         onChange={(e) => setInput(e.target.value)}
         onKeyDown={handleKeyDown}
-        placeholder={tags.length === 0 ? "Type and press Enter to add..." : "Add more..."}
+        placeholder={tags.length === 0 ? placeholder : morePlaceholder}
         className="flex-1 min-w-[120px] bg-transparent text-sm outline-none placeholder:text-slate-400"
       />
     </div>
@@ -61,10 +67,10 @@ function TagInput({
 
 interface FieldConfig {
   key: string;
-  label: string;
+  labelKey: TranslationKey;
   icon: React.ElementType;
-  placeholder: string;
-  description: string;
+  placeholderKey: TranslationKey;
+  descKey: TranslationKey;
   type: "textarea" | "tags";
   gradient: string;
 }
@@ -72,55 +78,55 @@ interface FieldConfig {
 const FIELDS: FieldConfig[] = [
   {
     key: "tone_of_voice",
-    label: "Brand Tone of Voice",
+    labelKey: "brandKit.toneLabel",
     icon: Palette,
-    placeholder: "e.g. Professional yet approachable, technically confident, uses analogies from daily life...",
-    description: "Describe the personality and voice that should be consistent across all AI-generated content.",
+    placeholderKey: "brandKit.tonePlaceholder",
+    descKey: "brandKit.toneDesc",
     type: "textarea",
     gradient: "from-violet-500/10 to-purple-500/10",
   },
   {
     key: "target_audience",
-    label: "Target Audience",
+    labelKey: "brandKit.audienceLabel",
     icon: Users,
-    placeholder: "e.g. Indie developers and solo founders building B2B SaaS, age 25-45, tech-savvy...",
-    description: "Who are you creating content for? Be as specific as possible.",
+    placeholderKey: "brandKit.audiencePlaceholder",
+    descKey: "brandKit.audienceDesc",
     type: "textarea",
     gradient: "from-blue-500/10 to-cyan-500/10",
   },
   {
     key: "core_values",
-    label: "Core Value Proposition",
+    labelKey: "brandKit.valuesLabel",
     icon: Shield,
-    placeholder: "e.g. Open-source, privacy-first analytics — no data ever leaves the user's server...",
-    description: "What makes your product unique? What's the key message every piece of content should reinforce?",
+    placeholderKey: "brandKit.valuesPlaceholder",
+    descKey: "brandKit.valuesDesc",
     type: "textarea",
     gradient: "from-emerald-500/10 to-teal-500/10",
   },
   {
     key: "forbidden_words",
-    label: "Forbidden Words & Phrases",
+    labelKey: "brandKit.forbiddenLabel",
     icon: Ban,
-    placeholder: "",
-    description: "Words or phrases your brand should NEVER use in any content (PR-sensitive terms, competitor names, etc.).",
+    placeholderKey: "brandKit.tagPlaceholder",
+    descKey: "brandKit.forbiddenDesc",
     type: "tags",
     gradient: "from-red-500/10 to-orange-500/10",
   },
   {
     key: "best_examples",
-    label: "Best Content Examples",
+    labelKey: "brandKit.examplesLabel",
     icon: Sparkles,
-    placeholder: "Paste your best-performing tweet, Reddit post, or blog excerpt here...",
-    description: "Provide 1-3 examples of content that perfectly captures your brand voice.",
+    placeholderKey: "brandKit.examplesPlaceholder",
+    descKey: "brandKit.examplesDesc",
     type: "textarea",
     gradient: "from-amber-500/10 to-yellow-500/10",
   },
   {
     key: "custom_instructions",
-    label: "Custom Instructions",
+    labelKey: "brandKit.instructionsLabel",
     icon: FileText,
-    placeholder: "e.g. Always mention the open-source nature. Never compare directly to X competitor...",
-    description: "Any additional rules or context that agents should follow when generating content.",
+    placeholderKey: "brandKit.instructionsPlaceholder",
+    descKey: "brandKit.instructionsDesc",
     type: "textarea",
     gradient: "from-slate-500/10 to-zinc-500/10",
   },
@@ -134,6 +140,7 @@ export function BrandKitPage() {
   const [form, setForm] = useState<Record<string, unknown>>({});
   const [saved, setSaved] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const { t } = useI18n();
 
   useEffect(() => {
     if (kit) {
@@ -178,24 +185,23 @@ export function BrandKitPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-zinc-900">
-              Brand Kit
+              {t("brandKit.title")}
             </h1>
             <p className="text-sm text-zinc-500 mt-1">
-              Define your brand's DNA. Every AI agent will follow these guidelines when
-              generating content.
+              {t("brandKit.subtitle")}
             </p>
           </div>
           <div className="flex items-center gap-2">
             {saveMutation.isPending && (
               <span className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500">
                 <Loader2 size={14} className="animate-spin" />
-                Saving...
+                {t("brandKit.saving")}
               </span>
             )}
             {saved && (
               <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 shadow-sm animate-in fade-in zoom-in-95 duration-300">
                 <Check size={14} />
-                Saved
+                {t("brandKit.saved")}
               </span>
             )}
           </div>
@@ -215,23 +221,25 @@ export function BrandKitPage() {
                   <Icon size={16} className="text-slate-600" />
                 </div>
                 <h3 className="text-sm font-semibold text-slate-800">
-                  {field.label}
+                  {t(field.labelKey)}
                 </h3>
               </div>
               <p className="text-xs text-slate-500 mb-3 ml-[42px]">
-                {field.description}
+                {t(field.descKey)}
               </p>
               <div className="ml-[42px]">
                 {field.type === "tags" ? (
                   <TagInput
                     tags={(form[field.key] as string[]) || []}
                     onChange={(tags) => updateField(field.key, tags)}
+                    placeholder={t(field.placeholderKey)}
+                    morePlaceholder={t("brandKit.tagMore")}
                   />
                 ) : (
                   <textarea
                     value={(form[field.key] as string) || ""}
                     onChange={(e) => updateField(field.key, e.target.value)}
-                    placeholder={field.placeholder}
+                    placeholder={t(field.placeholderKey)}
                     rows={3}
                     className="w-full rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-800 placeholder:text-slate-400 transition-all focus:border-purple-300 focus:outline-none focus:ring-2 focus:ring-purple-100 resize-none"
                   />

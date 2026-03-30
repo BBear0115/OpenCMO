@@ -406,6 +406,204 @@ export const en = {
 
   // Delete confirmation
   "dashboard.deleteConfirm": "Are you sure you want to delete this project?",
+
+  // Brand Kit Page
+  "brandKit.title": "Brand Kit",
+  "brandKit.subtitle": "Define your brand's DNA. Every AI agent will follow these guidelines when generating content.",
+  "brandKit.saving": "Saving...",
+  "brandKit.saved": "Saved",
+  "brandKit.toneLabel": "Brand Tone of Voice",
+  "brandKit.tonePlaceholder": "e.g. Professional yet approachable, technically confident, uses analogies from daily life...",
+  "brandKit.toneDesc": "Describe the personality and voice that should be consistent across all AI-generated content.",
+  "brandKit.audienceLabel": "Target Audience",
+  "brandKit.audiencePlaceholder": "e.g. Indie developers and solo founders building B2B SaaS, age 25-45, tech-savvy...",
+  "brandKit.audienceDesc": "Who are you creating content for? Be as specific as possible.",
+  "brandKit.valuesLabel": "Core Value Proposition",
+  "brandKit.valuesPlaceholder": "e.g. Open-source, privacy-first analytics — no data ever leaves the user's server...",
+  "brandKit.valuesDesc": "What makes your product unique? What's the key message every piece of content should reinforce?",
+  "brandKit.forbiddenLabel": "Forbidden Words & Phrases",
+  "brandKit.forbiddenDesc": "Words or phrases your brand should NEVER use in any content (PR-sensitive terms, competitor names, etc.).",
+  "brandKit.examplesLabel": "Best Content Examples",
+  "brandKit.examplesPlaceholder": "Paste your best-performing tweet, Reddit post, or blog excerpt here...",
+  "brandKit.examplesDesc": "Provide 1-3 examples of content that perfectly captures your brand voice.",
+  "brandKit.instructionsLabel": "Custom Instructions",
+  "brandKit.instructionsPlaceholder": "e.g. Always mention the open-source nature. Never compare directly to X competitor...",
+  "brandKit.instructionsDesc": "Any additional rules or context that agents should follow when generating content.",
+  "brandKit.tagPlaceholder": "Type and press Enter to add...",
+  "brandKit.tagMore": "Add more...",
+
+  // Performance Page
+  "perf.title": "Performance Tracker",
+  "perf.subtitle": "Track engagement metrics for published content and manually added links.",
+  "perf.trackUrl": "Track URL",
+  "perf.totalPublished": "Total Published",
+  "perf.totalLikes": "Total Likes",
+  "perf.totalComments": "Total Comments",
+  "perf.totalShares": "Total Shares",
+  "perf.trackExternal": "Track External URL",
+  "perf.titleOptional": "Title (optional)",
+  "perf.notesOptional": "Notes (optional)",
+  "perf.adding": "Adding...",
+  "perf.add": "Add",
+  "perf.publishedVia": "Published via Approval Queue",
+  "perf.manuallyTracked": "Manually Tracked",
+  "perf.untitled": "Untitled",
+  "perf.refreshMetrics": "Refresh metrics",
+  "perf.emptyTitle": "No tracked content yet",
+  "perf.emptyDesc": "Published content from the Approval Queue will appear here automatically. You can also manually add external URLs to track.",
+  "perf.platformReddit": "Reddit",
+  "perf.platformTwitter": "Twitter/X",
+  "perf.platformBlog": "Blog",
+  "perf.platformOther": "Other",
+
+  // Task Progress (scan)
+  "taskProgress.scanInProgress": "Scan in progress…",
+  "taskProgress.scanComplete": "Scan complete",
+  "taskProgress.scanErrors": "Scan finished with errors",
+  "taskProgress.initializing": "Initializing scan…",
+  "taskProgress.findings": "findings",
+  "taskProgress.actions": "actions",
+  "taskProgress.stageContextBuild": "Context Analysis",
+  "taskProgress.stageSignalCollect": "Signal Collection",
+  "taskProgress.stageSignalNormalize": "Signal Processing",
+  "taskProgress.stageDomainReview": "Domain Review",
+  "taskProgress.stageStrategySynthesis": "Strategy Synthesis",
+  "taskProgress.stagePersistPublish": "Saving Results",
+  "taskProgress.stageReporting": "Report Generation",
+
+  // Pipeline Progress (report generation)
+  "pipeline.connecting": "Connecting to pipeline...",
+  "pipeline.preparing": "Preparing pipeline...",
+  "pipeline.agentsWorking": "AI agents are working...",
+  "pipeline.complete": "Report generation complete!",
+  "pipeline.error": "Pipeline encountered an error",
+  "pipeline.phaseReflection": "Phase 1 · Data Quality Audit",
+  "pipeline.phaseDistillation": "Phase 2 · Insight Distillation",
+  "pipeline.phasePlanning": "Phase 3 · Outline Planning",
+  "pipeline.phaseWriting": "Phase 4 · Section Writing",
+  "pipeline.phaseGrading": "Phase 5 · Quality Grading",
+  "pipeline.phaseSynthesis": "Phase 6 · Final Synthesis",
+
+  // Action Feed
+  "actionFeed.title": "Action Feed",
+  "actionFeed.allClear": "All clear! 🎉",
+  "actionFeed.allClearDesc": "No urgent actions right now. Your agents are monitoring and will alert you when something needs attention.",
+  "actionFeed.viewDetails": "View Details",
+  "actionFeed.reviewDraft": "Review Draft",
+  "actionFeed.generateFix": "Generate Fix",
+  "actionFeed.discuss": "Discuss",
+
+  // Competitor Panel
+  "competitor.title": "Competitors",
+  "competitor.aiDiscover": "AI Discover",
+  "competitor.discovering": "Discovering...",
+  "competitor.manual": "Manual",
+  "competitor.manualAdd": "Manual Add",
+  "competitor.aiDiscoverSuccess": "AI discovered {{count}} competitors, auto-added to graph",
+  "competitor.aiDiscoverFailed": "Discovery failed. Check API settings and retry.",
+  "competitor.namePlaceholder": "Competitor name *",
+  "competitor.urlPlaceholder": "URL (optional)",
+  "competitor.kwPlaceholder": "Keywords, comma separated (optional)",
+  "competitor.adding": "Adding...",
+  "competitor.noCompetitorsAi": "No competitors yet. Click 'AI Discover' to let AI find and add competitors automatically.",
+
+  // Analysis Dialog
+  "analysis.title": "AI Monitoring Orchestration",
+  "analysis.initializing": "Initializing monitoring workflow...",
+  "analysis.workflowStages": "Workflow Stages",
+  "analysis.domainReviews": "Domain Reviews",
+  "analysis.keyFindings": "Key Findings",
+  "analysis.recommendedActions": "Recommended Actions",
+  "analysis.workflowFailed": "Workflow failed",
+  "analysis.workflowComplete": "Workflow complete",
+  "analysis.stages": "stages",
+  "analysis.close": "Close",
+  "analysis.runBackground": "Run in background",
+  "analysis.stageContextBuild": "Context Build",
+  "analysis.stageSignalCollect": "Signal Collection",
+  "analysis.stageSignalNormalize": "Normalization",
+  "analysis.stageDomainReview": "Domain Review",
+  "analysis.stageStrategySynthesis": "Strategy",
+  "analysis.stagePersistPublish": "Finalize",
+
+  // Project Header
+  "projectHeader.resume": "Resume",
+  "projectHeader.pause": "Pause",
+
+  // Approval Card extras
+  "approval.replyTo": "Reply to {{id}}",
+  "approval.chars": "{{count}} chars",
+  "approval.whyThis": "Why this:",
+  "approval.whyNow": "Why now:",
+  "approval.whyHere": "Why here:",
+
+  // Reports extras
+  "reports.emailSent": "Weekly report emailed to {{recipient}}.",
+  "reports.downloadPdf": "Download PDF",
+
+  // Monitor List extras
+  "monitorList.deleteMonitor": "Delete monitor",
+
+  // Chat — context badge (ChatContainer)
+  "chat.projectContextBadge": "Project Context",
+  "chat.discussions": "hits",
+
+  // Chat — project context card
+  "chat.community": "Community",
+  "chat.communityHitsSuffix": " hits",
+  "chat.serpInTop10Suffix": " in top 10",
+  "chat.gapNote": "(competitors have, you don't)",
+  "chat.aiGreeting": "I have {{name}}'s latest monitoring data loaded. Ask me to create content for any platform, analyze competitors, or build a marketing strategy.",
+  "chat.suggestStrategy": "Full-channel strategy",
+  "chat.suggestStrategyPrompt": "Create a comprehensive marketing strategy for {{name}}",
+  "chat.suggestCompetitor": "Competitor deep-dive",
+  "chat.suggestCompetitorPrompt": "Analyze competitors for {{name}} and suggest differentiation",
+  "chat.suggestVisibility": "Improve AI visibility",
+  "chat.suggestVisibilityPrompt": "How can I improve {{name}}'s visibility in AI search engines?",
+  "chat.suggestBlog": "Write a blog post",
+  "chat.suggestBlogPrompt": "Write an SEO blog article for {{name}}",
+
+  // Agent Grid
+  "agentGrid.title": "Choose an AI expert to start",
+  "agentGrid.subtitle": "Or type anything below — the CMO will auto-route to the right expert",
+  "agentGrid.projectPrefix": "For the {{name}} project, ",
+  "agentGrid.cmoPrompt": "Analyze the overall marketing strategy and current status for {{name}}",
+
+  // Monitors Page — analysis bar
+  "monitors.aiAnalyzing": "AI analyzing",
+  "monitors.viewDetails": "View details",
+
+  // Knowledge Graph — type labels
+  "graph.type.brand": "Brand",
+  "graph.type.keyword": "Keyword",
+  "graph.type.discussion": "Discussion",
+  "graph.type.serp": "SERP Rank",
+  "graph.type.competitor": "Competitor",
+  "graph.type.competitorKeyword": "Competitor KW",
+
+  // Knowledge Graph — node details
+  "graph.platform": "Platform",
+  "graph.engagement": "Engagement",
+  "graph.nodeComments": "Comments",
+  "graph.rank": "Rank",
+  "graph.discoveryDepth": "Discovery depth",
+  "graph.openLink": "Open Link",
+  "graph.controlsHint": "Drag to rotate · Scroll to zoom · Right-click to pan · Click nodes",
+
+  // Cron human-readable descriptions
+  "cron.everyHour": "Every hour",
+  "cron.everyMinute": "Every minute",
+  "cron.everyNHours": "Every {{n}} hours",
+  "cron.dailyAt": "Daily {{time}}",
+  "cron.weeklyAt": "{{day}} {{time}}",
+  "cron.monthlyAt": "{{day}} {{time}}",
+  "cron.day.0": "Sun",
+  "cron.day.1": "Mon",
+  "cron.day.2": "Tue",
+  "cron.day.3": "Wed",
+  "cron.day.4": "Thu",
+  "cron.day.5": "Fri",
+  "cron.day.6": "Sat",
 } as const;
 
 export type TranslationKey = keyof typeof en;

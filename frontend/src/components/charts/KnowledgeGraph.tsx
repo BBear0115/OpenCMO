@@ -33,22 +33,15 @@ const LINK_COLORS: Record<string, string> = {
   expanded_from: "rgba(168, 85, 247, 0.35)", // Purple for expansion edges
 };
 
-const TYPE_LABELS_EN: Record<string, string> = {
-  brand: "Brand",
-  keyword: "Keyword",
-  discussion: "Discussion",
-  serp: "SERP Rank",
-  competitor: "Competitor",
-  competitor_keyword: "Competitor KW",
-};
+import type { TranslationKey } from "../../i18n";
 
-const TYPE_LABELS_ZH: Record<string, string> = {
-  brand: "品牌",
-  keyword: "关键词",
-  discussion: "社区讨论",
-  serp: "搜索排名",
-  competitor: "竞品",
-  competitor_keyword: "竞品关键词",
+const TYPE_LABEL_KEYS: Record<string, TranslationKey> = {
+  brand: "graph.type.brand",
+  keyword: "graph.type.keyword",
+  discussion: "graph.type.discussion",
+  serp: "graph.type.serp",
+  competitor: "graph.type.competitor",
+  competitor_keyword: "graph.type.competitorKeyword",
 };
 
 /* ─── Sizing ─── */
@@ -71,9 +64,10 @@ export function KnowledgeGraph({ data }: { data: GraphData }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
   const [selectedNode, setSelectedNode] = useState<NewNodeData | null>(null);
-  const { locale } = useI18n();
-  const isZh = locale === "zh";
-  const typeLabels = isZh ? TYPE_LABELS_ZH : TYPE_LABELS_EN;
+  const { t } = useI18n();
+  const typeLabels = Object.fromEntries(
+    Object.entries(TYPE_LABEL_KEYS).map(([k, v]) => [k, t(v)])
+  );
 
   // Track previous nodes to detect new ones and animate them
   const prevNodesRef = useRef<Set<string>>(new Set());
@@ -421,14 +415,14 @@ export function KnowledgeGraph({ data }: { data: GraphData }) {
     const badgeColor = NODE_COLORS_CSS[n.type] || "#94a3b8";
     html += `<div style="display:inline-block; padding: 2px 8px; border-radius: 999px; background: ${badgeColor}15; color: ${badgeColor}; font-size: 11px; font-weight: 600; margin-bottom: 8px; border: 1px solid ${badgeColor}30;">${typeName}</div>`;
     
-    if (n.platform) html += `<div style="color: #64748b; margin-top: 4px; display:flex; justify-content:space-between;"><span>${isZh ? "平台" : "Platform"}</span> <span style="font-weight:500; color:#334155;">${n.platform}</span></div>`;
-    if (n.engagement != null) html += `<div style="color: #64748b; margin-top: 4px; display:flex; justify-content:space-between;"><span>${isZh ? "互动分" : "Engagement"}</span> <span style="font-weight:600; color:#334155;">${n.engagement}</span></div>`;
-    if (n.comments != null) html += `<div style="color: #64748b; margin-top: 4px; display:flex; justify-content:space-between;"><span>${isZh ? "评论数" : "Comments"}</span> <span style="font-weight:500; color:#334155;">${n.comments}</span></div>`;
-    if (n.position != null) html += `<div style="color: #64748b; margin-top: 4px; display:flex; justify-content:space-between;"><span>${isZh ? "排名" : "Rank"}</span> <span style="font-weight:600; color:#10b981;">#${n.position}</span></div>`;
+    if (n.platform) html += `<div style="color: #64748b; margin-top: 4px; display:flex; justify-content:space-between;"><span>${t("graph.platform")}</span> <span style="font-weight:500; color:#334155;">${n.platform}</span></div>`;
+    if (n.engagement != null) html += `<div style="color: #64748b; margin-top: 4px; display:flex; justify-content:space-between;"><span>${t("graph.engagement")}</span> <span style="font-weight:600; color:#334155;">${n.engagement}</span></div>`;
+    if (n.comments != null) html += `<div style="color: #64748b; margin-top: 4px; display:flex; justify-content:space-between;"><span>${t("graph.nodeComments")}</span> <span style="font-weight:500; color:#334155;">${n.comments}</span></div>`;
+    if (n.position != null) html += `<div style="color: #64748b; margin-top: 4px; display:flex; justify-content:space-between;"><span>${t("graph.rank")}</span> <span style="font-weight:600; color:#10b981;">#${n.position}</span></div>`;
     if (n.url) html += `<div style="color: #6366f1; margin-top: 8px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:12px;">${n.url}</div>`;
     html += `</div>`;
     return html;
-  }, [typeLabels, isZh]);
+  }, [typeLabels, t]);
 
   return (
     <div className="relative rounded-2xl border border-zinc-200/50 bg-white shadow-xl overflow-hidden ring-1 ring-zinc-900/5">
@@ -452,7 +446,7 @@ export function KnowledgeGraph({ data }: { data: GraphData }) {
 
       {/* Controls hint */}
       <div className="absolute bottom-4 left-4 z-10 rounded-xl bg-white/70 px-3 py-2 text-[11px] font-medium text-slate-500 backdrop-blur-xl shadow-sm ring-1 ring-zinc-200/50">
-        {isZh ? "🖱 拖拽旋转 · 滚轮缩放 · 右键平移 · 点击节点打开链接" : "🖱 Drag to rotate · Scroll to zoom · Right-click to pan · Click nodes"}
+        🖱 {t("graph.controlsHint")}
       </div>
 
       {/* 3D Graph container */}
@@ -511,19 +505,19 @@ export function KnowledgeGraph({ data }: { data: GraphData }) {
             <h3 className="text-lg font-bold text-zinc-800 leading-tight">{selectedNode.label}</h3>
             <div className="mt-3 space-y-1.5 text-sm">
               {selectedNode.platform && (
-                <div className="flex justify-between"><span className="text-zinc-400">{isZh ? "平台" : "Platform"}</span><span className="font-medium text-zinc-700">{selectedNode.platform}</span></div>
+                <div className="flex justify-between"><span className="text-zinc-400">{t("graph.platform")}</span><span className="font-medium text-zinc-700">{selectedNode.platform}</span></div>
               )}
               {selectedNode.engagement != null && (
-                <div className="flex justify-between"><span className="text-zinc-400">{isZh ? "互动分" : "Engagement"}</span><span className="font-medium text-zinc-700">{selectedNode.engagement}</span></div>
+                <div className="flex justify-between"><span className="text-zinc-400">{t("graph.engagement")}</span><span className="font-medium text-zinc-700">{selectedNode.engagement}</span></div>
               )}
               {selectedNode.comments != null && (
-                <div className="flex justify-between"><span className="text-zinc-400">{isZh ? "评论" : "Comments"}</span><span className="font-medium text-zinc-700">{selectedNode.comments}</span></div>
+                <div className="flex justify-between"><span className="text-zinc-400">{t("graph.nodeComments")}</span><span className="font-medium text-zinc-700">{selectedNode.comments}</span></div>
               )}
               {selectedNode.position != null && (
-                <div className="flex justify-between"><span className="text-zinc-400">{isZh ? "排名" : "Rank"}</span><span className="font-medium text-emerald-600 font-bold">#{selectedNode.position}</span></div>
+                <div className="flex justify-between"><span className="text-zinc-400">{t("graph.rank")}</span><span className="font-medium text-emerald-600 font-bold">#{selectedNode.position}</span></div>
               )}
               {selectedNode.depth != null && selectedNode.depth > 0 && (
-                <div className="flex justify-between"><span className="text-zinc-400">{isZh ? "发现深度" : "Discovery depth"}</span><span className="font-medium text-zinc-700">{selectedNode.depth}</span></div>
+                <div className="flex justify-between"><span className="text-zinc-400">{t("graph.discoveryDepth")}</span><span className="font-medium text-zinc-700">{selectedNode.depth}</span></div>
               )}
             </div>
             {selectedNode.url && (
@@ -534,7 +528,7 @@ export function KnowledgeGraph({ data }: { data: GraphData }) {
                 className="mt-4 flex items-center justify-center gap-1.5 rounded-xl bg-zinc-900 px-4 py-2 text-xs font-semibold text-white transition hover:bg-zinc-800"
                 onClick={(e) => e.stopPropagation()}
               >
-                {isZh ? "访问链接" : "Open Link"} →
+                {t("graph.openLink")} →
               </a>
             )}
           </div>

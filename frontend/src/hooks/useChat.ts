@@ -6,6 +6,7 @@ import {
   getSessionMessages,
   deleteSession,
 } from "../api/chat";
+import { useI18n } from "../i18n";
 import type { ChatMessage, ChatEvent, ToolStatus, ChatSessionSummary } from "../types";
 
 let msgIdCounter = 0;
@@ -14,6 +15,7 @@ function nextId() {
 }
 
 export function useChat(initialProjectId: number | null = null) {
+  const { locale } = useI18n();
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [projectId, setProjectId] = useState<number | null>(initialProjectId);
   const [sessions, setSessions] = useState<ChatSessionSummary[]>([]);
@@ -120,7 +122,7 @@ export function useChat(initialProjectId: number | null = null) {
       setIsStreaming(true);
 
       try {
-        for await (const event of streamChat(sid, content.trim(), projectId)) {
+        for await (const event of streamChat(sid, content.trim(), projectId, locale)) {
           handleEvent(event, assistantMsg.id);
         }
         // Refresh session list after completion (title may have changed)
@@ -142,7 +144,7 @@ export function useChat(initialProjectId: number | null = null) {
         setIsStreaming(false);
       }
     },
-    [sessionId, isStreaming, currentAgent, projectId, refreshSessions, ensureSession],
+    [sessionId, isStreaming, currentAgent, projectId, locale, refreshSessions, ensureSession],
   );
 
   const handleEvent = useCallback(

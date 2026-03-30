@@ -62,7 +62,7 @@ export function MonitorList({
                 className="flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-medium text-zinc-600 transition-all hover:bg-zinc-50 active:scale-95"
               >
                 <Clock size={12} className="text-zinc-400" />
-                <span>{cronToHuman(m.cron_expr, locale)}</span>
+                <span>{cronToHuman(m.cron_expr, locale, t)}</span>
                 {isEditing ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
               </button>
 

@@ -38,7 +38,7 @@ function ReportCard({
   lowSampleText: string;
 }) {
   const Icon = icon;
-
+  const { t } = useI18n();
   return (
     <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
       <div className="mb-4 flex items-center justify-between gap-4">
@@ -82,7 +82,7 @@ function ReportCard({
                 })
               }
               className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 focus:outline-none"
-              title="Download PDF"
+              title={t("reports.downloadPdf")}
             >
               <Download className="h-4 w-4" />
             </button>
@@ -280,7 +280,7 @@ export function ReportsPage() {
               {error ? <div className="mt-4"><ErrorAlert message={error} /></div> : null}
               {sendMutation.data?.ok ? (
                 <div className="mt-4 rounded-2xl bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-                  Weekly report emailed to {sendMutation.data.recipient}.
+                  {t("reports.emailSent").replace("{{recipient}}", String(sendMutation.data.recipient))}
                 </div>
               ) : null}
             </div>

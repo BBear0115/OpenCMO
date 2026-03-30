@@ -14,15 +14,16 @@ import {
 } from "lucide-react";
 import { useTaskPoll, useTaskFindings, useTaskRecommendations } from "../../hooks/useTasks";
 import { useI18n } from "../../i18n";
+import type { TranslationKey } from "../../i18n";
 import type { AnalysisProgress } from "../../types";
 
-const STAGE_CONFIG: Record<string, { icon: typeof Search; label: string; labelZh: string }> = {
-  context_build: { icon: Search, label: "Context Build", labelZh: "上下文构建" },
-  signal_collect: { icon: Radar, label: "Signal Collection", labelZh: "信号采集" },
-  signal_normalize: { icon: Bot, label: "Normalization", labelZh: "证据归一化" },
-  domain_review: { icon: MessageCircle, label: "Domain Review", labelZh: "领域研判" },
-  strategy_synthesis: { icon: Target, label: "Strategy", labelZh: "策略汇总" },
-  persist_publish: { icon: CheckCircle, label: "Finalize", labelZh: "结果落库" },
+const STAGE_CONFIG: Record<string, { icon: typeof Search; labelKey: TranslationKey }> = {
+  context_build: { icon: Search, labelKey: "analysis.stageContextBuild" },
+  signal_collect: { icon: Radar, labelKey: "analysis.stageSignalCollect" },
+  signal_normalize: { icon: Bot, labelKey: "analysis.stageSignalNormalize" },
+  domain_review: { icon: MessageCircle, labelKey: "analysis.stageDomainReview" },
+  strategy_synthesis: { icon: Target, labelKey: "analysis.stageStrategySynthesis" },
+  persist_publish: { icon: CheckCircle, labelKey: "analysis.stagePersistPublish" },
 };
 
 const STATUS_STYLE: Record<string, string> = {
@@ -55,8 +56,7 @@ export function AnalysisDialog({
   onClose: () => void;
 }) {
   const { data: task } = useTaskPoll(taskId);
-  const { locale } = useI18n();
-  const isZh = locale === "zh";
+  const { t } = useI18n();
 
   const progress: AnalysisProgress[] = task?.progress ?? [];
   const isDone = task?.status === "completed" || task?.status === "failed";
@@ -77,7 +77,7 @@ export function AnalysisDialog({
         <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
           <div>
             <h2 className="text-lg font-semibold text-slate-900">
-              {isZh ? "AI 监控编排" : "AI Monitoring Orchestration"}
+              {t("analysis.title")}
             </h2>
             <p className="mt-0.5 max-w-xl truncate text-xs text-slate-400">{url}</p>
           </div>
@@ -94,7 +94,7 @@ export function AnalysisDialog({
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <Loader2 size={32} className="mb-3 animate-spin text-indigo-400" />
               <p className="text-sm text-slate-400">
-                {isZh ? "正在初始化监控工作流..." : "Initializing monitoring workflow..."}
+                {t("analysis.initializing")}
               </p>
             </div>
           )}
@@ -104,7 +104,7 @@ export function AnalysisDialog({
               <div className="mb-3 flex items-center gap-2">
                 <div className="h-px flex-1 bg-slate-100" />
                 <span className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">
-                  {isZh ? "阶段进度" : "Workflow Stages"}
+                  {t("analysis.workflowStages")}
                 </span>
                 <div className="h-px flex-1 bg-slate-100" />
               </div>
@@ -119,7 +119,7 @@ export function AnalysisDialog({
                         <div className="flex items-center gap-2">
                           <Icon size={14} />
                           <span className="text-xs font-semibold">
-                            {isZh ? cfg.labelZh : cfg.label}
+                            {t(cfg.labelKey)}
                           </span>
                         </div>
                         <span className="text-[10px] font-semibold uppercase tracking-wider opacity-80">
@@ -141,7 +141,7 @@ export function AnalysisDialog({
               <div className="mb-3 flex items-center gap-2">
                 <div className="h-px flex-1 bg-slate-100" />
                 <span className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">
-                  {isZh ? "领域结论" : "Domain Reviews"}
+                  {t("analysis.domainReviews")}
                 </span>
                 <div className="h-px flex-1 bg-slate-100" />
               </div>
@@ -166,7 +166,7 @@ export function AnalysisDialog({
               <div className="mb-3 flex items-center gap-2">
                 <TriangleAlert size={14} className="text-rose-500" />
                 <h3 className="text-sm font-semibold text-slate-900">
-                  {isZh ? "主要发现" : "Key Findings"}
+                  {t("analysis.keyFindings")}
                 </h3>
               </div>
               <div className="space-y-3">
@@ -190,7 +190,7 @@ export function AnalysisDialog({
               <div className="mb-3 flex items-center gap-2">
                 <Lightbulb size={14} className="text-amber-500" />
                 <h3 className="text-sm font-semibold text-slate-900">
-                  {isZh ? "行动建议" : "Recommended Actions"}
+                  {t("analysis.recommendedActions")}
                 </h3>
               </div>
               <div className="space-y-3">
@@ -227,8 +227,8 @@ export function AnalysisDialog({
                 <CheckCircle size={14} className={task?.status === "failed" ? "text-rose-500" : "text-emerald-500"} />
                 <span className={task?.status === "failed" ? "text-rose-600" : "text-emerald-600"}>
                   {task?.status === "failed"
-                    ? (isZh ? "流程失败" : "Workflow failed")
-                    : (isZh ? "流程完成" : "Workflow complete")}
+                    ? t("analysis.workflowFailed")
+                    : t("analysis.workflowComplete")}
                 </span>
               </>
             ) : (
@@ -237,7 +237,7 @@ export function AnalysisDialog({
                 <span>
                   {latestStageEvents.length}
                   {" / 6 "}
-                  {isZh ? "阶段" : "stages"}
+                  {t("analysis.stages")}
                 </span>
               </>
             )}
@@ -246,7 +246,7 @@ export function AnalysisDialog({
             onClick={onClose}
             className="rounded-xl bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-200"
           >
-            {isDone ? (isZh ? "关闭" : "Close") : (isZh ? "后台运行" : "Run in background")}
+            {isDone ? t("analysis.close") : t("analysis.runBackground")}
           </button>
         </div>
       </div>

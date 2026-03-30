@@ -1,6 +1,8 @@
 import { useMemo } from "react";
 import { CheckCircle2, Loader2, AlertCircle, ChevronRight } from "lucide-react";
 import type { TaskEvent } from "../../hooks/useTaskEvents";
+import { useI18n } from "../../i18n";
+import type { TranslationKey } from "../../i18n";
 
 interface TaskProgressProps {
   events: TaskEvent[];
@@ -14,14 +16,14 @@ interface PhaseStep {
   status: "completed" | "running" | "failed" | "pending";
 }
 
-const STAGE_LABELS: Record<string, string> = {
-  context_build: "Context Analysis",
-  signal_collect: "Signal Collection",
-  signal_normalize: "Signal Processing",
-  domain_review: "Domain Review",
-  strategy_synthesis: "Strategy Synthesis",
-  persist_publish: "Saving Results",
-  reporting: "Report Generation",
+const STAGE_LABEL_KEYS: Record<string, TranslationKey> = {
+  context_build: "taskProgress.stageContextBuild",
+  signal_collect: "taskProgress.stageSignalCollect",
+  signal_normalize: "taskProgress.stageSignalNormalize",
+  domain_review: "taskProgress.stageDomainReview",
+  strategy_synthesis: "taskProgress.stageStrategySynthesis",
+  persist_publish: "taskProgress.stagePersistPublish",
+  reporting: "taskProgress.stageReporting",
 };
 
 function StepIcon({ status }: { status: string }) {
@@ -38,6 +40,8 @@ function StepIcon({ status }: { status: string }) {
 }
 
 export function TaskProgress({ events, isStreaming }: TaskProgressProps) {
+  const { t } = useI18n();
+
   const steps = useMemo(() => {
     const result: PhaseStep[] = [];
     const seen = new Set<string>();
@@ -84,14 +88,14 @@ export function TaskProgress({ events, isStreaming }: TaskProgressProps) {
         )}
         <span className="text-sm font-semibold text-slate-700">
           {isStreaming
-            ? "Scan in progress…"
+            ? t("taskProgress.scanInProgress")
             : doneEvent?.status === "completed"
-              ? "Scan complete"
-              : "Scan finished with errors"}
+              ? t("taskProgress.scanComplete")
+              : t("taskProgress.scanErrors")}
         </span>
         {doneEvent && (
           <span className="ml-auto text-xs text-slate-400">
-            {doneEvent.findings_count ?? 0} findings · {doneEvent.recommendations_count ?? 0} actions
+            {doneEvent.findings_count ?? 0} {t("taskProgress.findings")} · {doneEvent.recommendations_count ?? 0} {t("taskProgress.actions")}
           </span>
         )}
       </div>
@@ -109,7 +113,7 @@ export function TaskProgress({ events, isStreaming }: TaskProgressProps) {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5">
                 <span className="text-xs font-medium text-slate-500">
-                  {STAGE_LABELS[step.stage] ?? step.stage}
+                  {(() => { const key = STAGE_LABEL_KEYS[step.stage]; return key ? t(key) : step.stage; })()}
                 </span>
                 {step.agent && (
                   <>
@@ -130,7 +134,7 @@ export function TaskProgress({ events, isStreaming }: TaskProgressProps) {
         {isStreaming && steps.length === 0 && (
           <div className="flex items-center gap-2 text-slate-400 py-2">
             <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            <span className="text-xs">Initializing scan…</span>
+            <span className="text-xs">{t("taskProgress.initializing")}</span>
           </div>
         )}
       </div>

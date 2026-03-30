@@ -8,8 +8,7 @@ export function CompetitorPanel({ projectId }: { projectId: number }) {
   const addComp = useAddCompetitor(projectId);
   const delComp = useDeleteCompetitor(projectId);
   const discover = useDiscoverCompetitors(projectId);
-  const { locale } = useI18n();
-  const isZh = locale === "zh";
+  const { t } = useI18n();
 
   const [showManual, setShowManual] = useState(false);
   const [name, setName] = useState("");
@@ -39,7 +38,7 @@ export function CompetitorPanel({ projectId }: { projectId: number }) {
     <div className="rounded-2xl border border-zinc-200/60 bg-white p-5 shadow-sm">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-semibold text-zinc-800">
-          {isZh ? "竞品管理" : "Competitors"}
+          {t("competitor.title")}
         </h3>
         <div className="flex items-center gap-2">
           {/* AI Discover — Primary action */}
@@ -54,8 +53,8 @@ export function CompetitorPanel({ projectId }: { projectId: number }) {
               <Sparkles size={12} />
             )}
             {discover.isPending
-              ? (isZh ? "AI 分析中..." : "Discovering...")
-              : (isZh ? "AI 智能发现" : "AI Discover")}
+              ? t("competitor.discovering")
+              : t("competitor.aiDiscover")}
           </button>
           {/* Manual add — Secondary */}
           <button
@@ -63,7 +62,7 @@ export function CompetitorPanel({ projectId }: { projectId: number }) {
             className="flex items-center gap-1 rounded-lg bg-zinc-50 px-2.5 py-1.5 text-xs font-medium text-zinc-500 ring-1 ring-inset ring-zinc-200/50 transition-all hover:bg-zinc-100 active:scale-95"
           >
             {showManual ? <X size={12} /> : <Plus size={12} />}
-            {isZh ? "手动添加" : "Manual"}
+            {t("competitor.manual")}
           </button>
         </div>
       </div>
@@ -71,15 +70,13 @@ export function CompetitorPanel({ projectId }: { projectId: number }) {
       {/* AI discovery result banner */}
       {discover.isSuccess && (
         <div className="mb-3 rounded-lg bg-emerald-50 px-3 py-2 text-xs text-emerald-700 ring-1 ring-emerald-200/60 animate-in fade-in slide-in-from-top-2 duration-300">
-          ✨ {isZh
-            ? `AI 发现了 ${discover.data?.competitors?.length ?? 0} 个竞品，已自动添加到图谱`
-            : `AI discovered ${discover.data?.competitors?.length ?? 0} competitors, auto-added to graph`}
+          ✨ {t("competitor.aiDiscoverSuccess").replace("{{count}}", String(discover.data?.competitors?.length ?? 0))}
         </div>
       )}
 
       {discover.isError && (
         <div className="mb-3 rounded-lg bg-rose-50 px-3 py-2 text-xs text-rose-600 ring-1 ring-rose-200/60">
-          {isZh ? "AI 发现失败，请检查 API 配置后重试" : "Discovery failed. Check API settings and retry."}
+          {t("competitor.aiDiscoverFailed")}
         </div>
       )}
 
@@ -89,19 +86,19 @@ export function CompetitorPanel({ projectId }: { projectId: number }) {
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder={isZh ? "竞品名称 *" : "Competitor name *"}
+            placeholder={t("competitor.namePlaceholder")}
             className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
           />
           <input
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            placeholder={isZh ? "网址（可选）" : "URL (optional)"}
+            placeholder={t("competitor.urlPlaceholder")}
             className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
           />
           <input
             value={kwInput}
             onChange={(e) => setKwInput(e.target.value)}
-            placeholder={isZh ? "关键词，逗号分隔（可选）" : "Keywords, comma separated (optional)"}
+            placeholder={t("competitor.kwPlaceholder")}
             className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
           />
           <button
@@ -110,8 +107,8 @@ export function CompetitorPanel({ projectId }: { projectId: number }) {
             className="w-full rounded-lg bg-indigo-600 px-3 py-2 text-sm font-medium text-white transition-all hover:bg-indigo-500 disabled:opacity-50 active:scale-[0.98]"
           >
             {addComp.isPending
-              ? (isZh ? "添加中..." : "Adding...")
-              : (isZh ? "添加" : "Add")}
+              ? t("competitor.adding")
+              : t("competitor.manualAdd")}
           </button>
         </div>
       )}
@@ -119,9 +116,7 @@ export function CompetitorPanel({ projectId }: { projectId: number }) {
       {/* Competitor list */}
       {!competitors?.length ? (
         <p className="text-xs text-zinc-400">
-          {isZh
-            ? "暂无竞品。点击「AI 智能发现」让 AI 自动分析并添加竞品。"
-            : "No competitors yet. Click 'AI Discover' to let AI find and add competitors automatically."}
+          {t("competitor.noCompetitorsAi")}
         </p>
       ) : (
         <div className="space-y-1.5">

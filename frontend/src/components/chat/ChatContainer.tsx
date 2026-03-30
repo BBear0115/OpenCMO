@@ -10,8 +10,7 @@ import { useState } from "react";
 
 function ContextBadge({ context }: { context: ChatProjectContext }) {
   const [open, setOpen] = useState(false);
-  const { locale } = useI18n();
-  const isZh = locale === "zh";
+  const { t } = useI18n();
   const { project, scores, keywords } = context;
 
   return (
@@ -22,13 +21,13 @@ function ContextBadge({ context }: { context: ChatProjectContext }) {
       >
         <Sparkles size={12} />
         <span className="font-semibold">
-          {isZh ? "项目上下文" : "Project Context"}: {project.brand_name}
+          {t("chat.projectContextBadge")}: {project.brand_name}
         </span>
         <span className="flex-1" />
         <span className="text-[11px] text-indigo-400">
           SEO {scores.seo != null ? `${Math.round(scores.seo * 100)}%` : "—"}
           {" · "}GEO {scores.geo ?? "—"}
-          {scores.community_hits != null ? ` · ${scores.community_hits} ${isZh ? "讨论" : "hits"}` : ""}
+          {scores.community_hits != null ? ` · ${scores.community_hits} ${t("chat.discussions")}` : ""}
         </span>
         {open ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
       </button>
@@ -36,19 +35,19 @@ function ContextBadge({ context }: { context: ChatProjectContext }) {
         <div className="border-t border-indigo-100 px-3 py-2 text-xs text-slate-500 space-y-1">
           {keywords.length > 0 && (
             <p>
-              <span className="font-medium text-slate-600">{isZh ? "关键词" : "Keywords"}:</span>{" "}
+              <span className="font-medium text-slate-600">{t("chat.contextKeywords")}:</span>{" "}
               {keywords.join(", ")}
             </p>
           )}
           {context.competitors.length > 0 && (
             <p>
-              <span className="font-medium text-slate-600">{isZh ? "竞品" : "Competitors"}:</span>{" "}
+              <span className="font-medium text-slate-600">{t("chat.contextCompetitors")}:</span>{" "}
               {context.competitors.map((c) => c.label).join(", ")}
             </p>
           )}
           {context.keyword_gaps.length > 0 && (
             <p>
-              <span className="font-medium text-amber-600">{isZh ? "关键词差距" : "Keyword gaps"}:</span>{" "}
+              <span className="font-medium text-amber-600">{t("chat.contextGaps")}:</span>{" "}
               {context.keyword_gaps.join(", ")}
             </p>
           )}

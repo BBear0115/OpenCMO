@@ -154,6 +154,15 @@ async def api_v1_chat_session_delete(session_id: str):
     return JSONResponse({"ok": True})
 
 
+_LOCALE_NAMES = {
+    "en": "English",
+    "zh": "Chinese (Simplified)",
+    "ja": "Japanese",
+    "ko": "Korean",
+    "es": "Spanish",
+}
+
+
 @router.post("/chat")
 async def api_v1_chat(request: Request):
     from opencmo.web import chat_sessions
@@ -181,6 +190,15 @@ async def api_v1_chat(request: Request):
         if ctx:
             input_items.insert(0, {"role": "system", "content": f"[Project Context]\n{ctx}"})
             context_item = input_items[0]
+
+    # Inject locale-aware system prompt
+    locale = body.get("locale", "en")
+    lang_name = _LOCALE_NAMES.get(locale, "English")
+    locale_prompt = {
+        "role": "system",
+        "content": f"[Language Preference]\nThe user's interface language is {lang_name}. You MUST respond in {lang_name}. All your output — analysis, recommendations, content drafts, and explanations — should be written in {lang_name}.",
+    }
+    input_items.insert(0, locale_prompt)
 
     input_items.append({"role": "user", "content": message})
 
@@ -219,7 +237,16 @@ async def api_v1_chat(request: Request):
 
             # Stream finished — persist session state
             updated_items = result.to_input_list()
-            if context_item and updated_items[:1] == [context_item]:
+            # Strip injected system prompts (locale + context) before persisting
+            injected_contents = {locale_prompt["content"]}
+            if context_item:
+                injected_contents.add(context_item["content"])
+            while (
+                updated_items
+                and isinstance(updated_items[0], dict)
+                and updated_items[0].get("role") == "system"
+                and updated_items[0].get("content") in injected_contents
+            ):
                 updated_items = updated_items[1:]
             await chat_sessions.update_session(session_id, updated_items)
             agent_name = result.last_agent.name if result.last_agent else "CMO Agent"

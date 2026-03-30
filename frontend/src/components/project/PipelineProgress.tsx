@@ -3,6 +3,8 @@ import {
   CheckCircle, Circle, Loader2, XCircle, ChevronDown,
 } from "lucide-react";
 import { apiJson } from "../../api/client";
+import { useI18n } from "../../i18n";
+import type { TranslationKey } from "../../i18n";
 
 interface ProgressEvent {
   phase: string;
@@ -22,13 +24,13 @@ interface ReportTask {
   completed_at: string | null;
 }
 
-const PHASE_LABELS: Record<string, string> = {
-  reflection: "Phase 1 · Data Quality Audit",
-  distillation: "Phase 2 · Insight Distillation",
-  planning: "Phase 3 · Outline Planning",
-  writing: "Phase 4 · Section Writing",
-  grading: "Phase 5 · Quality Grading",
-  synthesis: "Phase 6 · Final Synthesis",
+const PHASE_LABEL_KEYS: Record<string, TranslationKey> = {
+  reflection: "pipeline.phaseReflection",
+  distillation: "pipeline.phaseDistillation",
+  planning: "pipeline.phasePlanning",
+  writing: "pipeline.phaseWriting",
+  grading: "pipeline.phaseGrading",
+  synthesis: "pipeline.phaseSynthesis",
 };
 
 const PHASE_ORDER = ["reflection", "distillation", "planning", "writing", "grading", "synthesis"];
@@ -50,6 +52,7 @@ export function PipelineProgress({
   const [task, setTask] = useState<ReportTask | null>(null);
   const [expandedPhaseIdx, setExpandedPhaseIdx] = useState<number | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
+  const { t } = useI18n();
   const completedRef = useRef(false);
 
   useEffect(() => {
@@ -78,7 +81,7 @@ export function PipelineProgress({
     return (
       <div className="flex items-center justify-center py-8">
         <Loader2 size={20} className="animate-spin text-slate-400" />
-        <span className="ml-2 text-sm text-slate-500">Connecting to pipeline...</span>
+        <span className="ml-2 text-sm text-slate-500">{t("pipeline.connecting")}</span>
       </div>
     );
   }
@@ -112,10 +115,10 @@ export function PipelineProgress({
           {task.status === "completed" && <CheckCircle size={16} className="text-emerald-500" />}
           {task.status === "failed" && <XCircle size={16} className="text-rose-500" />}
           <span className="text-sm font-semibold text-slate-700">
-            {task.status === "pending" && "Preparing pipeline..."}
-            {task.status === "running" && "AI agents are working..."}
-            {task.status === "completed" && "Report generation complete!"}
-            {task.status === "failed" && "Pipeline encountered an error"}
+            {task.status === "pending" && t("pipeline.preparing")}
+            {task.status === "running" && t("pipeline.agentsWorking")}
+            {task.status === "completed" && t("pipeline.complete")}
+            {task.status === "failed" && t("pipeline.error")}
           </span>
         </div>
         <span className="text-xs font-medium text-slate-500">
@@ -139,7 +142,8 @@ export function PipelineProgress({
         {PHASE_ORDER.map((phaseId, idx) => {
           const phase = phaseStatus[phaseId];
           const status = phase?.status || "pending";
-          const label = PHASE_LABELS[phaseId] || phaseId;
+          const labelKey = PHASE_LABEL_KEYS[phaseId];
+          const label = labelKey ? t(labelKey) : phaseId;
           const events = phase?.events || [];
           const latestEvent = events[events.length - 1];
           const isExpanded = expandedPhaseIdx === idx;

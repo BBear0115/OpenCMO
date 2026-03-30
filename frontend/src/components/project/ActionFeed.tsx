@@ -5,6 +5,8 @@ import {
   Zap, FileCheck, Search, Sparkles,
 } from "lucide-react";
 import { apiJson } from "../../api/client";
+import { useI18n } from "../../i18n";
+import type { TranslationKey } from "../../i18n";
 
 interface ActionItem {
   type: "insight" | "approval" | "finding";
@@ -19,11 +21,11 @@ interface ActionItem {
   created_at: string;
 }
 
-const CTA_CONFIG: Record<string, { label: string; icon: React.ElementType; color: string }> = {
-  view_data: { label: "View Details", icon: Search, color: "bg-sky-500 hover:bg-sky-400 shadow-[0_8px_24px_rgba(14,165,233,0.25)]" },
-  review_approval: { label: "Review Draft", icon: FileCheck, color: "bg-amber-500 hover:bg-amber-400 shadow-[0_8px_24px_rgba(245,158,11,0.25)]" },
-  generate_content: { label: "Generate Fix", icon: Zap, color: "bg-violet-500 hover:bg-violet-400 shadow-[0_8px_24px_rgba(139,92,246,0.25)]" },
-  start_chat: { label: "Discuss", icon: Sparkles, color: "bg-emerald-500 hover:bg-emerald-400 shadow-[0_8px_24px_rgba(16,185,129,0.25)]" },
+const CTA_CONFIG: Record<string, { labelKey: TranslationKey; icon: React.ElementType; color: string }> = {
+  view_data: { labelKey: "actionFeed.viewDetails", icon: Search, color: "bg-sky-500 hover:bg-sky-400 shadow-[0_8px_24px_rgba(14,165,233,0.25)]" },
+  review_approval: { labelKey: "actionFeed.reviewDraft", icon: FileCheck, color: "bg-amber-500 hover:bg-amber-400 shadow-[0_8px_24px_rgba(245,158,11,0.25)]" },
+  generate_content: { labelKey: "actionFeed.generateFix", icon: Zap, color: "bg-violet-500 hover:bg-violet-400 shadow-[0_8px_24px_rgba(139,92,246,0.25)]" },
+  start_chat: { labelKey: "actionFeed.discuss", icon: Sparkles, color: "bg-emerald-500 hover:bg-emerald-400 shadow-[0_8px_24px_rgba(16,185,129,0.25)]" },
 };
 
 const SEV_STYLES: Record<string, { border: string; icon: React.ElementType; iconColor: string }> = {
@@ -37,6 +39,7 @@ export function ActionFeed({ projectId }: { projectId: number }) {
   const [items, setItems] = useState<ActionItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [quickLoading, setQuickLoading] = useState<number | null>(null);
+  const { t } = useI18n();
 
   useEffect(() => {
     apiJson<ActionItem[]>(`/projects/${projectId}/action-feed`)
@@ -87,10 +90,9 @@ export function ActionFeed({ projectId }: { projectId: number }) {
     return (
       <div className="rounded-2xl border border-dashed border-emerald-300 bg-emerald-50/50 p-8 text-center">
         <CheckCircle className="mx-auto h-10 w-10 text-emerald-400" />
-        <h3 className="mt-3 text-sm font-semibold text-emerald-800">All clear! 🎉</h3>
+        <h3 className="mt-3 text-sm font-semibold text-emerald-800">{t("actionFeed.allClear")}</h3>
         <p className="mt-1 text-xs text-emerald-600">
-          No urgent actions right now. Your agents are monitoring and will alert you when
-          something needs attention.
+          {t("actionFeed.allClearDesc")}
         </p>
       </div>
     );
@@ -101,7 +103,7 @@ export function ActionFeed({ projectId }: { projectId: number }) {
       <div className="flex items-center gap-2 mb-1">
         <Zap className="h-4.5 w-4.5 text-violet-500" />
         <h2 className="text-sm font-bold uppercase tracking-widest text-slate-600">
-          Action Feed
+          {t("actionFeed.title")}
         </h2>
         <span className="rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-bold text-violet-700">
           {items.length}
@@ -147,7 +149,7 @@ export function ActionFeed({ projectId }: { projectId: number }) {
                 ) : (
                   <CtaIcon size={14} />
                 )}
-                {cta.label}
+                {t(cta.labelKey)}
               </button>
             </div>
           </div>

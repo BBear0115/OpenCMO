@@ -15,7 +15,6 @@ export function MonitorsPage() {
   const createMonitor = useCreateMonitor();
   const deleteMonitor = useDeleteMonitor();
   const { t, locale } = useI18n();
-  const isZh = locale === "zh";
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [selectedTaskUrl, setSelectedTaskUrl] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -65,11 +64,11 @@ export function MonitorsPage() {
         >
           <Loader2 size={16} className="animate-spin" />
           <span className="flex-1 truncate text-left">
-            {isZh ? "AI 正在分析" : "AI analyzing"}: {selectedTaskUrl}
+            {t("monitors.aiAnalyzing")}: {selectedTaskUrl}
           </span>
           <span className="flex items-center gap-1 text-xs font-medium">
             <Eye size={14} />
-            {isZh ? "查看详情" : "View details"}
+            {t("monitors.viewDetails")}
           </span>
         </button>
       )}

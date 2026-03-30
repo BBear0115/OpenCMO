@@ -5,9 +5,8 @@ import { useI18n } from "../../i18n";
 import { useSetProjectPause } from "../../hooks/useProject";
 
 export function ProjectHeader({ project, isPaused }: { project: Project; isPaused?: boolean }) {
-  const { t, locale } = useI18n();
+  const { t } = useI18n();
   const setPause = useSetProjectPause();
-  const isZh = locale === "zh";
 
   const handleTogglePause = () => {
     setPause.mutate({ id: project.id, pause: !isPaused });
@@ -44,7 +43,7 @@ export function ProjectHeader({ project, isPaused }: { project: Project; isPause
             }`}
           >
             {isPaused ? <PlayCircle size={16} /> : <PauseCircle size={16} />}
-            {isPaused ? (isZh ? "恢复运行" : "Resume") : (isZh ? "暂停运行" : "Pause")}
+            {isPaused ? t("projectHeader.resume") : t("projectHeader.pause")}
           </button>
         )}
         <Link

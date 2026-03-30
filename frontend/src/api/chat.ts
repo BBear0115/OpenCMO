@@ -32,6 +32,7 @@ export async function* streamChat(
   sessionId: string,
   message: string,
   projectId?: number | null,
+  locale?: string,
 ): AsyncGenerator<ChatEvent> {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -46,6 +47,7 @@ export async function* streamChat(
       session_id: sessionId,
       message,
       ...(projectId != null ? { project_id: projectId } : {}),
+      ...(locale ? { locale } : {}),
     }),
   });
 

@@ -408,4 +408,202 @@ export const zh: Record<TranslationKey, string> = {
 
   // Delete confirmation
   "dashboard.deleteConfirm": "确定要删除该项目吗？",
+
+  // Brand Kit Page
+  "brandKit.title": "品牌套件",
+  "brandKit.subtitle": "定义品牌 DNA。每个 AI 代理生成内容时都将遵循这些准则。",
+  "brandKit.saving": "保存中...",
+  "brandKit.saved": "已保存",
+  "brandKit.toneLabel": "品牌语调",
+  "brandKit.tonePlaceholder": "例如：专业但亲切，技术自信，善用生活类比...",
+  "brandKit.toneDesc": "描述所有 AI 生成内容应保持一致的品牌个性和表达风格。",
+  "brandKit.audienceLabel": "目标受众",
+  "brandKit.audiencePlaceholder": "例如：25-45 岁、精通技术的独立开发者和 B2B SaaS 创始人...",
+  "brandKit.audienceDesc": "您为谁创建内容？尽可能具体。",
+  "brandKit.valuesLabel": "核心价值主张",
+  "brandKit.valuesPlaceholder": "例如：开源、隐私优先的分析工具 — 数据永不离开用户服务器...",
+  "brandKit.valuesDesc": "您的产品独特之处是什么？每条内容应强化的核心信息是什么？",
+  "brandKit.forbiddenLabel": "禁用词汇与短语",
+  "brandKit.forbiddenDesc": "品牌在任何内容中都不该使用的词汇（敏感词、竞品名称等）。",
+  "brandKit.examplesLabel": "最佳内容示例",
+  "brandKit.examplesPlaceholder": "粘贴您表现最好的推文、Reddit 帖子或博客摘要...",
+  "brandKit.examplesDesc": "提供 1-3 个完美体现品牌语调的内容示例。",
+  "brandKit.instructionsLabel": "自定义指令",
+  "brandKit.instructionsPlaceholder": "例如：始终提及开源特性，不要直接与 X 竞品比较...",
+  "brandKit.instructionsDesc": "代理生成内容时应遵循的其他规则或上下文。",
+  "brandKit.tagPlaceholder": "输入后按回车添加...",
+  "brandKit.tagMore": "继续添加...",
+
+  // Performance Page
+  "perf.title": "效果追踪器",
+  "perf.subtitle": "追踪已发布内容和手动添加链接的互动指标。",
+  "perf.trackUrl": "追踪 URL",
+  "perf.totalPublished": "总发布数",
+  "perf.totalLikes": "总点赞数",
+  "perf.totalComments": "总评论数",
+  "perf.totalShares": "总分享数",
+  "perf.trackExternal": "追踪外部 URL",
+  "perf.titleOptional": "标题（可选）",
+  "perf.notesOptional": "备注（可选）",
+  "perf.adding": "添加中...",
+  "perf.add": "添加",
+  "perf.publishedVia": "通过审批队列发布",
+  "perf.manuallyTracked": "手动追踪",
+  "perf.untitled": "无标题",
+  "perf.refreshMetrics": "刷新指标",
+  "perf.emptyTitle": "暂无追踪内容",
+  "perf.emptyDesc": "通过审批队列发布的内容将自动显示在此处。您也可以手动添加外部 URL 进行追踪。",
+  "perf.platformReddit": "Reddit",
+  "perf.platformTwitter": "Twitter/X",
+  "perf.platformBlog": "博客",
+  "perf.platformOther": "其他",
+
+  // Task Progress (scan)
+  "taskProgress.scanInProgress": "扫描进行中…",
+  "taskProgress.scanComplete": "扫描完成",
+  "taskProgress.scanErrors": "扫描完成但有错误",
+  "taskProgress.initializing": "正在初始化扫描…",
+  "taskProgress.findings": "个发现",
+  "taskProgress.actions": "个行动",
+  "taskProgress.stageContextBuild": "上下文分析",
+  "taskProgress.stageSignalCollect": "信号采集",
+  "taskProgress.stageSignalNormalize": "信号处理",
+  "taskProgress.stageDomainReview": "领域审查",
+  "taskProgress.stageStrategySynthesis": "策略汇总",
+  "taskProgress.stagePersistPublish": "保存结果",
+  "taskProgress.stageReporting": "报告生成",
+
+  // Pipeline Progress (report generation)
+  "pipeline.connecting": "正在连接流水线...",
+  "pipeline.preparing": "正在准备流水线...",
+  "pipeline.agentsWorking": "AI 代理正在工作中...",
+  "pipeline.complete": "报告生成完成！",
+  "pipeline.error": "流水线遇到错误",
+  "pipeline.phaseReflection": "阶段 1 · 数据质量审计",
+  "pipeline.phaseDistillation": "阶段 2 · 洞察提炼",
+  "pipeline.phasePlanning": "阶段 3 · 大纲规划",
+  "pipeline.phaseWriting": "阶段 4 · 章节撰写",
+  "pipeline.phaseGrading": "阶段 5 · 质量评分",
+  "pipeline.phaseSynthesis": "阶段 6 · 最终合成",
+
+  // Action Feed
+  "actionFeed.title": "行动反馈",
+  "actionFeed.allClear": "一切正常！🎉",
+  "actionFeed.allClearDesc": "当前没有紧急操作。代理正在监控，有需要注意的事项时会提醒您。",
+  "actionFeed.viewDetails": "查看详情",
+  "actionFeed.reviewDraft": "审阅草稿",
+  "actionFeed.generateFix": "生成修复",
+  "actionFeed.discuss": "讨论",
+
+  // Competitor Panel
+  "competitor.title": "竞品管理",
+  "competitor.aiDiscover": "AI 智能发现",
+  "competitor.discovering": "AI 分析中...",
+  "competitor.manual": "手动添加",
+  "competitor.manualAdd": "手动添加",
+  "competitor.aiDiscoverSuccess": "AI 发现了 {{count}} 个竞品，已自动添加到图谱",
+  "competitor.aiDiscoverFailed": "AI 发现失败，请检查 API 配置后重试",
+  "competitor.namePlaceholder": "竞品名称 *",
+  "competitor.urlPlaceholder": "网址（可选）",
+  "competitor.kwPlaceholder": "关键词，逗号分隔（可选）",
+  "competitor.adding": "添加中...",
+  "competitor.noCompetitorsAi": "暂无竞品。点击「AI 智能发现」让 AI 自动分析并添加竞品。",
+
+  // Analysis Dialog
+  "analysis.title": "AI 监控编排",
+  "analysis.initializing": "正在初始化监控工作流...",
+  "analysis.workflowStages": "阶段进度",
+  "analysis.domainReviews": "领域结论",
+  "analysis.keyFindings": "主要发现",
+  "analysis.recommendedActions": "行动建议",
+  "analysis.workflowFailed": "流程失败",
+  "analysis.workflowComplete": "流程完成",
+  "analysis.stages": "阶段",
+  "analysis.close": "关闭",
+  "analysis.runBackground": "后台运行",
+  "analysis.stageContextBuild": "上下文构建",
+  "analysis.stageSignalCollect": "信号采集",
+  "analysis.stageSignalNormalize": "证据归一化",
+  "analysis.stageDomainReview": "领域研判",
+  "analysis.stageStrategySynthesis": "策略汇总",
+  "analysis.stagePersistPublish": "结果落库",
+
+  // Project Header
+  "projectHeader.resume": "恢复运行",
+  "projectHeader.pause": "暂停运行",
+
+  // Approval Card extras
+  "approval.replyTo": "回复 {{id}}",
+  "approval.chars": "{{count}} 个字符",
+  "approval.whyThis": "为何选这个：",
+  "approval.whyNow": "为何现在：",
+  "approval.whyHere": "为何在这里：",
+
+  // Reports extras
+  "reports.emailSent": "周报已发送至 {{recipient}}。",
+  "reports.downloadPdf": "下载 PDF",
+
+  // Monitor List extras
+  "monitorList.deleteMonitor": "删除监控",
+
+  // Chat — context badge (ChatContainer)
+  "chat.projectContextBadge": "项目上下文",
+  "chat.discussions": "讨论",
+
+  // Chat — project context card
+  "chat.community": "社区讨论",
+  "chat.communityHitsSuffix": " 条",
+  "chat.serpInTop10Suffix": " 进前10",
+  "chat.gapNote": "（竞品有，你没有）",
+  "chat.aiGreeting": "我已了解 {{name}} 的最新监控数据。你可以让我生成任意平台的营销内容、分析竞品、或制定推广策略。",
+  "chat.suggestStrategy": "全渠道营销方案",
+  "chat.suggestStrategyPrompt": "针对 {{name}} 项目，制定一个全平台推广方案",
+  "chat.suggestCompetitor": "竞品深度分析",
+  "chat.suggestCompetitorPrompt": "深度分析 {{name}} 的竞争对手，给出差异化建议",
+  "chat.suggestVisibility": "提升 AI 可见度",
+  "chat.suggestVisibilityPrompt": "如何提升 {{name}} 在 AI 搜索引擎中的可见度？",
+  "chat.suggestBlog": "生成博客文章",
+  "chat.suggestBlogPrompt": "针对 {{name}} 项目，帮我写一篇 SEO 博客文章",
+
+  // Agent Grid
+  "agentGrid.title": "选择一个 AI 专家开始对话",
+  "agentGrid.subtitle": "或直接在下方输入任何问题，CMO 总管会自动分配给合适的专家",
+  "agentGrid.projectPrefix": "针对 {{name}} 项目，",
+  "agentGrid.cmoPrompt": "帮我分析 {{name}} 项目的整体营销策略和当前状况",
+
+  // Monitors Page — analysis bar
+  "monitors.aiAnalyzing": "AI 正在分析",
+  "monitors.viewDetails": "查看详情",
+
+  // Knowledge Graph — type labels
+  "graph.type.brand": "品牌",
+  "graph.type.keyword": "关键词",
+  "graph.type.discussion": "社区讨论",
+  "graph.type.serp": "搜索排名",
+  "graph.type.competitor": "竞品",
+  "graph.type.competitorKeyword": "竞品关键词",
+
+  // Knowledge Graph — node details
+  "graph.platform": "平台",
+  "graph.engagement": "互动分",
+  "graph.nodeComments": "评论数",
+  "graph.rank": "排名",
+  "graph.discoveryDepth": "发现深度",
+  "graph.openLink": "访问链接",
+  "graph.controlsHint": "拖拽旋转 · 滚轮缩放 · 右键平移 · 点击节点打开链接",
+
+  // Cron human-readable descriptions
+  "cron.everyHour": "每小时",
+  "cron.everyMinute": "每分钟",
+  "cron.everyNHours": "每 {{n}} 小时",
+  "cron.dailyAt": "每天 {{time}}",
+  "cron.weeklyAt": "每周{{day}} {{time}}",
+  "cron.monthlyAt": "每月 {{day}} 日 {{time}}",
+  "cron.day.0": "日",
+  "cron.day.1": "一",
+  "cron.day.2": "二",
+  "cron.day.3": "三",
+  "cron.day.4": "四",
+  "cron.day.5": "五",
+  "cron.day.6": "六",
 };

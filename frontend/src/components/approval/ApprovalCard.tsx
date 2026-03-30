@@ -15,17 +15,17 @@ function getPrimaryCopy(approval: ApprovalRecord): string {
   return approval.content;
 }
 
-function getMetaLabel(approval: ApprovalRecord): string {
+function getMetaLabel(approval: ApprovalRecord, t: (key: any) => string): string {
   const preview = approval.preview;
 
   if (typeof preview.subreddit === "string") {
     return `r/${preview.subreddit}`;
   }
   if (typeof preview.parent_id === "string") {
-    return `Reply to ${preview.parent_id}`;
+    return t("approval.replyTo").replace("{{id}}", String(preview.parent_id));
   }
   if (typeof preview.length === "number") {
-    return `${preview.length} chars`;
+    return t("approval.chars").replace("{{count}}", String(preview.length));
   }
   return approval.channel;
 }
@@ -103,7 +103,7 @@ export function ApprovalCard({
             {approval.source_insight_id && (
               <div className="flex items-center gap-1.5 rounded-full border border-violet-200 bg-violet-50 px-3 py-1.5 text-xs font-semibold text-violet-700">
                 <Bot className="h-3.5 w-3.5" />
-                Autopilot
+                {t("approvals.autopilot")}
               </div>
             )}
             <div className="flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-700">
@@ -120,7 +120,7 @@ export function ApprovalCard({
                 {t("approvals.preview")}
               </p>
               <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
-                {getMetaLabel(approval)}
+                {getMetaLabel(approval, t)}
               </span>
             </div>
 
@@ -173,18 +173,18 @@ export function ApprovalCard({
                   {t("approvals.aiReasoning")}
                 </p>
                 <p className="text-xs text-violet-700">
-                  <span className="font-semibold">Why this:</span>{" "}
+                  <span className="font-semibold">{t("approval.whyThis")}</span>{" "}
                   {whyThis}
                 </p>
                 {whyNow && (
                   <p className="text-xs text-violet-700">
-                    <span className="font-semibold">Why now:</span>{" "}
+                    <span className="font-semibold">{t("approval.whyNow")}</span>{" "}
                     {whyNow}
                   </p>
                 )}
                 {whyHere && (
                   <p className="text-xs text-violet-700">
-                    <span className="font-semibold">Why here:</span>{" "}
+                    <span className="font-semibold">{t("approval.whyHere")}</span>{" "}
                     {whyHere}
                   </p>
                 )}

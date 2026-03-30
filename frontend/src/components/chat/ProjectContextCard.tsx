@@ -67,36 +67,16 @@ export function ProjectContextCard({
   context: ChatProjectContext;
   onSuggest: (prompt: string) => void;
 }) {
-  const { locale } = useI18n();
-  const isZh = locale === "zh";
+  const { t } = useI18n();
   const { project, scores, keywords, competitors, keyword_gaps, findings } =
     context;
+  const name = project.brand_name;
 
   const suggestions = [
-    {
-      label: isZh ? "全渠道营销方案" : "Full-channel strategy",
-      prompt: isZh
-        ? `针对 ${project.brand_name} 项目，制定一个全平台推广方案`
-        : `Create a comprehensive marketing strategy for ${project.brand_name}`,
-    },
-    {
-      label: isZh ? "竞品深度分析" : "Competitor deep-dive",
-      prompt: isZh
-        ? `深度分析 ${project.brand_name} 的竞争对手，给出差异化建议`
-        : `Analyze competitors for ${project.brand_name} and suggest differentiation`,
-    },
-    {
-      label: isZh ? "提升 AI 可见度" : "Improve AI visibility",
-      prompt: isZh
-        ? `如何提升 ${project.brand_name} 在 AI 搜索引擎中的可见度？`
-        : `How can I improve ${project.brand_name}'s visibility in AI search engines?`,
-    },
-    {
-      label: isZh ? "生成博客文章" : "Write a blog post",
-      prompt: isZh
-        ? `针对 ${project.brand_name} 项目，帮我写一篇 SEO 博客文章`
-        : `Write an SEO blog article for ${project.brand_name}`,
-    },
+    { label: t("chat.suggestStrategy"), prompt: t("chat.suggestStrategyPrompt", { name }) },
+    { label: t("chat.suggestCompetitor"), prompt: t("chat.suggestCompetitorPrompt", { name }) },
+    { label: t("chat.suggestVisibility"), prompt: t("chat.suggestVisibilityPrompt", { name }) },
+    { label: t("chat.suggestBlog"), prompt: t("chat.suggestBlogPrompt", { name }) },
   ];
 
   return (
@@ -108,7 +88,7 @@ export function ProjectContextCard({
             <div className="flex items-center gap-2">
               <Sparkles size={18} className="text-indigo-500" />
               <p className="text-xs font-semibold uppercase tracking-widest text-indigo-500">
-                {isZh ? "项目分析就绪" : "Project context loaded"}
+                {t("chat.contextLoaded")}
               </p>
             </div>
             <h3 className="mt-2 text-xl font-bold text-slate-900">
@@ -133,10 +113,7 @@ export function ProjectContextCard({
 
         {/* AI greeting */}
         <div className="mt-4 rounded-xl bg-white/70 p-3 text-sm text-slate-600 leading-relaxed">
-          🤖{" "}
-          {isZh
-            ? `我已了解 ${project.brand_name} 的最新监控数据。你可以让我生成任意平台的营销内容、分析竞品、或制定推广策略。`
-            : `I have ${project.brand_name}'s latest monitoring data loaded. Ask me to create content for any platform, analyze competitors, or build a marketing strategy.`}
+          🤖 {t("chat.aiGreeting", { name })}
         </div>
       </div>
 
@@ -158,11 +135,11 @@ export function ProjectContextCard({
           suffix="/100"
         />
         <ScoreCard
-          label={isZh ? "社区讨论" : "Community"}
+          label={t("chat.community")}
           value={scores.community_hits}
           icon={MessageCircle}
           color="from-pink-500 to-rose-600"
-          suffix={isZh ? " 条" : " hits"}
+          suffix={t("chat.communityHitsSuffix")}
         />
         <ScoreCard
           label="SERP"
@@ -173,7 +150,7 @@ export function ProjectContextCard({
           }
           icon={TrendingUp}
           color="from-emerald-500 to-teal-600"
-          suffix={isZh ? " 进前10" : " in top 10"}
+          suffix={t("chat.serpInTop10Suffix")}
         />
       </div>
 
@@ -184,7 +161,7 @@ export function ProjectContextCard({
             <div className="mb-2 flex items-center gap-1.5">
               <Tag size={14} className="text-indigo-400" />
               <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-                {isZh ? "追踪关键词" : "Tracked Keywords"}
+                {t("chat.contextKeywords")}
               </span>
             </div>
             <div className="flex flex-wrap gap-1.5">
@@ -205,7 +182,7 @@ export function ProjectContextCard({
             <div className="mb-2 flex items-center gap-1.5">
               <Target size={14} className="text-orange-400" />
               <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-                {isZh ? "竞品" : "Competitors"}
+                {t("chat.contextCompetitors")}
               </span>
             </div>
             <div className="flex flex-wrap gap-1.5">
@@ -228,10 +205,10 @@ export function ProjectContextCard({
           <div className="mb-2 flex items-center gap-1.5">
             <AlertTriangle size={14} className="text-amber-500" />
             <span className="text-xs font-semibold uppercase tracking-wider text-amber-600">
-              {isZh ? "关键词差距" : "Keyword Gaps"}
+              {t("chat.contextGaps")}
             </span>
             <span className="text-[11px] text-amber-500">
-              {isZh ? "（竞品有，你没有）" : "(competitors have, you don't)"}
+              {t("chat.gapNote")}
             </span>
           </div>
           <div className="flex flex-wrap gap-1.5">
@@ -251,7 +228,7 @@ export function ProjectContextCard({
       {findings.length > 0 && (
         <div className="rounded-xl border border-slate-100 bg-white p-4 shadow-sm">
           <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">
-            {isZh ? "最近发现" : "Recent Findings"}
+            {t("chat.contextFindings")}
           </p>
           <div className="space-y-1.5">
             {findings.map((f, i) => (
@@ -270,7 +247,7 @@ export function ProjectContextCard({
       {/* Quick action suggestions */}
       <div>
         <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">
-          {isZh ? "快速开始" : "Quick Start"}
+          {t("chat.contextQuickStart")}
         </p>
         <div className="grid grid-cols-2 gap-2">
           {suggestions.map((s) => (
