@@ -234,3 +234,73 @@ async def list_stale_tasks(*, stale_after_seconds: int) -> list[dict]:
         return [_task_row_to_dict(row) for row in rows]
     finally:
         await db.close()
+
+
+async def claim_next_queued_task(*, worker_id: str) -> dict | None:
+    db = await get_db()
+    try:
+        cursor = await db.execute(
+            """SELECT id, task_id, kind, project_id, status, payload_json, result_json,
+                      error_json, dedupe_key, priority, run_after, attempt_count,
+                      max_attempts, worker_id, claimed_at, heartbeat_at, started_at,
+                      completed_at, created_at, updated_at
+               FROM background_tasks
+               WHERE status = 'queued'
+               ORDER BY priority DESC, created_at ASC
+               LIMIT 1""",
+        )
+        row = await cursor.fetchone()
+        if row is None:
+            return None
+
+        task = _task_row_to_dict(row)
+        update = await db.execute(
+            """UPDATE background_tasks
+               SET status = 'claimed',
+                   worker_id = ?,
+                   claimed_at = datetime('now'),
+                   heartbeat_at = datetime('now'),
+                   updated_at = datetime('now')
+               WHERE task_id = ? AND status = 'queued'""",
+            (worker_id, task["task_id"]),
+        )
+        await db.commit()
+        if update.rowcount == 0:
+            return None
+        return await get_task(task["task_id"])
+    finally:
+        await db.close()
+
+
+async def mark_task_running(task_id: str, *, worker_id: str) -> None:
+    db = await get_db()
+    try:
+        await db.execute(
+            """UPDATE background_tasks
+               SET status = 'running',
+                   worker_id = ?,
+                   started_at = COALESCE(started_at, datetime('now')),
+                   heartbeat_at = datetime('now'),
+                   updated_at = datetime('now')
+               WHERE task_id = ?""",
+            (worker_id, task_id),
+        )
+        await db.commit()
+    finally:
+        await db.close()
+
+
+async def heartbeat(task_id: str, *, worker_id: str) -> None:
+    db = await get_db()
+    try:
+        await db.execute(
+            """UPDATE background_tasks
+               SET heartbeat_at = datetime('now'),
+                   worker_id = ?,
+                   updated_at = datetime('now')
+               WHERE task_id = ?""",
+            (worker_id, task_id),
+        )
+        await db.commit()
+    finally:
+        await db.close()

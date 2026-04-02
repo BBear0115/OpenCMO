@@ -45,6 +45,18 @@ async def get_task(task_id: str) -> dict | None:
     return await bg_storage.get_task(task_id)
 
 
+async def claim_next_task(*, worker_id: str) -> dict | None:
+    return await bg_storage.claim_next_queued_task(worker_id=worker_id)
+
+
+async def mark_task_running(task_id: str, *, worker_id: str) -> None:
+    await bg_storage.mark_task_running(task_id, worker_id=worker_id)
+
+
+async def heartbeat(task_id: str, *, worker_id: str) -> None:
+    await bg_storage.heartbeat(task_id, worker_id=worker_id)
+
+
 async def append_event(
     task_id: str,
     *,
@@ -120,4 +132,3 @@ async def recover_stale_tasks(*, stale_after_seconds: int) -> int:
             )
         fixed += 1
     return fixed
-
