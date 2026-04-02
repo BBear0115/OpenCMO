@@ -288,7 +288,60 @@ async def api_v1_community_history(project_id: int):
 
 @router.get("/projects/{project_id}/community/discussions")
 async def api_v1_community_discussions(project_id: int):
-    return JSONResponse(await storage.get_tracked_discussions(project_id))
+    discussions = await storage.get_tracked_discussions(project_id)
+    history = await storage.get_community_history(project_id, limit=1)
+    if not history:
+        return JSONResponse(discussions)
+
+    latest_results = history[0].get("results_json", "")
+    try:
+        import json as _json
+
+        payload = _json.loads(latest_results) if latest_results else {}
+        latest_hits = {
+            (hit["platform"], hit["detail_id"]): hit
+            for hit in payload.get("hits", [])
+        }
+    except Exception:
+        latest_hits = {}
+
+    enriched = []
+    tracked_keys: set[tuple[str, str]] = set()
+    for discussion in discussions:
+        key = (discussion["platform"], discussion["detail_id"])
+        tracked_keys.add(key)
+        latest = latest_hits.get(key, {})
+        enriched.append({
+            **discussion,
+            "intent_type": latest.get("intent_type"),
+            "match_reason": latest.get("match_reason"),
+            "matched_query": latest.get("matched_query"),
+            "matched_terms": latest.get("matched_terms"),
+            "confidence": latest.get("confidence"),
+            "source_kind": latest.get("source_kind"),
+        })
+    for index, ((platform, detail_id), latest) in enumerate(latest_hits.items(), start=1):
+        if latest.get("source_kind") != "external_search" or (platform, detail_id) in tracked_keys:
+            continue
+        enriched.append({
+            "id": -index,
+            "platform": platform,
+            "detail_id": detail_id,
+            "title": latest.get("title", ""),
+            "url": latest.get("url", ""),
+            "first_seen_at": history[0]["scanned_at"],
+            "last_checked_at": history[0]["scanned_at"],
+            "raw_score": latest.get("raw_score"),
+            "comments_count": latest.get("comments_count"),
+            "engagement_score": latest.get("engagement_score"),
+            "intent_type": latest.get("intent_type"),
+            "match_reason": latest.get("match_reason"),
+            "matched_query": latest.get("matched_query"),
+            "matched_terms": latest.get("matched_terms"),
+            "confidence": latest.get("confidence"),
+            "source_kind": latest.get("source_kind"),
+        })
+    return JSONResponse(enriched)
 
 
 @router.get("/projects/{project_id}/community/chart")

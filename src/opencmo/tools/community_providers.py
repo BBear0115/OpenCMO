@@ -53,16 +53,22 @@ class DiscussionHit:
     platform: str
     title: str
     url: str
-    engagement_score: int
-    raw_score: int
-    comments_count: int
-    age_days: int
+    engagement_score: int | None
+    raw_score: int | None
+    comments_count: int | None
+    age_days: int | None
     author: str
     detail_id: str
     extra_param_1: str
     extra_param_2: str
     preview: str
     source: str
+    intent_type: str = "direct_mention"
+    match_reason: str = ""
+    matched_query: str = ""
+    matched_terms: list[str] = field(default_factory=list)
+    confidence: float = 0.5
+    source_kind: str = "post"
 
 
 @dataclass
@@ -88,6 +94,27 @@ class ScanResult:
     disabled_providers: list[DisabledProvider] = field(default_factory=list)
     provider_errors: list[ProviderError] = field(default_factory=list)
     suggested_queries: list[SuggestedQuery] = field(default_factory=list)
+
+
+@dataclass(frozen=True)
+class QuerySpec:
+    query: str
+    source: str
+    intent_type: str
+    matched_terms: list[str] = field(default_factory=list)
+    confidence: float = 0.5
+    reason: str = ""
+
+
+@dataclass(frozen=True)
+class SearchQueryPlan:
+    direct_brand_queries: list[QuerySpec] = field(default_factory=list)
+    problem_queries: list[QuerySpec] = field(default_factory=list)
+    category_queries: list[QuerySpec] = field(default_factory=list)
+    competitor_queries: list[QuerySpec] = field(default_factory=list)
+    opportunity_queries: list[QuerySpec] = field(default_factory=list)
+    provider_queries: dict[str, list[QuerySpec]] = field(default_factory=dict)
+    platform_targeting: dict[str, list[str]] = field(default_factory=dict)
 
 
 # ---------------------------------------------------------------------------
@@ -207,6 +234,67 @@ def _parse_weibo_date(date_str: str) -> int:
         return 0
 
 
+def _metric_value(value: int | None) -> int:
+    return value or 0
+
+
+def _unique_query_specs(queries: list[QuerySpec]) -> list[QuerySpec]:
+    seen: set[str] = set()
+    unique: list[QuerySpec] = []
+    for spec in queries:
+        key = spec.query.strip().lower()
+        if not key or key in seen:
+            continue
+        seen.add(key)
+        unique.append(spec)
+    return unique
+
+
+def _get_query_specs(
+    provider_name: str,
+    query_plan: SearchQueryPlan | None,
+    fallback: list[QuerySpec],
+) -> list[QuerySpec]:
+    if query_plan is None:
+        return fallback
+    return _unique_query_specs(query_plan.provider_queries.get(provider_name, fallback))
+
+
+def _derive_match_ratio(text: str, matched_terms: list[str]) -> float:
+    if not matched_terms:
+        return 0.0
+    haystack = text.lower()
+    hits = sum(1 for term in matched_terms if term and term.lower() in haystack)
+    return hits / max(len(matched_terms), 1)
+
+
+def _apply_query_spec(
+    hits: list[DiscussionHit],
+    spec: QuerySpec,
+    *,
+    source_kind: str = "post",
+) -> list[DiscussionHit]:
+    for hit in hits:
+        text = f"{hit.title} {hit.preview}".lower()
+        match_ratio = _derive_match_ratio(text, spec.matched_terms)
+        base_confidence = spec.confidence
+        if source_kind == "external_search":
+            base_confidence = max(0.2, base_confidence - 0.12)
+        # Direct brand queries should only stay direct if the text actually contains the term.
+        if spec.intent_type == "direct_mention" and spec.matched_terms and match_ratio == 0:
+            hit.intent_type = "opportunity"
+            hit.match_reason = f"Matched '{spec.query}' via search result context, but the brand terms were not found verbatim in the snippet."
+            hit.confidence = max(0.25, min(0.75, base_confidence - 0.25))
+        else:
+            hit.intent_type = spec.intent_type
+            hit.match_reason = spec.reason or f"Matched the {spec.source.replace('_', ' ')} query '{spec.query}'."
+            hit.confidence = max(0.2, min(0.99, base_confidence + match_ratio * 0.15))
+        hit.matched_query = spec.query
+        hit.matched_terms = list(spec.matched_terms)
+        hit.source_kind = source_kind
+    return hits
+
+
 # ---------------------------------------------------------------------------
 # Category -> subreddit mapping for targeted search
 # ---------------------------------------------------------------------------
@@ -306,7 +394,12 @@ class CommunityProvider(ABC):
         return True
 
     @abstractmethod
-    async def search(self, brand_name: str, category: str) -> ProviderSearchResult: ...
+    async def search(
+        self,
+        brand_name: str,
+        category: str,
+        query_plan: SearchQueryPlan | None = None,
+    ) -> ProviderSearchResult: ...
 
     async def fetch_detail(self, hit: DiscussionHit) -> DiscussionDetail | None:
         return None
@@ -463,74 +556,104 @@ class RedditProvider(CommunityProvider):
 
     # ---- public API ----
 
-    async def search(self, brand_name: str, category: str) -> ProviderSearchResult:
+    async def search(
+        self,
+        brand_name: str,
+        category: str,
+        query_plan: SearchQueryPlan | None = None,
+    ) -> ProviderSearchResult:
         profile = _get_profile()
         errors: list[str] = []
         all_hits: list[DiscussionHit] = []
-
-        # 1. Brand search (paginated)
-        hits, errs = await self._paginated_search(
-            brand_name, "brand_search",
-            pages=profile.reddit_brand_pages,
-            per_page=profile.reddit_brand_per_page,
-            time_filter=profile.reddit_time_filter,
-        )
-        all_hits.extend(hits)
-        errors.extend(errs)
-        await _delay()
-
-        # 2. Category search (paginated)
-        hits, errs = await self._paginated_search(
-            category, "category_search",
-            pages=profile.reddit_category_pages,
-            per_page=profile.reddit_category_per_page,
-            time_filter=profile.reddit_time_filter,
-        )
-        all_hits.extend(hits)
-        errors.extend(errs)
-        await _delay()
-
-        # 3. Extra combo queries
-        extra_queries = []
+        fallback_queries = [
+            QuerySpec(
+                query=brand_name,
+                source="brand_search",
+                intent_type="direct_mention",
+                matched_terms=[brand_name],
+                confidence=0.9,
+            ),
+            QuerySpec(
+                query=category,
+                source="category_search",
+                intent_type="opportunity",
+                matched_terms=[category],
+                confidence=0.55,
+            ),
+        ]
         if profile.reddit_extra_queries >= 1:
-            extra_queries.append(f"{brand_name} {category}")
+            fallback_queries.append(QuerySpec(
+                query=f"{brand_name} {category}",
+                source="extra_search",
+                intent_type="direct_mention",
+                matched_terms=[brand_name, category],
+                confidence=0.82,
+            ))
         if profile.reddit_extra_queries >= 2:
-            extra_queries.append(f"{brand_name} review")
+            fallback_queries.append(QuerySpec(
+                query=f"{brand_name} review",
+                source="extra_search",
+                intent_type="direct_mention",
+                matched_terms=[brand_name, "review"],
+                confidence=0.78,
+            ))
         if profile.reddit_extra_queries >= 3:
-            extra_queries.append(f"{brand_name} alternative")
+            fallback_queries.append(QuerySpec(
+                query=f"{brand_name} alternative",
+                source="extra_search",
+                intent_type="competitor_mention",
+                matched_terms=[brand_name, "alternative"],
+                confidence=0.7,
+            ))
         if profile.reddit_extra_queries >= 4:
-            extra_queries.append(f"best {category} tools")
+            fallback_queries.append(QuerySpec(
+                query=f"best {category} tools",
+                source="extra_search",
+                intent_type="opportunity",
+                matched_terms=[category],
+                confidence=0.58,
+            ))
 
-        for eq in extra_queries:
+        query_specs = _get_query_specs(self.name, query_plan, fallback_queries)
+
+        for spec in query_specs:
+            pages = profile.reddit_brand_pages if spec.intent_type == "direct_mention" else 1
+            per_page = profile.reddit_brand_per_page if spec.intent_type == "direct_mention" else profile.reddit_extra_per_page or profile.reddit_category_per_page
             hits, errs = await self._paginated_search(
-                eq, f"extra_search:{eq}",
-                pages=1,
-                per_page=profile.reddit_extra_per_page,
+                spec.query,
+                spec.source,
+                pages=pages,
+                per_page=per_page,
                 time_filter=profile.reddit_time_filter,
             )
-            all_hits.extend(hits)
+            all_hits.extend(_apply_query_spec(hits, spec))
             errors.extend(errs)
             await _delay()
 
-        # 4. Subreddit-targeted search
         if profile.reddit_subreddit_search:
-            subreddits = _get_subreddits_for_category(category)
-            for sub in subreddits[:4]:  # limit to 4 subreddits
-                hits, errs = await self._subreddit_search(
-                    sub, brand_name, f"subreddit:{sub}",
-                    per_page=min(profile.reddit_brand_per_page, 50),
-                    time_filter=profile.reddit_time_filter,
-                )
-                all_hits.extend(hits)
-                errors.extend(errs)
-                await _delay()
+            subreddits = (
+                query_plan.platform_targeting.get(self.name, []) if query_plan else _get_subreddits_for_category(category)
+            )
+            direct_queries = [spec for spec in query_specs if spec.intent_type == "direct_mention"] or query_specs[:1]
+            for sub in subreddits[:4]:
+                for spec in direct_queries[:2]:
+                    hits, errs = await self._subreddit_search(
+                        sub,
+                        spec.query,
+                        f"subreddit:{sub}",
+                        per_page=min(profile.reddit_brand_per_page, 50),
+                        time_filter=profile.reddit_time_filter,
+                    )
+                    all_hits.extend(_apply_query_spec(hits, spec))
+                    errors.extend(errs)
+                    await _delay()
 
         # Deduplicate by detail_id, keep higher raw_score
         seen: dict[str, DiscussionHit] = {}
         for h in all_hits:
             key = (h.platform, h.detail_id)
             existing = seen.get(key)
-            if existing is None or h.raw_score > existing.raw_score:
+            if existing is None or _metric_value(h.raw_score) > _metric_value(existing.raw_score):
                 seen[key] = h
         return ProviderSearchResult(hits=list(seen.values()), errors=errors)
 
@@ -635,59 +758,65 @@ class HackerNewsProvider(CommunityProvider):
 
         return all_hits, errors
 
-    async def search(self, brand_name: str, category: str) -> ProviderSearchResult:
+    async def search(
+        self,
+        brand_name: str,
+        category: str,
+        query_plan: SearchQueryPlan | None = None,
+    ) -> ProviderSearchResult:
         profile = _get_profile()
         errors: list[str] = []
         all_hits: list[DiscussionHit] = []
 
-        # 1. Brand search by relevance (paginated)
-        hits, errs = await self._paginated_search(
-            brand_name, "brand_search",
-            pages=profile.hn_brand_pages,
-            per_page=profile.hn_brand_per_page,
-        )
-        all_hits.extend(hits)
-        errors.extend(errs)
-        await _delay()
+        fallback_queries = [
+            QuerySpec(
+                query=brand_name,
+                source="brand_search",
+                intent_type="direct_mention",
+                matched_terms=[brand_name],
+                confidence=0.88,
+            ),
+            QuerySpec(
+                query=category,
+                source="category_search",
+                intent_type="opportunity",
+                matched_terms=[category],
+                confidence=0.55,
+            ),
+        ]
+        query_specs = _get_query_specs(self.name, query_plan, fallback_queries)
 
-        # 2. Category search by relevance (paginated)
-        hits, errs = await self._paginated_search(
-            category, "category_search",
-            pages=profile.hn_category_pages,
-            per_page=profile.hn_category_per_page,
-        )
-        all_hits.extend(hits)
-        errors.extend(errs)
-        await _delay()
-
-        # 3. Brand search by date (newest first) — extra signal
-        if profile.hn_include_date_sort:
+        for spec in query_specs:
+            pages = profile.hn_brand_pages if spec.intent_type == "direct_mention" else profile.hn_category_pages
+            per_page = profile.hn_brand_per_page if spec.intent_type == "direct_mention" else profile.hn_category_per_page
             hits, errs = await self._paginated_search(
-                brand_name, "brand_date_search",
-                pages=1,
-                per_page=profile.hn_brand_per_page,
-                endpoint="search_by_date",
+                spec.query,
+                spec.source,
+                pages=pages,
+                per_page=per_page,
             )
-            all_hits.extend(hits)
+            all_hits.extend(_apply_query_spec(hits, spec))
             errors.extend(errs)
             await _delay()
 
-            # Category by date too
-            hits, errs = await self._paginated_search(
-                category, "category_date_search",
-                pages=1,
-                per_page=profile.hn_category_per_page,
-                endpoint="search_by_date",
-            )
-            all_hits.extend(hits)
-            errors.extend(errs)
+            if profile.hn_include_date_sort:
+                hits, errs = await self._paginated_search(
+                    spec.query,
+                    f"{spec.source}_date",
+                    pages=1,
+                    per_page=per_page,
+                    endpoint="search_by_date",
+                )
+                all_hits.extend(_apply_query_spec(hits, spec))
+                errors.extend(errs)
+                await _delay()
 
         # Deduplicate
         seen: dict[str, DiscussionHit] = {}
         for h in all_hits:
             key = (h.platform, h.detail_id)
             existing = seen.get(key)
-            if existing is None or h.raw_score > existing.raw_score:
+            if existing is None or _metric_value(h.raw_score) > _metric_value(existing.raw_score):
                 seen[key] = h
         return ProviderSearchResult(hits=list(seen.values()), errors=errors)
 
@@ -799,49 +928,71 @@ class DevtoProvider(CommunityProvider):
 
         return all_hits, errors
 
-    async def search(self, brand_name: str, category: str) -> ProviderSearchResult:
+    async def search(
+        self,
+        brand_name: str,
+        category: str,
+        query_plan: SearchQueryPlan | None = None,
+    ) -> ProviderSearchResult:
         profile = _get_profile()
         errors: list[str] = []
         all_hits: list[DiscussionHit] = []
         suggested: list[SuggestedQuery] = []
 
-        # 1. Brand tag search (paginated)
-        brand_tag = brand_name.lower().replace(" ", "")
-        hits, errs = await self._paginated_tag_search(
-            brand_tag, "brand_search",
-            pages=profile.devto_brand_pages,
-            per_page=profile.devto_brand_per_page,
-        )
-        all_hits.extend(hits)
-        errors.extend(errs)
-        await _delay()
+        fallback_queries = [
+            QuerySpec(
+                query=brand_name,
+                source="brand_search",
+                intent_type="direct_mention",
+                matched_terms=[brand_name],
+                confidence=0.82,
+            ),
+            QuerySpec(
+                query=category,
+                source="category_search",
+                intent_type="opportunity",
+                matched_terms=[category],
+                confidence=0.5,
+            ),
+        ]
+        query_specs = _get_query_specs(self.name, query_plan, fallback_queries)
 
-        # 2. Category tag search — try each word in category (paginated)
-        words = category.lower().replace("-", " ").split()
-        tags_tried = 0
-        max_category_tags = len(words) if profile.devto_multi_tag else 1
-
-        for word in words:
-            if tags_tried >= max_category_tags:
-                break
-            if len(word) < 2:
-                continue
-            hits, errs = await self._paginated_tag_search(
-                word, f"category_search:{word}",
-                pages=profile.devto_category_pages,
-                per_page=profile.devto_category_per_page,
+        for spec in query_specs:
+            tag_candidates = []
+            if spec.intent_type == "direct_mention":
+                tag_candidates.append(spec.query.lower().replace(" ", ""))
+            tag_candidates.extend(
+                [word for word in spec.query.lower().replace("-", " ").split() if len(word) >= 2]
             )
-            all_hits.extend(hits)
-            errors.extend(errs)
-            tags_tried += 1
-            await _delay()
+            tags_tried = 0
+            max_tags = len(tag_candidates) if profile.devto_multi_tag else 1
+            pages = profile.devto_brand_pages if spec.intent_type == "direct_mention" else profile.devto_category_pages
+            per_page = profile.devto_brand_per_page if spec.intent_type == "direct_mention" else profile.devto_category_per_page
+            for tag in tag_candidates:
+                if tags_tried >= max_tags:
+                    break
+                hits, errs = await self._paginated_tag_search(
+                    tag,
+                    f"{spec.source}:{tag}",
+                    pages=pages,
+                    per_page=per_page,
+                )
+                all_hits.extend(_apply_query_spec(hits, spec))
+                errors.extend(errs)
+                tags_tried += 1
+                await _delay()
 
         # If all tag searches returned empty → suggest web fallback
         if not all_hits:
+            fallback_spec = query_specs[0] if query_specs else QuerySpec(
+                query=brand_name,
+                source="brand_search",
+                intent_type="direct_mention",
+            )
             suggested.append(SuggestedQuery(
                 platform="devto",
                 provider="devto",
-                query=f'"{brand_name}" site:dev.to',
+                query=f'"{fallback_spec.query}" site:dev.to',
                 reason="tag search returned empty",
             ))
 
@@ -850,7 +1001,7 @@ class DevtoProvider(CommunityProvider):
         for h in all_hits:
             key = (h.platform, h.detail_id)
             existing = seen.get(key)
-            if existing is None or h.raw_score > existing.raw_score:
+            if existing is None or _metric_value(h.raw_score) > _metric_value(existing.raw_score):
                 seen[key] = h
 
         return ProviderSearchResult(
@@ -974,16 +1125,17 @@ class YouTubeProvider(CommunityProvider):
                 platform="youtube",
                 title=title or content.split("\n")[0][:120],
                 url=url,
-                engagement_score=min(100, int(r.get("score", 0.5) * 100)),
-                raw_score=0,
-                comments_count=0,
-                age_days=0,
+                engagement_score=None,
+                raw_score=None,
+                comments_count=None,
+                age_days=None,
                 author="",
                 detail_id=vid_id or url,
                 extra_param_1="",
                 extra_param_2="",
                 preview=content[:300] if content else "",
                 source=source,
+                source_kind="external_search",
             ))
         return hits
 
@@ -1063,7 +1215,12 @@ class YouTubeProvider(CommunityProvider):
         except Exception as e:
             return [], [f"tavily youtube {source}: {e}"]
 
-    async def search(self, brand_name: str, category: str) -> ProviderSearchResult:
+    async def search(
+        self,
+        brand_name: str,
+        category: str,
+        query_plan: SearchQueryPlan | None = None,
+    ) -> ProviderSearchResult:
         errors: list[str] = []
         all_hits: list[DiscussionHit] = []
         suggested: list[SuggestedQuery] = []
@@ -1071,22 +1228,38 @@ class YouTubeProvider(CommunityProvider):
         use_api = self._has_api_key()
         use_tavily = self._has_tavily()
 
-        for query, source in [
-            (brand_name, "brand_search"),
-            (category, "category_search"),
-        ]:
+        fallback_queries = [
+            QuerySpec(
+                query=brand_name,
+                source="brand_search",
+                intent_type="direct_mention",
+                matched_terms=[brand_name],
+                confidence=0.82,
+            ),
+            QuerySpec(
+                query=category,
+                source="category_search",
+                intent_type="opportunity",
+                matched_terms=[category],
+                confidence=0.5,
+            ),
+        ]
+        query_specs = _get_query_specs(self.name, query_plan, fallback_queries)
+
+        for spec in query_specs:
             if use_api:
-                hits, errs = await self._search_via_api(query, source)
+                hits, errs = await self._search_via_api(spec.query, spec.source)
             elif use_tavily:
-                hits, errs = await self._search_via_tavily(query, source)
+                hits, errs = await self._search_via_tavily(spec.query, spec.source)
             else:
                 hits, errs = [], []
                 suggested.append(SuggestedQuery(
                     platform="youtube", provider="youtube",
-                    query=f'"{query}" site:youtube.com',
+                    query=f'"{spec.query}" site:youtube.com',
                     reason="no YOUTUBE_API_KEY or TAVILY_API_KEY",
                 ))
-            all_hits.extend(hits)
+            kind = "external_search" if use_tavily and not use_api else "post"
+            all_hits.extend(_apply_query_spec(hits, spec, source_kind=kind))
             errors.extend(errs)
             await _delay()
 
@@ -1094,7 +1267,7 @@ class YouTubeProvider(CommunityProvider):
         seen: dict[str, DiscussionHit] = {}
         for h in all_hits:
             existing = seen.get(h.detail_id)
-            if existing is None or h.raw_score > existing.raw_score:
+            if existing is None or _metric_value(h.raw_score) > _metric_value(existing.raw_score):
                 seen[h.detail_id] = h
         return ProviderSearchResult(hits=list(seen.values()), errors=errors, suggested_queries=suggested)
 
@@ -1207,31 +1380,51 @@ class BlueskyProvider(CommunityProvider):
             comments=comments,
         )
 
-    async def search(self, brand_name: str, category: str) -> ProviderSearchResult:
+    async def search(
+        self,
+        brand_name: str,
+        category: str,
+        query_plan: SearchQueryPlan | None = None,
+    ) -> ProviderSearchResult:
         profile = _get_profile()
         max_results = getattr(profile, "bluesky_max_results", 25)
         errors: list[str] = []
         all_hits: list[DiscussionHit] = []
+        fallback_queries = [
+            QuerySpec(
+                query=brand_name,
+                source="brand_search",
+                intent_type="direct_mention",
+                matched_terms=[brand_name],
+                confidence=0.84,
+            ),
+            QuerySpec(
+                query=category,
+                source="category_search",
+                intent_type="opportunity",
+                matched_terms=[category],
+                confidence=0.52,
+            ),
+        ]
+        query_specs = _get_query_specs(self.name, query_plan, fallback_queries)
 
-        for query, source in [
-            (brand_name, "brand_search"),
-            (category, "category_search"),
-        ]:
+        for spec in query_specs:
             r = await _http_get_json(
                 "https://public.api.bsky.app/xrpc/app.bsky.feed.searchPosts",
-                params={"q": query, "limit": str(min(max_results, 100))},
+                params={"q": spec.query, "limit": str(min(max_results, 100))},
             )
             if r.error:
-                errors.append(f"{source}: {r.error}")
+                errors.append(f"{spec.source}: {r.error}")
             elif r.data:
-                all_hits.extend(self.parse_search_response(r.data, source))
+                hits = self.parse_search_response(r.data, spec.source)
+                all_hits.extend(_apply_query_spec(hits, spec))
             await _delay()
 
         # Deduplicate by AT URI
         seen: dict[str, DiscussionHit] = {}
         for h in all_hits:
             existing = seen.get(h.detail_id)
-            if existing is None or h.raw_score > existing.raw_score:
+            if existing is None or _metric_value(h.raw_score) > _metric_value(existing.raw_score):
                 seen[h.detail_id] = h
         return ProviderSearchResult(hits=list(seen.values()), errors=errors)
 
@@ -1337,16 +1530,17 @@ class TwitterProvider(CommunityProvider):
                 platform="twitter",
                 title=_truncate(title or content.split("\n")[0], 120),
                 url=url,
-                engagement_score=min(100, int(r.get("score", 0.5) * 100)),
-                raw_score=0,
-                comments_count=0,
-                age_days=0,
+                engagement_score=None,
+                raw_score=None,
+                comments_count=None,
+                age_days=None,
                 author=author,
                 detail_id=tweet_id or url,
                 extra_param_1=author,
                 extra_param_2="",
                 preview=_truncate(content, 300),
                 source=source,
+                source_kind="external_search",
             ))
         return hits
 
@@ -1395,7 +1589,12 @@ class TwitterProvider(CommunityProvider):
         except Exception as e:
             return [], [f"tavily {source}: {e}"]
 
-    async def search(self, brand_name: str, category: str) -> ProviderSearchResult:
+    async def search(
+        self,
+        brand_name: str,
+        category: str,
+        query_plan: SearchQueryPlan | None = None,
+    ) -> ProviderSearchResult:
         errors: list[str] = []
         all_hits: list[DiscussionHit] = []
         suggested: list[SuggestedQuery] = []
@@ -1403,22 +1602,38 @@ class TwitterProvider(CommunityProvider):
         use_tweepy = self._has_bearer_token()
         use_tavily = self._has_tavily()
 
-        for query, source in [
-            (brand_name, "brand_search"),
-            (category, "category_search"),
-        ]:
+        fallback_queries = [
+            QuerySpec(
+                query=brand_name,
+                source="brand_search",
+                intent_type="direct_mention",
+                matched_terms=[brand_name],
+                confidence=0.8,
+            ),
+            QuerySpec(
+                query=category,
+                source="category_search",
+                intent_type="opportunity",
+                matched_terms=[category],
+                confidence=0.48,
+            ),
+        ]
+        query_specs = _get_query_specs(self.name, query_plan, fallback_queries)
+
+        for spec in query_specs:
             if use_tweepy:
-                hits, errs = await self._search_via_tweepy(query, source)
+                hits, errs = await self._search_via_tweepy(spec.query, spec.source)
             elif use_tavily:
-                hits, errs = await self._search_via_tavily(query, source)
+                hits, errs = await self._search_via_tavily(spec.query, spec.source)
             else:
                 hits, errs = [], []
                 suggested.append(SuggestedQuery(
                     platform="twitter", provider="twitter",
-                    query=f'"{query}" site:x.com OR site:twitter.com',
+                    query=f'"{spec.query}" site:x.com OR site:twitter.com',
                     reason="no TWITTER_BEARER_TOKEN or TAVILY_API_KEY",
                 ))
-            all_hits.extend(hits)
+            kind = "external_search" if use_tavily and not use_tweepy else "post"
+            all_hits.extend(_apply_query_spec(hits, spec, source_kind=kind))
             errors.extend(errs)
             await _delay()
 
@@ -1426,7 +1641,7 @@ class TwitterProvider(CommunityProvider):
         seen: dict[str, DiscussionHit] = {}
         for h in all_hits:
             existing = seen.get(h.detail_id)
-            if existing is None or h.raw_score > existing.raw_score:
+            if existing is None or _metric_value(h.raw_score) > _metric_value(existing.raw_score):
                 seen[h.detail_id] = h
         return ProviderSearchResult(hits=list(seen.values()), errors=errors, suggested_queries=suggested)
 
@@ -1440,7 +1655,12 @@ class LinkedInProvider(CommunityProvider):
     max_search_calls = 0
     recommended_max_details = 0
 
-    async def search(self, brand_name: str, category: str) -> ProviderSearchResult:
+    async def search(
+        self,
+        brand_name: str,
+        category: str,
+        query_plan: SearchQueryPlan | None = None,
+    ) -> ProviderSearchResult:
         return ProviderSearchResult()
 
 
@@ -1453,7 +1673,12 @@ class ProductHuntProvider(CommunityProvider):
     max_search_calls = 0
     recommended_max_details = 0
 
-    async def search(self, brand_name: str, category: str) -> ProviderSearchResult:
+    async def search(
+        self,
+        brand_name: str,
+        category: str,
+        query_plan: SearchQueryPlan | None = None,
+    ) -> ProviderSearchResult:
         # TODO: 使用 Product Hunt GraphQL API v2 实现搜索功能
         # 实现思路：
         # 1. 使用 GraphQL 查询 'posts'，通过 term 参数搜索品牌名称或类别。
@@ -1471,7 +1696,12 @@ class BlogSearchProvider(CommunityProvider):
     max_search_calls = 0
     recommended_max_details = 0
 
-    async def search(self, brand_name: str, category: str) -> ProviderSearchResult:
+    async def search(
+        self,
+        brand_name: str,
+        category: str,
+        query_plan: SearchQueryPlan | None = None,
+    ) -> ProviderSearchResult:
         return ProviderSearchResult()
 
 
@@ -1532,12 +1762,45 @@ class V2EXProvider(CommunityProvider):
             comments=comments,
         )
 
-    async def search(self, brand_name: str, category: str) -> ProviderSearchResult:
+    async def search(
+        self,
+        brand_name: str,
+        category: str,
+        query_plan: SearchQueryPlan | None = None,
+    ) -> ProviderSearchResult:
         profile = _get_profile()
         max_results = profile.v2ex_max_results
         all_hits: list[DiscussionHit] = []
         errors: list[str] = []
         suggested: list[SuggestedQuery] = []
+
+        fallback_queries = [
+            QuerySpec(
+                query=brand_name,
+                source="brand_search",
+                intent_type="direct_mention",
+                matched_terms=[brand_name],
+                confidence=0.8,
+            ),
+            QuerySpec(
+                query=category,
+                source="category_search",
+                intent_type="opportunity",
+                matched_terms=[category],
+                confidence=0.46,
+            ),
+        ]
+        query_specs = _get_query_specs(self.name, query_plan, fallback_queries)
+        direct_terms = {
+            term.lower()
+            for spec in query_specs if spec.intent_type == "direct_mention"
+            for term in spec.matched_terms
+        } or {brand_name.lower()}
+        opportunity_terms = {
+            term.lower()
+            for spec in query_specs if spec.intent_type != "direct_mention"
+            for term in spec.matched_terms
+        } or {category.lower()}
 
         # 1. Fetch hot topics and filter client-side
         r = await _http_get_json(f"{self._BASE}/topics/hot.json")
@@ -1546,7 +1809,12 @@ class V2EXProvider(CommunityProvider):
         elif isinstance(r.data, list):
             for h in self.parse_topics_response(r.data, "v2ex_hot"):
                 text = f"{h.title} {h.preview}".lower()
-                if brand_name.lower() in text or category.lower() in text:
+                if any(term in text for term in direct_terms | opportunity_terms):
+                    spec = next(
+                        (item for item in query_specs if any(term in text for term in [t.lower() for t in item.matched_terms])),
+                        query_specs[0],
+                    )
+                    _apply_query_spec([h], spec)
                     all_hits.append(h)
         await _delay()
 
@@ -1563,22 +1831,28 @@ class V2EXProvider(CommunityProvider):
                 parsed = self.parse_topics_response(r.data[:max_results], f"v2ex_node_{node}")
                 for h in parsed:
                     text = f"{h.title} {h.preview}".lower()
-                    if brand_name.lower() in text or category.lower() in text:
+                    if any(term in text for term in direct_terms | opportunity_terms):
+                        spec = next(
+                            (item for item in query_specs if any(term in text for term in [t.lower() for t in item.matched_terms])),
+                            query_specs[0],
+                        )
+                        _apply_query_spec([h], spec)
                         all_hits.append(h)
             await _delay()
 
         # 3. Always suggest web search (V2EX has no search API)
-        suggested.append(SuggestedQuery(
-            platform="v2ex", provider="v2ex",
-            query=f'site:v2ex.com "{brand_name}"',
-            reason="V2EX has no search API; use web search for broader coverage",
-        ))
+        for spec in query_specs[:3]:
+            suggested.append(SuggestedQuery(
+                platform="v2ex", provider="v2ex",
+                query=f'site:v2ex.com "{spec.query}"',
+                reason="V2EX has no search API; use web search for broader coverage",
+            ))
 
         # Deduplicate
         seen: dict[str, DiscussionHit] = {}
         for h in all_hits:
             existing = seen.get(h.detail_id)
-            if existing is None or h.raw_score > existing.raw_score:
+            if existing is None or _metric_value(h.raw_score) > _metric_value(existing.raw_score):
                 seen[h.detail_id] = h
         return ProviderSearchResult(
             hits=list(seen.values())[:max_results],
@@ -1679,27 +1953,45 @@ class WeiboProvider(CommunityProvider):
         cards = data.get("data", {}).get("cards", [])
         return self.parse_search_cards(cards, source), []
 
-    async def search(self, brand_name: str, category: str) -> ProviderSearchResult:
+    async def search(
+        self,
+        brand_name: str,
+        category: str,
+        query_plan: SearchQueryPlan | None = None,
+    ) -> ProviderSearchResult:
         profile = _get_profile()
         all_hits: list[DiscussionHit] = []
         errors: list[str] = []
 
-        # Brand search
-        hits, errs = await self._search_query(brand_name, "brand")
-        all_hits.extend(hits[:profile.weibo_max_results])
-        errors.extend(errs)
-        await _delay()
+        fallback_queries = [
+            QuerySpec(
+                query=brand_name,
+                source="brand_search",
+                intent_type="direct_mention",
+                matched_terms=[brand_name],
+                confidence=0.86,
+            ),
+            QuerySpec(
+                query=category,
+                source="category_search",
+                intent_type="opportunity",
+                matched_terms=[category],
+                confidence=0.5,
+            ),
+        ]
+        query_specs = _get_query_specs(self.name, query_plan, fallback_queries)
 
-        # Category search
-        hits, errs = await self._search_query(category, "category")
-        all_hits.extend(hits[:profile.weibo_max_results])
-        errors.extend(errs)
+        for spec in query_specs:
+            hits, errs = await self._search_query(spec.query, spec.source)
+            all_hits.extend(_apply_query_spec(hits[:profile.weibo_max_results], spec))
+            errors.extend(errs)
+            await _delay()
 
         # Deduplicate
         seen: dict[str, DiscussionHit] = {}
         for h in all_hits:
             existing = seen.get(h.detail_id)
-            if existing is None or h.raw_score > existing.raw_score:
+            if existing is None or _metric_value(h.raw_score) > _metric_value(existing.raw_score):
                 seen[h.detail_id] = h
         return ProviderSearchResult(
             hits=list(seen.values())[:profile.weibo_max_results],
@@ -1801,25 +2093,45 @@ class BilibiliProvider(CommunityProvider):
         hits = self.parse_search_response(r.data or {}, source)
         return hits[:max_results], []
 
-    async def search(self, brand_name: str, category: str) -> ProviderSearchResult:
+    async def search(
+        self,
+        brand_name: str,
+        category: str,
+        query_plan: SearchQueryPlan | None = None,
+    ) -> ProviderSearchResult:
         profile = _get_profile()
         all_hits: list[DiscussionHit] = []
         errors: list[str] = []
 
-        hits, errs = await self._search_keyword(brand_name, "brand", profile.bilibili_max_results)
-        all_hits.extend(hits)
-        errors.extend(errs)
-        await _delay()
+        fallback_queries = [
+            QuerySpec(
+                query=brand_name,
+                source="brand_search",
+                intent_type="direct_mention",
+                matched_terms=[brand_name],
+                confidence=0.84,
+            ),
+            QuerySpec(
+                query=category,
+                source="category_search",
+                intent_type="opportunity",
+                matched_terms=[category],
+                confidence=0.48,
+            ),
+        ]
+        query_specs = _get_query_specs(self.name, query_plan, fallback_queries)
 
-        hits, errs = await self._search_keyword(category, "category", profile.bilibili_max_results)
-        all_hits.extend(hits)
-        errors.extend(errs)
+        for spec in query_specs:
+            hits, errs = await self._search_keyword(spec.query, spec.source, profile.bilibili_max_results)
+            all_hits.extend(_apply_query_spec(hits, spec))
+            errors.extend(errs)
+            await _delay()
 
         # Deduplicate
         seen: dict[str, DiscussionHit] = {}
         for h in all_hits:
             existing = seen.get(h.detail_id)
-            if existing is None or h.raw_score > existing.raw_score:
+            if existing is None or _metric_value(h.raw_score) > _metric_value(existing.raw_score):
                 seen[h.detail_id] = h
         return ProviderSearchResult(
             hits=list(seen.values())[:profile.bilibili_max_results],
@@ -1918,7 +2230,12 @@ class XueQiuProvider(CommunityProvider):
             return [], [f"xueqiu_{source}: {r.error}"]
         return self.parse_search_response(r.data or {}, source), []
 
-    async def search(self, brand_name: str, category: str) -> ProviderSearchResult:
+    async def search(
+        self,
+        brand_name: str,
+        category: str,
+        query_plan: SearchQueryPlan | None = None,
+    ) -> ProviderSearchResult:
         profile = _get_profile()
         all_hits: list[DiscussionHit] = []
         errors: list[str] = []
@@ -1935,7 +2252,7 @@ class XueQiuProvider(CommunityProvider):
         seen: dict[str, DiscussionHit] = {}
         for h in all_hits:
             existing = seen.get(h.detail_id)
-            if existing is None or h.raw_score > existing.raw_score:
+            if existing is None or _metric_value(h.raw_score) > _metric_value(existing.raw_score):
                 seen[h.detail_id] = h
         return ProviderSearchResult(
             hits=list(seen.values())[:profile.xueqiu_max_results],
@@ -1957,7 +2274,12 @@ class XiaoHongShuProvider(CommunityProvider):
     max_search_calls = 0
     recommended_max_details = 0
 
-    async def search(self, brand_name: str, category: str) -> ProviderSearchResult:
+    async def search(
+        self,
+        brand_name: str,
+        category: str,
+        query_plan: SearchQueryPlan | None = None,
+    ) -> ProviderSearchResult:
         return ProviderSearchResult(
             suggested_queries=[
                 SuggestedQuery(
@@ -1988,7 +2310,12 @@ class WeChatProvider(CommunityProvider):
     max_search_calls = 0
     recommended_max_details = 0
 
-    async def search(self, brand_name: str, category: str) -> ProviderSearchResult:
+    async def search(
+        self,
+        brand_name: str,
+        category: str,
+        query_plan: SearchQueryPlan | None = None,
+    ) -> ProviderSearchResult:
         return ProviderSearchResult(
             suggested_queries=[
                 SuggestedQuery(
@@ -2019,7 +2346,12 @@ class DouyinProvider(CommunityProvider):
     max_search_calls = 0
     recommended_max_details = 0
 
-    async def search(self, brand_name: str, category: str) -> ProviderSearchResult:
+    async def search(
+        self,
+        brand_name: str,
+        category: str,
+        query_plan: SearchQueryPlan | None = None,
+    ) -> ProviderSearchResult:
         return ProviderSearchResult(
             suggested_queries=[
                 SuggestedQuery(

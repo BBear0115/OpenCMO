@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import asyncio
 import os
+import sys
+from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -438,6 +440,8 @@ def test_youtube_tavily_parse():
     assert len(hits) == 1
     assert hits[0].detail_id == "abc123"
     assert hits[0].platform == "youtube"
+    assert hits[0].source_kind == "external_search"
+    assert hits[0].engagement_score is None
 
 
 # ---------------------------------------------------------------------------
@@ -467,7 +471,8 @@ def test_twitter_tavily_parse():
     assert h.author == "johndoe"
     assert h.detail_id == "123456789"
     assert "x.com/johndoe/status/123456789" in h.url
-    assert h.engagement_score == 85  # 0.85 * 100
+    assert h.source_kind == "external_search"
+    assert h.engagement_score is None
 
 
 def test_twitter_provider_tavily_search_mock(monkeypatch):
@@ -1130,3 +1135,151 @@ def test_douyin_stub_returns_suggested_queries():
     assert len(result.suggested_queries) >= 1
     assert result.suggested_queries[0].platform == "douyin"
     assert "site:douyin.com" in result.suggested_queries[0].query
+
+
+def test_build_query_plan_uses_keywords_competitors_and_domains():
+    from opencmo.tools.community_query_planner import build_query_plan
+
+    plan = build_query_plan(
+        brand_name="OpenCMO",
+        category="ai marketing",
+        tracked_keywords=["ai cmo", "open source marketing agent"],
+        competitor_names=["HubSpot"],
+        competitor_keywords=["marketing automation"],
+        canonical_url="https://opencmo.dev",
+        locale="en",
+    )
+
+    reddit_queries = plan.provider_queries["reddit"]
+    query_texts = {q.query for q in reddit_queries}
+    intent_types = {q.intent_type for q in reddit_queries}
+
+    assert '"OpenCMO"' in query_texts
+    assert any("opencmo.dev" in query for query in query_texts)
+    assert any("ai cmo" in query.lower() for query in query_texts)
+    assert any("HubSpot" in query for query in query_texts)
+    assert "direct_mention" in intent_types
+    assert "opportunity" in intent_types
+
+
+def test_scan_community_sorts_direct_mentions_before_platform_groups():
+    import json
+
+    from opencmo.tools.community import _scan_community_impl
+    from opencmo.tools.community_providers import CommunityProvider, ProviderSearchResult
+
+    class _OpportunityProvider(CommunityProvider):
+        name = "reddit"
+        status = "enabled"
+        requires_auth = False
+        auth_env_vars = []
+        capabilities = {"search"}
+        max_search_calls = 1
+        recommended_max_details = 0
+
+        async def search(self, brand_name: str, category: str, query_plan=None):
+            return ProviderSearchResult(
+                hits=[
+                    DiscussionHit(
+                        platform="reddit",
+                        title="Best AI marketing tools for indie hackers",
+                        url="https://reddit.test/1",
+                        engagement_score=99,
+                        raw_score=90,
+                        comments_count=30,
+                        age_days=1,
+                        author="user1",
+                        detail_id="rd1",
+                        extra_param_1="saas",
+                        extra_param_2="",
+                        preview="Looking for alternatives and recommendations",
+                        source="opportunity_search",
+                        intent_type="opportunity",
+                        match_reason="Matched a problem-first opportunity query.",
+                        matched_query="best ai marketing tools",
+                        matched_terms=["ai marketing"],
+                        confidence=0.55,
+                        source_kind="post",
+                    )
+                ]
+            )
+
+    class _DirectMentionProvider(CommunityProvider):
+        name = "hackernews"
+        status = "enabled"
+        requires_auth = False
+        auth_env_vars = []
+        capabilities = {"search"}
+        max_search_calls = 1
+        recommended_max_details = 0
+
+        async def search(self, brand_name: str, category: str, query_plan=None):
+            return ProviderSearchResult(
+                hits=[
+                    DiscussionHit(
+                        platform="hackernews",
+                        title="OpenCMO launched today",
+                        url="https://hn.test/1",
+                        engagement_score=40,
+                        raw_score=12,
+                        comments_count=8,
+                        age_days=2,
+                        author="founder",
+                        detail_id="hn1",
+                        extra_param_1="",
+                        extra_param_2="",
+                        preview="OpenCMO helps founders monitor SEO, GEO and community signals",
+                        source="brand_search",
+                        intent_type="direct_mention",
+                        match_reason="Matched the exact brand name in the title.",
+                        matched_query='"OpenCMO"',
+                        matched_terms=["OpenCMO"],
+                        confidence=0.94,
+                        source_kind="post",
+                    )
+                ]
+            )
+
+    with patch(
+        "opencmo.tools.community.PROVIDER_REGISTRY",
+        [_OpportunityProvider(), _DirectMentionProvider()],
+    ):
+        raw = asyncio.run(_scan_community_impl("OpenCMO", "ai marketing"))
+
+    envelope = json.loads(raw)
+    assert envelope["hits"][0]["platform"] == "hackernews"
+    assert envelope["hits"][0]["intent_type"] == "direct_mention"
+    assert envelope["hits"][1]["platform"] == "reddit"
+
+
+def test_scan_community_uses_external_fallback_for_stub_platforms(monkeypatch):
+    import json
+
+    from opencmo.tools.community import _scan_community_impl
+
+    monkeypatch.setenv("TAVILY_API_KEY", "test-key")
+
+    mock_tavily_client = AsyncMock()
+    mock_tavily_client.search = AsyncMock(return_value={
+        "results": [
+            {
+                "url": "https://www.xiaohongshu.com/explore/abc123",
+                "title": "OpenCMO 使用体验",
+                "content": "这是一个关于 OpenCMO 的测评笔记。",
+                "score": 0.88,
+            }
+        ]
+    })
+
+    with patch.dict(
+        sys.modules,
+        {"tavily": SimpleNamespace(AsyncTavilyClient=lambda api_key: mock_tavily_client)},
+    ):
+        with patch("opencmo.tools.community.PROVIDER_REGISTRY", [XiaoHongShuProvider()]):
+            raw = asyncio.run(_scan_community_impl("OpenCMO", "marketing", locale="zh"))
+
+    envelope = json.loads(raw)
+    assert envelope["hits"]
+    assert envelope["hits"][0]["platform"] == "xiaohongshu"
+    assert envelope["hits"][0]["source_kind"] == "external_search"
+    assert envelope["hits"][0]["intent_type"] in {"direct_mention", "opportunity"}

@@ -141,6 +141,58 @@ def test_api_v1_projects_crud(client):
     assert resp.status_code == 404
 
 
+def test_api_v1_community_discussions_include_match_metadata(client):
+    pid = _seed_project("Signals", "https://signals.test")
+
+    discussion_id = asyncio.run(
+        storage.upsert_tracked_discussion(
+            pid,
+            {
+                "platform": "reddit",
+                "detail_id": "abc123",
+                "title": "OpenCMO review",
+                "url": "https://reddit.com/r/saas/comments/abc123/opencmo_review",
+            },
+        )
+    )
+    asyncio.run(storage.save_discussion_snapshot(discussion_id, 12, 4, 18))
+    asyncio.run(
+        storage.save_community_scan(
+            pid,
+            1,
+            json.dumps(
+                {
+                    "hits": [
+                        {
+                            "platform": "reddit",
+                            "detail_id": "abc123",
+                            "title": "OpenCMO review",
+                            "url": "https://reddit.com/r/saas/comments/abc123/opencmo_review",
+                            "intent_type": "direct_mention",
+                            "match_reason": "Matched the exact brand in the title.",
+                            "matched_query": "\"OpenCMO\"",
+                            "matched_terms": ["OpenCMO"],
+                            "confidence": 0.92,
+                            "source_kind": "post",
+                        }
+                    ]
+                }
+            ),
+        )
+    )
+
+    resp = client.get(f"/api/v1/projects/{pid}/community/discussions")
+    assert resp.status_code == 200
+    payload = resp.json()
+    assert len(payload) == 1
+    assert payload[0]["intent_type"] == "direct_mention"
+    assert payload[0]["match_reason"] == "Matched the exact brand in the title."
+    assert payload[0]["matched_query"] == "\"OpenCMO\""
+    assert payload[0]["matched_terms"] == ["OpenCMO"]
+    assert payload[0]["confidence"] == 0.92
+    assert payload[0]["source_kind"] == "post"
+
+
 def test_api_v1_delete_project_with_related_records(tmp_path):
     db_path = tmp_path / "test.db"
     with patch.object(storage, "_DB_PATH", db_path):
@@ -214,6 +266,45 @@ def test_api_v1_delete_project_with_related_records(tmp_path):
             ).fetchone()[0] == 0
         finally:
             conn.close()
+
+
+def test_api_v1_community_discussions_includes_latest_external_hits(client):
+    pid = _seed_project("External", "https://external.test")
+    asyncio.run(
+        storage.save_community_scan(
+            pid,
+            1,
+            json.dumps(
+                {
+                    "hits": [
+                        {
+                            "platform": "linkedin",
+                            "detail_id": "https://linkedin.com/posts/example",
+                            "title": "External mention",
+                            "url": "https://linkedin.com/posts/example",
+                            "raw_score": None,
+                            "comments_count": None,
+                            "engagement_score": None,
+                            "intent_type": "opportunity",
+                            "match_reason": "Matched an external fallback query.",
+                            "matched_query": "\"External\" site:linkedin.com",
+                            "matched_terms": ["External"],
+                            "confidence": 0.61,
+                            "source_kind": "external_search",
+                        }
+                    ]
+                }
+            ),
+        )
+    )
+
+    resp = client.get(f"/api/v1/projects/{pid}/community/discussions")
+    assert resp.status_code == 200
+    payload = resp.json()
+    assert len(payload) == 1
+    assert payload[0]["source_kind"] == "external_search"
+    assert payload[0]["engagement_score"] is None
+    assert payload[0]["match_reason"] == "Matched an external fallback query."
 
 
 # ---------------------------------------------------------------------------

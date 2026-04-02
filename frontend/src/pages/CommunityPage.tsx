@@ -13,6 +13,9 @@ import { PlatformBreakdownChart } from "../components/charts/PlatformBreakdownCh
 import { ExternalLink, Users, MessageCircle, Flame, Layers } from "lucide-react";
 import { useI18n } from "../i18n";
 import { ActionTip } from "../components/common/ActionTip";
+import type { Discussion } from "../types";
+
+type Translate = ReturnType<typeof useI18n>["t"];
 
 const PLATFORM_BADGE: Record<string, string> = {
   reddit: "bg-orange-100 text-orange-700",
@@ -21,6 +24,59 @@ const PLATFORM_BADGE: Record<string, string> = {
   stackoverflow: "bg-yellow-100 text-yellow-700",
   github: "bg-indigo-100 text-indigo-700",
 };
+
+const INTENT_BADGE: Record<string, string> = {
+  direct_mention: "bg-emerald-100 text-emerald-700",
+  competitor_mention: "bg-violet-100 text-violet-700",
+  opportunity: "bg-amber-100 text-amber-700",
+};
+
+const INTENT_ORDER: Record<string, number> = {
+  direct_mention: 0,
+  competitor_mention: 1,
+  opportunity: 2,
+};
+
+function sortDiscussions(items: Discussion[]): Discussion[] {
+  return [...items].sort((a, b) => {
+    const intentDiff =
+      (INTENT_ORDER[a.intent_type ?? "opportunity"] ?? 9) -
+      (INTENT_ORDER[b.intent_type ?? "opportunity"] ?? 9);
+    if (intentDiff !== 0) return intentDiff;
+
+    const confidenceDiff = (b.confidence ?? 0) - (a.confidence ?? 0);
+    if (confidenceDiff !== 0) return confidenceDiff;
+
+    const engagementDiff = (b.engagement_score ?? 0) - (a.engagement_score ?? 0);
+    if (engagementDiff !== 0) return engagementDiff;
+
+    return (b.comments_count ?? 0) - (a.comments_count ?? 0);
+  });
+}
+
+function getIntentLabel(t: Translate, intent: Discussion["intent_type"]) {
+  switch (intent) {
+    case "direct_mention":
+      return t("community.intent.direct_mention");
+    case "competitor_mention":
+      return t("community.intent.competitor_mention");
+    default:
+      return t("community.intent.opportunity");
+  }
+}
+
+function getSourceLabel(t: Translate, sourceKind: Discussion["source_kind"]) {
+  switch (sourceKind) {
+    case "post":
+      return t("community.source.post");
+    case "comment":
+      return t("community.source.comment");
+    case "external_search":
+      return t("community.source.externalSearch");
+    default:
+      return t("community.source.unknown");
+  }
+}
 
 export function CommunityPage() {
   const { id } = useParams();
@@ -53,9 +109,94 @@ export function CommunityPage() {
     ? Math.max(...discussions.map((d) => d.engagement_score ?? 0), 1)
     : 1;
 
-  // Sort discussions by engagement_score descending
-  const sorted = [...(discussions ?? [])].sort(
-    (a, b) => (b.engagement_score ?? 0) - (a.engagement_score ?? 0),
+  const sorted = sortDiscussions(discussions ?? []);
+  const directMentions = sorted.filter((d) => d.intent_type !== "opportunity");
+  const opportunityThreads = sorted.filter((d) => d.intent_type === "opportunity");
+
+  const renderDiscussionList = (items: Discussion[]) => (
+    <div className="space-y-2">
+      {items.map((d) => {
+        const badgeClass =
+          PLATFORM_BADGE[d.platform.toLowerCase()] ?? "bg-zinc-100 text-zinc-600";
+        const intentClass =
+          INTENT_BADGE[d.intent_type ?? "opportunity"] ?? "bg-zinc-100 text-zinc-600";
+        const engRatio = (d.engagement_score ?? 0) / maxEngagement;
+        const barColor =
+          engRatio > 0.7
+            ? "bg-emerald-500"
+            : engRatio > 0.4
+              ? "bg-amber-400"
+              : "bg-zinc-300";
+        const confidence = d.confidence != null ? `${Math.round(d.confidence * 100)}%` : "n/a";
+        return (
+          <div
+            key={d.id}
+            className="rounded-lg border border-zinc-100 px-3 py-3 transition-colors hover:bg-zinc-50"
+          >
+            <div className="flex flex-wrap items-center gap-2">
+              <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${badgeClass}`}>
+                {d.platform}
+              </span>
+              <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${intentClass}`}>
+                {getIntentLabel(t, d.intent_type)}
+              </span>
+              <span className="rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs font-medium text-zinc-600">
+                {t("community.confidence")}: {confidence}
+              </span>
+              <span className="rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs font-medium text-zinc-600">
+                {getSourceLabel(t, d.source_kind)}
+              </span>
+            </div>
+
+            <div className="mt-2 min-w-0">
+              <a
+                href={d.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1 text-sm font-medium text-blue-600 hover:underline"
+              >
+                <span className="truncate">{d.title}</span>
+                <ExternalLink size={12} className="shrink-0" />
+              </a>
+              {d.match_reason ? (
+                <p className="mt-1 text-xs text-zinc-500">{d.match_reason}</p>
+              ) : null}
+            </div>
+
+            <div className="mt-3 flex flex-wrap items-center gap-3">
+              {d.source_kind === "external_search" ? (
+                <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-600">
+                  {t("community.externalSearchNoMetrics")}
+                </span>
+              ) : (
+                <>
+                  <div className="flex w-24 items-center gap-2">
+                    <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-zinc-100">
+                      <div
+                        className={`h-full rounded-full ${barColor} transition-all duration-500`}
+                        style={{ width: `${engRatio * 100}%` }}
+                      />
+                    </div>
+                    <span className="w-8 text-right font-mono text-xs text-zinc-500">
+                      {d.engagement_score ?? 0}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1 text-xs text-zinc-400">
+                    <MessageCircle size={12} />
+                    {d.comments_count ?? 0}
+                  </div>
+                </>
+              )}
+              {d.matched_query ? (
+                <code className="rounded bg-zinc-100 px-2 py-0.5 text-[11px] text-zinc-600">
+                  {d.matched_query}
+                </code>
+              ) : null}
+            </div>
+          </div>
+        );
+      })}
+    </div>
   );
 
   return (
@@ -104,7 +245,7 @@ export function CommunityPage() {
             </ChartCard>
           ) : null}
           {chart?.platform_labels?.length ? (
-            <ChartCard title="Platform Breakdown" accentBorder="border-l-amber-500">
+            <ChartCard title={t("community.platformBreakdown")} accentBorder="border-l-amber-500">
               <PlatformBreakdownChart
                 labels={chart.platform_labels}
                 counts={chart.platform_counts}
@@ -125,63 +266,33 @@ export function CommunityPage() {
               description={t("community.noDiscussionsDesc")}
             />
           ) : (
-            <div className="space-y-0.5">
-              {sorted.map((d) => {
-                const badgeClass =
-                  PLATFORM_BADGE[d.platform.toLowerCase()] ?? "bg-zinc-100 text-zinc-600";
-                const engRatio = (d.engagement_score ?? 0) / maxEngagement;
-                const barColor =
-                  engRatio > 0.7
-                    ? "bg-emerald-500"
-                    : engRatio > 0.4
-                      ? "bg-amber-400"
-                      : "bg-zinc-300";
-                return (
-                  <div
-                    key={d.id}
-                    className="flex items-center gap-3 rounded-lg border-b border-zinc-50 px-3 py-3 transition-colors hover:bg-zinc-50"
-                  >
-                    {/* Platform Badge */}
-                    <span
-                      className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium ${badgeClass}`}
-                    >
-                      {d.platform}
-                    </span>
-
-                    {/* Title + link */}
-                    <div className="min-w-0 flex-1">
-                      <a
-                        href={d.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-1 text-sm font-medium text-blue-600 hover:underline"
-                      >
-                        <span className="truncate">{d.title}</span>
-                        <ExternalLink size={12} className="shrink-0" />
-                      </a>
-                    </div>
-
-                    {/* Engagement mini-bar */}
-                    <div className="flex w-24 items-center gap-2">
-                      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-zinc-100">
-                        <div
-                          className={`h-full rounded-full ${barColor} transition-all duration-500`}
-                          style={{ width: `${engRatio * 100}%` }}
-                        />
-                      </div>
-                      <span className="w-8 text-right font-mono text-xs text-zinc-500">
-                        {d.engagement_score ?? 0}
-                      </span>
-                    </div>
-
-                    {/* Comment count */}
-                    <div className="flex items-center gap-1 text-xs text-zinc-400">
-                      <MessageCircle size={12} />
-                      {d.comments_count ?? 0}
-                    </div>
+            <div className="space-y-6">
+              {directMentions.length ? (
+                <section className="space-y-3">
+                  <div>
+                    <h3 className="text-sm font-semibold text-zinc-900">
+                      {t("community.directMentions")}
+                    </h3>
+                    <p className="text-xs text-zinc-500">
+                      {t("community.directMentionsDesc")}
+                    </p>
                   </div>
-                );
-              })}
+                  {renderDiscussionList(directMentions)}
+                </section>
+              ) : null}
+              {opportunityThreads.length ? (
+                <section className="space-y-3">
+                  <div>
+                    <h3 className="text-sm font-semibold text-zinc-900">
+                      {t("community.opportunityThreads")}
+                    </h3>
+                    <p className="text-xs text-zinc-500">
+                      {t("community.opportunityThreadsDesc")}
+                    </p>
+                  </div>
+                  {renderDiscussionList(opportunityThreads)}
+                </section>
+              ) : null}
             </div>
           )}
         </ChartCard>

@@ -182,6 +182,12 @@ export interface Discussion {
   raw_score: number | null;
   comments_count: number | null;
   engagement_score: number | null;
+  intent_type?: "direct_mention" | "competitor_mention" | "opportunity" | null;
+  match_reason?: string | null;
+  matched_query?: string | null;
+  matched_terms?: string[] | null;
+  confidence?: number | null;
+  source_kind?: "post" | "comment" | "external_search" | null;
 }
 
 export interface TrackedKeyword {
@@ -266,6 +272,7 @@ export interface ReportMeta {
   model?: string;
   used_fallback?: boolean;
   llm_error?: string;
+  pipeline_error?: string;
   window_days?: number;
   window_start?: string;
   window_end?: string;

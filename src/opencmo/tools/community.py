@@ -3,18 +3,24 @@
 from __future__ import annotations
 
 import json
+import os
 from dataclasses import asdict
 from datetime import datetime
+from urllib.parse import urlparse
 
 from agents import function_tool
 
+from opencmo import llm
+from opencmo.tools.community_query_planner import build_query_plan
 from opencmo.tools.community_providers import (
     PROVIDER_REGISTRY,
     DiscussionDetail,
     DiscussionHit,
     DisabledProvider,
     ProviderError,
+    QuerySpec,
     ScanResult,
+    SearchQueryPlan,
     SuggestedQuery,
     _truncate,
 )
@@ -37,6 +43,37 @@ _STUB_QUERIES: dict[str, list[dict]] = {
     ],
 }
 
+_EXTERNAL_SEARCH_DOMAINS: dict[str, list[str]] = {
+    "reddit": ["reddit.com"],
+    "hackernews": ["news.ycombinator.com"],
+    "devto": ["dev.to"],
+    "youtube": ["youtube.com", "youtu.be"],
+    "twitter": ["x.com", "twitter.com"],
+    "bluesky": ["bsky.app"],
+    "linkedin": ["linkedin.com"],
+    "producthunt": ["producthunt.com"],
+    "blog": [],
+    "v2ex": ["v2ex.com"],
+    "weibo": ["weibo.com", "m.weibo.cn"],
+    "bilibili": ["bilibili.com"],
+    "xueqiu": ["xueqiu.com"],
+    "xiaohongshu": ["xiaohongshu.com"],
+    "wechat": ["mp.weixin.qq.com"],
+    "douyin": ["douyin.com"],
+}
+
+_INTENT_PRIORITY = {
+    "direct_mention": 0,
+    "competitor_mention": 1,
+    "opportunity": 2,
+}
+
+_SOURCE_KIND_PRIORITY = {
+    "post": 0,
+    "comment": 1,
+    "external_search": 2,
+}
+
 
 def _render_stub_queries(
     provider_name: str, brand_name: str, category: str,
@@ -53,6 +90,120 @@ def _render_stub_queries(
             reason=t["reason"],
         ))
     return out
+
+
+def _has_tavily() -> bool:
+    return bool(llm.get_key("TAVILY_API_KEY") or os.environ.get("TAVILY_API_KEY"))
+
+
+def _format_site_query(query: str, domains: list[str]) -> str:
+    if not domains:
+        return query
+    domain_part = " OR ".join(f"site:{domain}" for domain in domains)
+    return f"{query} {domain_part}"
+
+
+def _pick_external_specs(provider_name: str, plan: SearchQueryPlan) -> list[QuerySpec]:
+    specs = plan.provider_queries.get(provider_name, [])
+    if not specs:
+        return []
+    direct = [spec for spec in specs if spec.intent_type == "direct_mention"]
+    opportunity = [spec for spec in specs if spec.intent_type != "direct_mention"]
+    return direct[:2] + opportunity[:2]
+
+
+async def _search_external_platform(
+    provider_name: str,
+    specs: list[QuerySpec],
+) -> tuple[list[DiscussionHit], list[str]]:
+    if not specs or not _has_tavily():
+        return [], []
+
+    try:
+        from tavily import AsyncTavilyClient
+    except ImportError:
+        return [], ["tavily-python not installed"]
+
+    api_key = llm.get_key("TAVILY_API_KEY") or os.environ.get("TAVILY_API_KEY")
+    if not api_key:
+        return [], []
+
+    client = AsyncTavilyClient(api_key=api_key)
+    domains = _EXTERNAL_SEARCH_DOMAINS.get(provider_name, [])
+    hits: list[DiscussionHit] = []
+    errors: list[str] = []
+
+    for spec in specs:
+        try:
+            resp = await client.search(
+                query=_format_site_query(spec.query, domains),
+                max_results=5,
+                search_depth="basic",
+            )
+        except Exception as exc:
+            errors.append(f"external {provider_name} {spec.source}: {exc}")
+            continue
+
+        results = resp.get("results", []) if isinstance(resp, dict) else []
+        for result in results:
+            url = result.get("url", "")
+            title = result.get("title", "")
+            content = result.get("content", "")
+            if not url or (not title and not content):
+                continue
+            match_reason = spec.reason or f"Matched the external fallback query '{spec.query}'."
+            hits.append(DiscussionHit(
+                platform=provider_name,
+                title=title or content.split("\n")[0][:120],
+                url=url,
+                engagement_score=None,
+                raw_score=None,
+                comments_count=None,
+                age_days=None,
+                author=urlparse(url).hostname or "",
+                detail_id=url,
+                extra_param_1="",
+                extra_param_2="",
+                preview=content[:300] if content else "",
+                source=f"external_search:{spec.source}",
+                intent_type=spec.intent_type,
+                match_reason=match_reason,
+                matched_query=spec.query,
+                matched_terms=list(spec.matched_terms),
+                confidence=max(0.2, min(0.92, spec.confidence - 0.1)),
+                source_kind="external_search",
+            ))
+
+    deduped: dict[str, DiscussionHit] = {}
+    for hit in hits:
+        existing = deduped.get(hit.detail_id)
+        if existing is None or hit.confidence > existing.confidence:
+            deduped[hit.detail_id] = hit
+    return list(deduped.values()), errors
+
+
+def _should_use_external_fallback(provider_name: str, hits: list[DiscussionHit]) -> bool:
+    if provider_name in {"linkedin", "producthunt", "blog", "xiaohongshu", "wechat", "douyin"}:
+        return True
+    if not hits:
+        return True
+    if provider_name in {"reddit", "hackernews", "devto", "v2ex"}:
+        return not any(hit.intent_type == "direct_mention" for hit in hits)
+    return False
+
+
+def _sort_hits(hits: list[DiscussionHit]) -> None:
+    hits.sort(
+        key=lambda hit: (
+            _INTENT_PRIORITY.get(hit.intent_type, 9),
+            -(hit.confidence or 0.0),
+            -(hit.engagement_score or 0),
+            _SOURCE_KIND_PRIORITY.get(hit.source_kind, 9),
+            -(hit.raw_score or 0),
+            hit.platform,
+            hit.detail_id,
+        )
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -79,7 +230,7 @@ def _trim_scan_result(sr: ScanResult) -> ScanResult:
         return sr
 
     # Step 2: remove lowest-engagement hits one at a time
-    sr.hits.sort(key=lambda h: (h.engagement_score, h.raw_score))
+    sr.hits.sort(key=lambda h: ((h.engagement_score or 0), (h.raw_score or 0)))
     while len(serialized) > budget and sr.hits:
         sr.hits.pop(0)
         serialized = json.dumps(asdict(sr), ensure_ascii=False)
@@ -92,9 +243,28 @@ def _trim_scan_result(sr: ScanResult) -> ScanResult:
 # ---------------------------------------------------------------------------
 
 
-async def _scan_community_impl(brand_name: str, category: str) -> str:
+async def _scan_community_impl(
+    brand_name: str,
+    category: str,
+    *,
+    tracked_keywords: list[str] | None = None,
+    competitor_names: list[str] | None = None,
+    competitor_keywords: list[str] | None = None,
+    canonical_url: str | None = None,
+    locale: str | None = None,
+    query_plan: SearchQueryPlan | None = None,
+) -> str:
     """Core scan logic — called by the function_tool wrapper and tests."""
     result = ScanResult()
+    plan = query_plan or build_query_plan(
+        brand_name=brand_name,
+        category=category,
+        tracked_keywords=tracked_keywords,
+        competitor_names=competitor_names,
+        competitor_keywords=competitor_keywords,
+        canonical_url=canonical_url,
+        locale=locale,
+    )
 
     for provider in PROVIDER_REGISTRY:
         if not provider.is_enabled:
@@ -106,11 +276,22 @@ async def _scan_community_impl(brand_name: str, category: str) -> str:
             result.suggested_queries.extend(
                 _render_stub_queries(provider.name, brand_name, category),
             )
+            if _should_use_external_fallback(provider.name, []):
+                fallback_hits, fallback_errors = await _search_external_platform(
+                    provider.name,
+                    _pick_external_specs(provider.name, plan),
+                )
+                result.hits.extend(fallback_hits)
+                if fallback_errors:
+                    result.provider_errors.append(ProviderError(
+                        provider=provider.name,
+                        errors=fallback_errors,
+                    ))
             continue
 
         # Enabled provider → call search
         try:
-            pr = await provider.search(brand_name, category)
+            pr = await provider.search(brand_name, category, query_plan=plan)
         except Exception as exc:
             result.provider_errors.append(ProviderError(
                 provider=provider.name,
@@ -131,6 +312,18 @@ async def _scan_community_impl(brand_name: str, category: str) -> str:
         # Collect suggested queries
         result.suggested_queries.extend(pr.suggested_queries)
 
+        if _should_use_external_fallback(provider.name, pr.hits):
+            fallback_hits, fallback_errors = await _search_external_platform(
+                provider.name,
+                _pick_external_specs(provider.name, plan),
+            )
+            result.hits.extend(fallback_hits)
+            if fallback_errors:
+                result.provider_errors.append(ProviderError(
+                    provider=provider.name,
+                    errors=fallback_errors,
+                ))
+
     # Deduplicate suggested_queries by (platform, query)
     seen_sq: set[tuple[str, str]] = set()
     unique_sq: list[SuggestedQuery] = []
@@ -141,6 +334,15 @@ async def _scan_community_impl(brand_name: str, category: str) -> str:
             unique_sq.append(sq)
     result.suggested_queries = unique_sq
 
+    # Deduplicate hits globally after native + external merging.
+    deduped_hits: dict[tuple[str, str], DiscussionHit] = {}
+    for hit in result.hits:
+        key = (hit.platform, hit.detail_id)
+        existing = deduped_hits.get(key)
+        if existing is None or (hit.confidence, hit.raw_score or 0) > (existing.confidence, existing.raw_score or 0):
+            deduped_hits[key] = hit
+    result.hits = list(deduped_hits.values())
+
     # Rescore with multi-signal composite scoring
     query = f"{brand_name} {category}"
     from opencmo.scrape_config import get_scrape_profile
@@ -149,13 +351,25 @@ async def _scan_community_impl(brand_name: str, category: str) -> str:
     convergence_threshold = getattr(profile, "scoring_convergence_threshold", 0.5)
     rescore_hits(result.hits, query, halflife_days=halflife, convergence_threshold=convergence_threshold)
 
-    # Deterministic sort: platform asc, engagement desc, raw_score desc, detail_id asc
-    result.hits.sort(key=lambda h: (h.platform, -h.engagement_score, -h.raw_score, h.detail_id))
+    _sort_hits(result.hits)
 
     # Trim to fit output budget
     result = _trim_scan_result(result)
+    envelope = asdict(result)
+    envelope["query_plan"] = {
+        "provider_queries": {
+            provider: [asdict(spec) for spec in specs]
+            for provider, specs in plan.provider_queries.items()
+        },
+        "platform_targeting": plan.platform_targeting,
+    }
+    envelope["coverage_summary"] = {
+        "direct_mentions": sum(1 for hit in result.hits if hit.intent_type == "direct_mention"),
+        "opportunity_threads": sum(1 for hit in result.hits if hit.intent_type == "opportunity"),
+        "external_fallback_hits": sum(1 for hit in result.hits if hit.source_kind == "external_search"),
+    }
 
-    return json.dumps(asdict(result), ensure_ascii=False)
+    return json.dumps(envelope, ensure_ascii=False)
 
 
 @function_tool

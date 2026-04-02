@@ -146,24 +146,26 @@ def trigram_jaccard(a: str, b: str) -> float:
 # ---------------------------------------------------------------------------
 
 
-def velocity_score(raw_score: int, comments_count: int, age_days: int) -> float:
+def velocity_score(raw_score: int | None, comments_count: int | None, age_days: int | None) -> float:
     """Engagement velocity: raw engagement per day, normalized to ~[0, 100].
 
     Uses a log-based normalization since raw velocities can vary enormously.
     """
-    age_hours = max(1, age_days * 24)
-    raw_engagement = raw_score + comments_count * 2
+    age_hours = max(1, (age_days or 0) * 24)
+    raw_engagement = (raw_score or 0) + (comments_count or 0) * 2
     velocity = raw_engagement / age_hours
     # Log normalization: most velocities are < 1.0 per hour,
     # but viral posts can be 10+/hr. Map via log to ~0-100.
     return min(100.0, max(0.0, (math.log1p(velocity * 100) / math.log1p(100)) * 100))
 
 
-def recency_score(age_days: int, halflife_days: float = 23.0) -> float:
+def recency_score(age_days: int | None, halflife_days: float = 23.0) -> float:
     """Exponential temporal recency decay.
 
     Returns a score in [0, 100]. Posts from today ≈ 100, 23-day-old posts ≈ 50.
     """
+    if age_days is None:
+        return 50.0
     decay_rate = math.log(2) / halflife_days
     return min(100.0, math.exp(-decay_rate * age_days) * 100.0)
 
