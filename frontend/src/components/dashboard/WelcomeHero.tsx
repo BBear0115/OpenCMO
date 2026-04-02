@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowRight, CheckCircle2, KeyRound, Search, Globe, Users, Sparkles } from "lucide-react";
-import { hasEssentialKeys } from "../../api/userKeys";
+import { getEffectiveKeyStatus } from "../../api/userKeys";
 import { useI18n } from "../../i18n";
 import { useCreateMonitor } from "../../hooks/useMonitors";
+import { useSettings } from "../../hooks/useSettings";
 import { SettingsDialog } from "../settings/SettingsDialog";
 
 const FEATURES = [
@@ -19,9 +20,26 @@ export function WelcomeHero({
   const { t, locale } = useI18n();
   const [url, setUrl] = useState("");
   const [showSettings, setShowSettings] = useState(false);
+  const [keyRefresh, setKeyRefresh] = useState(0);
   const createMonitor = useCreateMonitor();
-  const keyStatus = hasEssentialKeys();
-  const keysReady = keyStatus.llm && keyStatus.tavily;
+  const settingsQuery = useSettings();
+  const keyStatus = getEffectiveKeyStatus(settingsQuery.data);
+  const keysReady = keyStatus.effective.llm;
+  void keyRefresh;
+
+  useEffect(() => {
+    const refresh = () => setKeyRefresh((value) => value + 1);
+    const refreshSettings = () => {
+      setKeyRefresh((value) => value + 1);
+      void settingsQuery.refetch();
+    };
+    window.addEventListener("opencmo:keys-changed", refresh);
+    window.addEventListener("opencmo:settings-changed", refreshSettings);
+    return () => {
+      window.removeEventListener("opencmo:keys-changed", refresh);
+      window.removeEventListener("opencmo:settings-changed", refreshSettings);
+    };
+  }, [settingsQuery]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

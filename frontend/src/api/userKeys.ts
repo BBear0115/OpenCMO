@@ -6,6 +6,8 @@
  * middleware injects them into `os.environ` for the duration of that request.
  */
 
+import type { AISettings } from "../types";
+
 const STORAGE_KEY = "opencmo_user_keys";
 
 /** Keys that the backend reads from X-User-Keys header */
@@ -73,5 +75,25 @@ export function hasEssentialKeys(): { llm: boolean; tavily: boolean } {
   return {
     llm: !!keys.OPENAI_API_KEY,
     tavily: !!keys.TAVILY_API_KEY,
+  };
+}
+
+export function getEffectiveKeyStatus(settings?: AISettings | null) {
+  const keys = getUserKeys();
+  const browserOverride = {
+    llm: !!keys.OPENAI_API_KEY,
+    tavily: !!keys.TAVILY_API_KEY,
+  };
+  const serverDefault = {
+    llm: !!settings?.api_key_set,
+    tavily: !!settings?.tavily_key_set,
+  };
+  return {
+    browserOverride,
+    serverDefault,
+    effective: {
+      llm: browserOverride.llm || serverDefault.llm,
+      tavily: browserOverride.tavily || serverDefault.tavily,
+    },
   };
 }

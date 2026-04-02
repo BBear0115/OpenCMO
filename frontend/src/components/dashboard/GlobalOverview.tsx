@@ -87,13 +87,13 @@ export function GlobalOverview() {
         <MetricCard
           icon={Search}
           label={t("overview.avgSeo")}
-          value={data.avg_seo_score ? `${data.avg_seo_score}%` : null}
+          value={data.avg_seo_score != null ? `${data.avg_seo_score}%` : null}
           color={seoColor(data.avg_seo_score)}
         />
         <MetricCard
           icon={Globe}
           label={t("overview.avgGeo")}
-          value={data.avg_geo_score ? `${data.avg_geo_score}/100` : null}
+          value={data.avg_geo_score != null ? `${data.avg_geo_score}/100` : null}
           color={geoColor(data.avg_geo_score)}
         />
         <MetricCard
@@ -116,7 +116,7 @@ export function GlobalOverview() {
         />
         <MetricCard
           icon={Rocket}
-          label={t("overview.campaigns")}
+          label={t("overview.recentCampaigns")}
           value={data.recent_campaigns.length}
           color="bg-purple-50 text-purple-600"
         />

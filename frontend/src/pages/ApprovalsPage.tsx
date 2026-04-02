@@ -35,7 +35,7 @@ export function ApprovalsPage() {
           </p>
         </div>
         <div className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 shadow-sm">
-          {pendingCount} {t("approvals.pending")}
+          {t("approvals.showingPending").replace("{{count}}", String(pendingCount))}
         </div>
       </div>
 

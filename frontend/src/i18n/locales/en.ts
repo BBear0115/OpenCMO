@@ -70,6 +70,7 @@ export const en = {
   "overview.keywords": "Keywords Tracked",
   "overview.competitors": "Competitors",
   "overview.campaigns": "Campaigns",
+  "overview.recentCampaigns": "Recent Campaigns",
 
   // Scan History
   "scan.latestScans": "Latest Scans",
@@ -195,6 +196,8 @@ export const en = {
   "settings.save": "Save",
   "settings.saved": "Saved!",
   "settings.apiKeySet": "API key is configured",
+  "settings.browserOverrideActive": "Browser override active",
+  "settings.serverDefaultActive": "Server default active",
   "settings.apiKeyNotSet": "No API key configured",
 
   // Settings — shared
@@ -246,6 +249,7 @@ export const en = {
   "settings.tavilyKey": "Tavily API Key",
   "settings.tavilyHint": "Enables high-quality web search for blog research, graph expansion, SERP tracking, and agent web search fallback. Get a key at tavily.com.",
   "settings.tavilyNotConfigured": "Tavily not configured (using Google crawling fallback)",
+  "settings.tavilyOptional": "Tavily is optional (reduced fallback coverage)",
 
   // Settings — SERP
   "settings.serpSection": "SERP Tracking",
@@ -308,6 +312,7 @@ export const en = {
   "setup.description": "OpenCMO requires API keys to power AI features like content generation, SEO analysis, and web search. Configure them in Settings.",
   "setup.llmKey": "LLM API Key (OpenAI / DeepSeek)",
   "setup.tavilyKey": "Tavily Search Key",
+  "setup.tavilyOptional": "Tavily Search Key (optional)",
   "setup.configureNow": "Go to Settings",
   "setup.dismissHint": "Dismiss for this session",
 
@@ -344,6 +349,7 @@ export const en = {
   "reports.agentBrief": "Agent Brief",
   "reports.agentBriefTip": "Concise action list for AI agents — drives downstream automation tasks.",
   "reports.noReport": "No report generated yet.",
+  "reports.failed": "Report generation failed.",
   "reports.lowSample": "Low Sample",
   "reports.sendEmail": "Send Weekly Email",
   "reports.sending": "Sending...",
@@ -355,6 +361,7 @@ export const en = {
   "approvals.title": "Content Approvals",
   "approvals.subtitle": "Review exact publish payloads before anything leaves OpenCMO.",
   "approvals.pending": "pending",
+  "approvals.showingPending": "showing {{count}} pending",
   "approvals.empty": "Approval queue is clear",
   "approvals.emptyDesc": "Queued previews will appear here before anything gets published.",
   "approvals.preview": "Generated Preview",
@@ -375,6 +382,19 @@ export const en = {
   "community.avgEngagement": "Avg Engagement",
   "community.platforms": "Platforms",
   "community.platformBreakdown": "Platform Breakdown",
+  "community.directMentions": "Direct Mentions",
+  "community.directMentionsDesc": "Posts or comments that explicitly mention your brand, product, or clear brand signals.",
+  "community.opportunityThreads": "Opportunity Threads",
+  "community.opportunityThreadsDesc": "Relevant conversations that do not mention your brand directly but are strong places to engage.",
+  "community.confidence": "Confidence",
+  "community.intent.direct_mention": "Direct mention",
+  "community.intent.competitor_mention": "Competitor context",
+  "community.intent.opportunity": "Opportunity",
+  "community.source.post": "Post",
+  "community.source.comment": "Comment",
+  "community.source.externalSearch": "External search",
+  "community.externalSearchNoMetrics": "External-search result: no native engagement metrics",
+  "community.source.unknown": "Unknown source",
 
   // SERP Page — extra labels
   "serp.avgPosition": "Avg Position",
@@ -387,6 +407,7 @@ export const en = {
   "geo.visibility": "Visibility",
   "geo.position": "Position",
   "geo.sentiment": "Sentiment",
+  "geo.sentimentUnavailable": "Sentiment is unavailable for the latest GEO scan; the total excludes that component.",
   "geo.latestSnapshot": "Latest Snapshot",
 
   // Action Tips

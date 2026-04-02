@@ -118,6 +118,22 @@ class TestGetKeyAsync:
                 val = await llm.get_key_async("MY_KEY")
                 assert val == "env-val"
 
+    @pytest.mark.asyncio
+    async def test_env_overrides_db_for_router_defaults(self):
+        """Core router defaults prefer env over persisted DB settings."""
+        with patch("opencmo.storage.get_setting", new_callable=AsyncMock, return_value="db-val"):
+            with patch.dict(os.environ, {"OPENAI_BASE_URL": "https://router.teamolab.com/v1"}, clear=False):
+                val = await llm.get_key_async("OPENAI_BASE_URL")
+                assert val == "https://router.teamolab.com/v1"
+
+    @pytest.mark.asyncio
+    async def test_db_still_used_first_for_non_router_keys(self):
+        """Non-router keys keep DB-first fallback behavior."""
+        with patch("opencmo.storage.get_setting", new_callable=AsyncMock, return_value="db-val"):
+            with patch.dict(os.environ, {"TAVILY_API_KEY": "env-val"}, clear=False):
+                val = await llm.get_key_async("TAVILY_API_KEY")
+                assert val == "db-val"
+
 
 # ---------------------------------------------------------------------------
 # get_openai_client

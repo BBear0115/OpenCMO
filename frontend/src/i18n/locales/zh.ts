@@ -72,6 +72,7 @@ export const zh: Record<TranslationKey, string> = {
   "overview.keywords": "追踪关键词",
   "overview.competitors": "竞品数量",
   "overview.campaigns": "营销战役",
+  "overview.recentCampaigns": "最近战役",
 
   // Scan History
   "scan.latestScans": "最近扫描",
@@ -198,6 +199,8 @@ export const zh: Record<TranslationKey, string> = {
   "settings.saved": "已保存！",
   "settings.apiKeySet": "API 密钥已配置",
   "settings.apiKeyNotSet": "未配置 API 密钥",
+  "settings.browserOverrideActive": "浏览器覆盖配置生效",
+  "settings.serverDefaultActive": "服务端默认配置生效",
 
   // Settings — shared
   "settings.configured": "已配置",
@@ -248,6 +251,7 @@ export const zh: Record<TranslationKey, string> = {
   "settings.tavilyKey": "Tavily API Key",
   "settings.tavilyHint": "启用高质量网络搜索，用于博客研究、图谱扩展、SERP 追踪和 Agent 搜索回退。在 tavily.com 获取密钥。",
   "settings.tavilyNotConfigured": "Tavily 未配置（使用 Google 爬取回退）",
+  "settings.tavilyOptional": "Tavily 为可选项（回退覆盖会减少）",
 
   // Settings — SERP
   "settings.serpSection": "SERP 排名追踪",
@@ -310,6 +314,7 @@ export const zh: Record<TranslationKey, string> = {
   "setup.description": "OpenCMO 需要 API 密钥来驱动 AI 功能（内容生成、SEO 分析、网络搜索等）。请在设置中配置您自己的密钥。",
   "setup.llmKey": "大模型 API Key（OpenAI / DeepSeek）",
   "setup.tavilyKey": "Tavily 搜索 Key",
+  "setup.tavilyOptional": "Tavily 搜索 Key（可选）",
   "setup.configureNow": "前往设置",
   "setup.dismissHint": "本次不再提醒",
 
@@ -346,6 +351,7 @@ export const zh: Record<TranslationKey, string> = {
   "reports.agentBrief": "Agent 简报",
   "reports.agentBriefTip": "面向 AI Agent 的精简行动清单，用于驱动后续自动化任务。",
   "reports.noReport": "尚未生成报告。",
+  "reports.failed": "报告生成失败。",
   "reports.lowSample": "样本量低",
   "reports.sendEmail": "发送周报邮件",
   "reports.sending": "发送中...",
@@ -357,6 +363,7 @@ export const zh: Record<TranslationKey, string> = {
   "approvals.title": "内容审批",
   "approvals.subtitle": "在内容发布前，审核确切的发布内容。",
   "approvals.pending": "待审批",
+  "approvals.showingPending": "当前显示 {{count}} 条待审批",
   "approvals.empty": "审批队列为空",
   "approvals.emptyDesc": "待审批的内容预览将显示在这里。",
   "approvals.preview": "生成预览",
@@ -377,6 +384,19 @@ export const zh: Record<TranslationKey, string> = {
   "community.avgEngagement": "平均互动度",
   "community.platforms": "平台数",
   "community.platformBreakdown": "平台分布",
+  "community.directMentions": "直接提及",
+  "community.directMentionsDesc": "标题、正文或评论里明确提到品牌、产品或清晰品牌信号的结果。",
+  "community.opportunityThreads": "机会话题",
+  "community.opportunityThreadsDesc": "没有直接提到品牌，但与问题、品类或竞品高度相关，适合参与。",
+  "community.confidence": "置信度",
+  "community.intent.direct_mention": "直接提及",
+  "community.intent.competitor_mention": "竞品语境",
+  "community.intent.opportunity": "机会话题",
+  "community.source.post": "帖子",
+  "community.source.comment": "评论",
+  "community.source.externalSearch": "外部搜索",
+  "community.externalSearchNoMetrics": "外部搜索结果，不含原生互动指标",
+  "community.source.unknown": "未知来源",
 
   // SERP Page — extra labels
   "serp.avgPosition": "平均排名",
@@ -389,6 +409,7 @@ export const zh: Record<TranslationKey, string> = {
   "geo.visibility": "可见度",
   "geo.position": "位置",
   "geo.sentiment": "情感",
+  "geo.sentimentUnavailable": "最新 GEO 扫描未拿到情感分，这次总分不包含该项。",
   "geo.latestSnapshot": "最新快照",
 
   // Action Tips
