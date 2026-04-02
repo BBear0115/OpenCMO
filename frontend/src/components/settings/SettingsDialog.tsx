@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { X, Key, Check, ChevronDown, ChevronRight, Shield } from "lucide-react";
 import { getSettings, saveSettings } from "../../api/settings";
-import { getUserKeys, setUserKeys, type UserKeys } from "../../api/userKeys";
+import { getEffectiveKeyStatus, getUserKeys, setUserKeys, type UserKeys } from "../../api/userKeys";
 import { useI18n } from "../../i18n";
 import type { AISettings } from "../../types";
 
@@ -142,6 +142,7 @@ export function SettingsDialog({ onClose }: { onClose: () => void }) {
   const [smtpUser, setSmtpUser] = useState("");
   const [smtpPass, setSmtpPass] = useState("");
   const [reportEmail, setReportEmail] = useState("");
+  const keyStatus = getEffectiveKeyStatus(status);
 
   useEffect(() => {
     // Load user-local keys
@@ -220,6 +221,7 @@ export function SettingsDialog({ onClose }: { onClose: () => void }) {
       // Refresh server status
       const s = await getSettings();
       setStatus(s);
+      window.dispatchEvent(new CustomEvent("opencmo:settings-changed"));
       setTimeout(() => setSaved(false), 2000);
     } finally {
       setLoading(false);
@@ -248,8 +250,12 @@ export function SettingsDialog({ onClose }: { onClose: () => void }) {
 
           {/* ── AI Provider (always open) ── */}
           <StatusBadge
-            ok={!!apiKey}
-            okText={`${t("settings.apiKeySet")} (${apiKey ? apiKey.slice(0, 3) + "..." + apiKey.slice(-4) : ""})`}
+            ok={keyStatus.effective.llm}
+            okText={
+              keyStatus.browserOverride.llm
+                ? t("settings.browserOverrideActive")
+                : t("settings.serverDefaultActive")
+            }
             noText={t("settings.apiKeyNotSet")}
           />
           <Field
@@ -347,9 +353,13 @@ export function SettingsDialog({ onClose }: { onClose: () => void }) {
           <Section title={t("settings.tavilySection")}>
             {status && (
               <StatusBadge
-                ok={status.tavily_key_set}
-                okText={`Tavily ${t("settings.configured")} (${status.tavily_key_masked})`}
-                noText={t("settings.tavilyNotConfigured")}
+                ok={keyStatus.effective.tavily}
+                okText={
+                  keyStatus.browserOverride.tavily
+                    ? `Tavily ${t("settings.browserOverrideActive")}`
+                    : `Tavily ${t("settings.serverDefaultActive")}`
+                }
+                noText={t("settings.tavilyOptional")}
               />
             )}
             <Field

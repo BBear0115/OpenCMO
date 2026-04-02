@@ -5,8 +5,9 @@ was used as shared mutable state across concurrent requests.
 
 Key resolution priority:
     1. ContextVar (per-request, set by BYOK middleware)
-    2. DB settings (via storage.get_setting)
-    3. os.environ (from .env or system environment)
+    2. os.environ (from .env or system environment) for router defaults
+    3. DB settings (via storage.get_setting)
+    4. os.environ (from .env or system environment) for all other keys
 
 Usage:
     from opencmo import llm
@@ -39,6 +40,11 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 _MODEL_DEFAULT = "gpt-4o"
+_ENV_PRIORITY_KEYS = frozenset({
+    "OPENAI_API_KEY",
+    "OPENAI_BASE_URL",
+    "OPENCMO_MODEL_DEFAULT",
+})
 
 # ---------------------------------------------------------------------------
 # ContextVar — per-request key isolation (asyncio Task-local)
@@ -63,7 +69,7 @@ def reset_request_keys(token: Token) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Key resolution — ContextVar > DB > os.environ
+# Key resolution — ContextVar > env/.env > DB for router defaults
 # ---------------------------------------------------------------------------
 
 
@@ -97,8 +103,9 @@ async def get_key_async(name: str, default: str | None = None) -> str | None:
 
     Resolution order:
         1. ContextVar (per-request BYOK keys)
-        2. DB settings (storage.get_setting)
-        3. os.environ (from .env or system)
+        2. os.environ (from .env or system) for router default keys
+        3. DB settings (storage.get_setting)
+        4. os.environ (from .env or system) for all other keys
         4. default
     """
     # 1. ContextVar (per-request)
@@ -107,7 +114,13 @@ async def get_key_async(name: str, default: str | None = None) -> str | None:
     if val:
         return val
 
-    # 2. DB settings
+    # 2. For core router defaults, prefer env/.env over persisted DB settings.
+    if name in _ENV_PRIORITY_KEYS:
+        val = os.environ.get(name)
+        if val:
+            return val
+
+    # 3. DB settings
     try:
         from opencmo import storage
         val = await storage.get_setting(name)
@@ -116,7 +129,7 @@ async def get_key_async(name: str, default: str | None = None) -> str | None:
     except Exception:
         pass  # DB may not be initialized yet
 
-    # 3. os.environ
+    # 4. os.environ
     val = os.environ.get(name)
     if val:
         return val

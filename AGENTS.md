@@ -25,6 +25,8 @@ Recent history follows Conventional Commit prefixes such as `feat:`, `docs:`, an
 ## Configuration & Security Tips
 Keep secrets in `.env` or the settings UI, never in tracked files. Use `OPENCMO_WEB_TOKEN` when exposing the dashboard beyond localhost, and avoid committing populated database or generated frontend build artifacts unless the change explicitly requires them.
 
+For local/default LLM routing, prefer the repository `.env` values for `OPENAI_API_KEY`, `OPENAI_BASE_URL`, and `OPENCMO_MODEL_DEFAULT`. In this repo the default router should be `OPENAI_BASE_URL=https://router.teamolab.com/v1` with `OPENCMO_MODEL_DEFAULT=TeamoRouter-free` unless a request explicitly provides `X-User-Keys` overrides.
+
 ## Production Deployment (BWG Server)
 
 | Item | Value |
