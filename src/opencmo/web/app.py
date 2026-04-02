@@ -53,7 +53,13 @@ async def _startup_fix_stale_expansions():
 @app.on_event("startup")
 async def _startup_runtime_services():
     """Start optional runtime services after DB bootstrap."""
+    from opencmo.background.executors import run_scan_executor
+    from opencmo.background.worker import get_background_worker
     from opencmo import scheduler
+
+    worker = get_background_worker()
+    worker.register_executor("scan", run_scan_executor)
+    await worker.start()
 
     if not scheduler.is_scheduler_available():
         logger.info("APScheduler not installed; scheduled monitors will remain inactive.")
@@ -67,8 +73,10 @@ async def _startup_runtime_services():
 @app.on_event("shutdown")
 async def _shutdown_runtime_services():
     """Stop optional runtime services cleanly."""
+    from opencmo.background.worker import get_background_worker
     from opencmo import scheduler
 
+    await get_background_worker().stop()
     scheduler.stop_scheduler()
     logger.info("Scheduler stopped")
 

@@ -374,11 +374,13 @@ def test_api_v1_monitor_run_conflict(client):
     })
     mid = resp.json()["monitor_id"]
 
-    # Simulate an active scan by directly setting the active monitor
-    task_registry._active_monitors[mid] = "fake_task"
-
-    resp = client.post(f"/api/v1/monitors/{mid}/run")
-    assert resp.status_code == 409
+    with patch("opencmo.background.service.find_active_task_by_dedupe_key", new_callable=AsyncMock) as mock_active:
+        mock_active.return_value = {
+            "task_id": "scan-conflict",
+            "status": "running",
+        }
+        resp = client.post(f"/api/v1/monitors/{mid}/run")
+        assert resp.status_code == 409
 
 
 def test_api_v1_create_monitor_syncs_scheduler(client):
@@ -571,22 +573,77 @@ def test_api_v1_task_status(client):
         resp = client.post("/api/v1/monitors", json={
             "brand": "T", "url": "https://t.com", "category": "dev"
         })
-        mid = resp.json()["monitor_id"]
-
-        # Creating a monitor auto-submits the initial analysis task.
-        task_registry.clear_all()
-
-        resp = client.post(f"/api/v1/monitors/{mid}/run")
-        assert resp.status_code == 202
-        task_id = resp.json()["task_id"]
+        assert resp.status_code == 201
+        monitor_payload = resp.json()
+        task_id = monitor_payload["task_id"]
 
         resp = client.get(f"/api/v1/tasks/{task_id}")
         assert resp.status_code == 200
         assert resp.json()["task_id"] == task_id
+        assert resp.json()["monitor_id"] == monitor_payload["monitor_id"]
 
         resp = client.get("/api/v1/tasks")
         assert resp.status_code == 200
-        assert len(resp.json()) >= 1
+        assert any(task["task_id"] == task_id for task in resp.json())
+
+
+def test_api_v1_task_events_stream_background_history(client):
+    from opencmo.background import service as bg_service
+
+    pid = _seed_project("Eventful", "https://events.test")
+    task = asyncio.run(
+        bg_service.enqueue_task(
+            kind="scan",
+            project_id=pid,
+            payload={
+                "monitor_id": 9,
+                "project_id": pid,
+                "job_type": "full",
+                "job_id": 9,
+                "locale": "en",
+            },
+            dedupe_key="scan:monitor:9",
+        )
+    )
+    asyncio.run(
+        bg_service.append_event(
+            task["task_id"],
+            event_type="progress",
+            phase="context_build",
+            status="running",
+            summary="Building project context.",
+            payload={
+                "stage": "context_build",
+                "status": "running",
+                "summary": "Building project context.",
+            },
+        )
+    )
+    asyncio.run(
+        bg_service.complete_task(
+            task["task_id"],
+            result={
+                "run_id": 42,
+                "summary": "Scan complete",
+                "findings_count": 2,
+                "recommendations_count": 1,
+            },
+        )
+    )
+
+    with client.stream("GET", f"/api/v1/tasks/{task['task_id']}/events") as resp:
+        assert resp.status_code == 200
+        events = [
+            json.loads(line[6:])
+            for line in resp.iter_lines()
+            if line.startswith("data: ")
+        ]
+
+    assert events[0]["type"] == "progress"
+    assert events[0]["stage"] == "context_build"
+    assert events[-1]["type"] == "done"
+    assert events[-1]["run_id"] == 42
+    assert events[-1]["findings_count"] == 2
 
 
 def test_api_v1_task_not_found(client):

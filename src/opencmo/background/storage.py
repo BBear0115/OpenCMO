@@ -87,6 +87,38 @@ async def get_task(task_id: str) -> dict | None:
         await db.close()
 
 
+async def list_tasks(*, kind: str | None = None, limit: int = 100) -> list[dict]:
+    db = await get_db()
+    try:
+        if kind:
+            cursor = await db.execute(
+                """SELECT id, task_id, kind, project_id, status, payload_json, result_json,
+                          error_json, dedupe_key, priority, run_after, attempt_count,
+                          max_attempts, worker_id, claimed_at, heartbeat_at, started_at,
+                          completed_at, created_at, updated_at
+                   FROM background_tasks
+                   WHERE kind = ?
+                   ORDER BY created_at DESC
+                   LIMIT ?""",
+                (kind, limit),
+            )
+        else:
+            cursor = await db.execute(
+                """SELECT id, task_id, kind, project_id, status, payload_json, result_json,
+                          error_json, dedupe_key, priority, run_after, attempt_count,
+                          max_attempts, worker_id, claimed_at, heartbeat_at, started_at,
+                          completed_at, created_at, updated_at
+                   FROM background_tasks
+                   ORDER BY created_at DESC
+                   LIMIT ?""",
+                (limit,),
+            )
+        rows = await cursor.fetchall()
+        return [_task_row_to_dict(row) for row in rows]
+    finally:
+        await db.close()
+
+
 async def append_task_event(
     task_id: str,
     *,

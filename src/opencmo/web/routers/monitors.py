@@ -8,6 +8,54 @@ from fastapi.responses import JSONResponse
 router = APIRouter(prefix="/api/v1")
 
 
+async def _enqueue_scan_task(
+    *,
+    monitor_id: int,
+    project_id: int,
+    job_type: str,
+    job_id: int,
+    analyze_url: str | None = None,
+    locale: str = "en",
+) -> dict:
+    from opencmo.background import service as bg_service
+
+    payload = {
+        "monitor_id": monitor_id,
+        "project_id": project_id,
+        "job_type": job_type,
+        "job_id": job_id,
+        "locale": locale,
+    }
+    if analyze_url:
+        payload["analyze_url"] = analyze_url
+
+    return await bg_service.enqueue_task(
+        kind="scan",
+        project_id=project_id,
+        payload=payload,
+        dedupe_key=f"scan:monitor:{monitor_id}",
+    )
+
+
+def _pending_scan_response(task: dict) -> dict:
+    payload = task["payload"]
+    return {
+        "task_id": task["task_id"],
+        "monitor_id": payload["monitor_id"],
+        "project_id": task["project_id"],
+        "job_type": payload["job_type"],
+        "status": "pending",
+        "created_at": task["created_at"],
+        "completed_at": task["completed_at"],
+        "error": None,
+        "progress": [],
+        "run_id": None,
+        "summary": "",
+        "findings_count": 0,
+        "recommendations_count": 0,
+    }
+
+
 @router.get("/monitors")
 async def api_v1_monitors():
     from opencmo import service
@@ -18,7 +66,6 @@ async def api_v1_monitors():
 async def api_v1_create_monitor(request: Request):
     from urllib.parse import urlparse
     from opencmo import service
-    from opencmo.web import task_registry
 
     body = await request.json()
     url = body.get("url", "").strip()
@@ -39,7 +86,7 @@ async def api_v1_create_monitor(request: Request):
         keywords=body.get("keywords"),
     )
     # Auto-trigger: AI analysis (extract brand/category/keywords) + first scan
-    task = task_registry.submit_scan(
+    task = await _enqueue_scan_task(
         monitor_id=result["monitor_id"],
         project_id=result["project_id"],
         job_type=job_type,
@@ -48,7 +95,7 @@ async def api_v1_create_monitor(request: Request):
         locale=locale,
     )
     if task:
-        result["task_id"] = task.task_id
+        result["task_id"] = task["task_id"]
     return JSONResponse(result, status_code=201)
 
 
@@ -78,19 +125,21 @@ async def api_v1_update_monitor(monitor_id: int, request: Request):
 
 @router.post("/monitors/{monitor_id}/run")
 async def api_v1_run_monitor(monitor_id: int):
+    from opencmo.background import service as bg_service
     from opencmo import service
-    from opencmo.web import task_registry
 
     job = await service.get_monitor(monitor_id)
     if not job:
         return JSONResponse({"error": "Monitor not found"}, status_code=404)
 
-    record = task_registry.submit_scan(
+    existing = await bg_service.find_active_task_by_dedupe_key(f"scan:monitor:{monitor_id}")
+    if existing is not None:
+        return JSONResponse({"error": "Monitor is already running"}, status_code=409)
+
+    record = await _enqueue_scan_task(
         monitor_id=monitor_id,
         project_id=job["project_id"],
         job_type=job["job_type"],
         job_id=monitor_id,
     )
-    if record is None:
-        return JSONResponse({"error": "Monitor is already running"}, status_code=409)
-    return JSONResponse(record.to_dict(), status_code=202)
+    return JSONResponse(_pending_scan_response(record), status_code=202)

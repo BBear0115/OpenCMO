@@ -45,12 +45,30 @@ async def get_task(task_id: str) -> dict | None:
     return await bg_storage.get_task(task_id)
 
 
+async def list_tasks(*, kind: str | None = None, limit: int = 100) -> list[dict]:
+    return await bg_storage.list_tasks(kind=kind, limit=limit)
+
+
+async def list_task_events(task_id: str) -> list[dict]:
+    return await bg_storage.list_task_events(task_id)
+
+
+async def find_active_task_by_dedupe_key(dedupe_key: str) -> dict | None:
+    return await bg_storage.find_active_task_by_dedupe_key(dedupe_key)
+
+
 async def claim_next_task(*, worker_id: str) -> dict | None:
     return await bg_storage.claim_next_queued_task(worker_id=worker_id)
 
 
 async def mark_task_running(task_id: str, *, worker_id: str) -> None:
     await bg_storage.mark_task_running(task_id, worker_id=worker_id)
+    await bg_storage.append_task_event(
+        task_id,
+        event_type="state_change",
+        status="running",
+        summary="Task started",
+    )
 
 
 async def heartbeat(task_id: str, *, worker_id: str) -> None:
