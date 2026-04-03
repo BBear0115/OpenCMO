@@ -48,6 +48,7 @@ export const zh: Record<TranslationKey, string> = {
   "project.serp": "SERP",
   "project.community": "社区",
   "project.graph": "知识图谱",
+  "project.monitors": "监控运行",
 
   // Score Panel
   "score.seoScore": "SEO 评分",

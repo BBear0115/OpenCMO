@@ -39,6 +39,7 @@ export const es: Record<TranslationKey, string> = {
   "project.serp": "SERP",
   "project.community": "Comunidad",
   "project.graph": "Grafo de Conocimiento",
+  "project.monitors": "Monitores",
   "score.seoScore": "Puntuación SEO",
   "score.geoScore": "Puntuación GEO",
   "score.communityHits": "Menciones Comunitarias",

@@ -46,6 +46,7 @@ export const en = {
   "project.serp": "SERP",
   "project.community": "Community",
   "project.graph": "Knowledge Graph",
+  "project.monitors": "Monitors",
 
   // Score Panel
   "score.seoScore": "SEO Score",

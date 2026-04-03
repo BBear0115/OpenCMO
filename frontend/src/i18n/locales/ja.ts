@@ -48,6 +48,7 @@ export const ja: Record<TranslationKey, string> = {
   "project.serp": "SERP",
   "project.community": "コミュニティ",
   "project.graph": "ナレッジグラフ",
+  "project.monitors": "モニター",
 
   // Score Panel
   "score.seoScore": "SEO スコア",

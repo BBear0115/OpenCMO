@@ -39,6 +39,7 @@ export const ko: Record<TranslationKey, string> = {
   "project.serp": "SERP",
   "project.community": "커뮤니티",
   "project.graph": "지식 그래프",
+  "project.monitors": "모니터",
   "score.seoScore": "SEO 점수",
   "score.geoScore": "GEO 점수",
   "score.communityHits": "커뮤니티 히트",
