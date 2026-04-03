@@ -140,6 +140,14 @@ async def api_v1_task_recommendations(task_id: str):
     return JSONResponse(await storage.get_task_recommendations(task_id))
 
 
+@router.patch("/tasks/{task_id}/notes")
+async def api_v1_task_update_notes(task_id: str, body: dict):
+    """Update the editable notes/summary for a completed scan run."""
+    notes = body.get("notes", "")
+    await storage.update_scan_run_notes(task_id, notes)
+    return JSONResponse({"ok": True})
+
+
 @router.get("/monitors/{monitor_id}/runs")
 async def api_v1_monitor_runs(monitor_id: int):
     return JSONResponse(await storage.list_scan_runs_by_monitor(monitor_id))

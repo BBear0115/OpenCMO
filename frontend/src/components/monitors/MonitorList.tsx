@@ -15,7 +15,7 @@ export function MonitorList({
 }: {
   monitors: Monitor[];
   onDelete: (id: number) => void;
-  onSelectRun: (taskId: string, url: string) => void;
+  onSelectRun?: (taskId: string, url: string) => void;
 }) {
   const { t, locale } = useI18n();
   const updateMonitor = useUpdateMonitor();
@@ -110,7 +110,7 @@ export function MonitorList({
               <RunScanButton
                 monitorId={m.id}
                 projectId={m.project_id}
-                onViewResults={(taskId) => onSelectRun(taskId, m.url)}
+                onViewResults={(taskId) => onSelectRun?.(taskId, m.url)}
               />
               <button
                 onClick={() => onDelete(m.id)}
@@ -123,7 +123,7 @@ export function MonitorList({
 
             <RunHistoryPanel
               monitorId={m.id}
-              onSelectRun={(taskId) => onSelectRun(taskId, m.url)}
+              url={m.url}
             />
           </div>
         );

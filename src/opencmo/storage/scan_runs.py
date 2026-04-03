@@ -80,6 +80,19 @@ async def update_scan_run(
         await db.close()
 
 
+async def update_scan_run_notes(task_id: str, notes: str) -> None:
+    """Update user-editable notes on a scan run by task_id."""
+    db = await get_db()
+    try:
+        await db.execute(
+            "UPDATE scan_runs SET summary = ? WHERE task_id = ?",
+            (notes, task_id),
+        )
+        await db.commit()
+    finally:
+        await db.close()
+
+
 async def add_scan_run_step(
     run_id: int,
     *,

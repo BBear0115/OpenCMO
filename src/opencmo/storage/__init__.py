@@ -157,6 +157,7 @@ from opencmo.storage.scan_runs import (
     list_scan_runs_by_monitor,
     replace_scan_artifacts,
     update_scan_run,
+    update_scan_run_notes,
 )
 
 # --- Scans (SEO / GEO / Community) ---
