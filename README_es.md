@@ -172,6 +172,7 @@ La app de desarrollo corre en `http://localhost:5173` y proxya la API a `:8080`.
 
 - [study8677](https://github.com/study8677) - Creador y maintainer
 - [ParakhJaggi](https://github.com/ParakhJaggi) - Integración Tavily ([#2](https://github.com/study8677/OpenCMO/pull/2), [#3](https://github.com/study8677/OpenCMO/pull/3))
+- [BBear0115](https://github.com/BBear0115) - Corrección de bugs en aislamiento de claves BYOK, normalización de base_url e informes ([#9](https://github.com/study8677/OpenCMO/pull/9))
 - Ver [CONTRIBUTORS.md](CONTRIBUTORS.md) para la lista completa
 
 ## Acknowledgments

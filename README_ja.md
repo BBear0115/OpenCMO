@@ -172,6 +172,7 @@ npm run build
 
 - [study8677](https://github.com/study8677) - Creator and maintainer
 - [ParakhJaggi](https://github.com/ParakhJaggi) - Tavily integration ([#2](https://github.com/study8677/OpenCMO/pull/2), [#3](https://github.com/study8677/OpenCMO/pull/3))
+- [BBear0115](https://github.com/BBear0115) - BYOKキー分離、base_url正規化、レポートのバグ修正 ([#9](https://github.com/study8677/OpenCMO/pull/9))
 - 詳細は [CONTRIBUTORS.md](CONTRIBUTORS.md) を参照
 
 ## Acknowledgments
