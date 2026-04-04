@@ -81,6 +81,21 @@ Los reportes para personas se generan a través de un **pipeline de 6 fases mult
 - **Email**: el correo semanal reutiliza el mismo reporte persistido.
 - **Fallback elegante**: fallos del pipeline degradan automáticamente a llamada única → plantilla.
 
+## Qué Sucede al Pulsar "Iniciar Monitoreo"
+
+Una URL activa un pipeline de IA de 6 etapas que construye un panorama completo de crecimiento:
+
+| Etapa | Nombre | Qué hace |
+|:-----:|--------|----------|
+| 1/6 | **Context Build** | Rastrea tu URL. Tres especialistas IA (Analista de Producto, Estratega SEO, Estratega de Comunidad) debaten en 3 rondas para extraer marca, categoría, palabras clave y competidores. |
+| 2/6 | **Signal Collect** | Ejecuta auditoría SEO, verificación de visibilidad GEO, búsqueda en comunidades (Reddit, HN, Dev.to, etc.) y rastreo de palabras clave SERP — todo en paralelo. |
+| 3/6 | **Signal Normalize** | Limpia y estandariza datos brutos: deduplicación de discusiones, normalización de puntuaciones, alineación de registros de palabras clave y competidores. |
+| 4/6 | **Domain Review** | Cuatro analistas IA revisan las señales de forma independiente: Analista SEO, GEO, Comunidad y Competencia. |
+| 5/6 | **Strategy Synthesis** | Un Director de Estrategia IA sintetiza todas las revisiones en hallazgos priorizados y recomendaciones accionables. |
+| 6/6 | **Persist & Publish** | Guarda resultados en la BD, genera informe estratégico, muestra insights en el dashboard. |
+
+> Después del escaneo inicial, programa re-escaneos **diarios / semanales / mensuales** para rastrear cambios a lo largo del tiempo.
+
 ## Superficie Principal del Producto
 
 - **SEO Audit**: Core Web Vitals, llms.txt, crawlers IA y salud técnica.
