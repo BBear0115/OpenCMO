@@ -209,12 +209,16 @@ async def _collect_signals(
         ))
         return
 
+    import asyncio as _asyncio
+
     brand = project["brand_name"]
     url = project["url"]
     category = project["category"]
     warnings: list[str] = []
 
-    if job_type in ("seo", "full"):
+    # --- Define each scan as an independent coroutine ---
+
+    async def _run_seo():
         try:
             from crawl4ai import AsyncWebCrawler
 
@@ -246,9 +250,7 @@ async def _collect_signals(
         except Exception as exc:
             warnings.append(f"SEO scan failed: {exc}")
             await _emit(run_id, on_progress, _event(
-                "signal_collect", "warning",
-                f"SEO scan failed: {exc}",
-                agent="Signal Collector",
+                "signal_collect", "warning", f"SEO scan failed: {exc}", agent="Signal Collector",
             ))
 
         try:
@@ -257,12 +259,10 @@ async def _collect_signals(
         except Exception as exc:
             warnings.append(f"SERP tracking failed: {exc}")
             await _emit(run_id, on_progress, _event(
-                "signal_collect", "warning",
-                f"SERP tracking failed: {exc}",
-                agent="Signal Collector",
+                "signal_collect", "warning", f"SERP tracking failed: {exc}", agent="Signal Collector",
             ))
 
-    if job_type in ("geo", "full"):
+    async def _run_geo():
         try:
             import json as _json
 
@@ -320,12 +320,10 @@ async def _collect_signals(
         except Exception as exc:
             warnings.append(f"GEO scan failed: {exc}")
             await _emit(run_id, on_progress, _event(
-                "signal_collect", "warning",
-                f"GEO scan failed: {exc}",
-                agent="Signal Collector",
+                "signal_collect", "warning", f"GEO scan failed: {exc}", agent="Signal Collector",
             ))
 
-    if job_type in ("community", "full"):
+    async def _run_community():
         try:
             import json as _json
 
@@ -376,10 +374,20 @@ async def _collect_signals(
         except Exception as exc:
             warnings.append(f"Community scan failed: {exc}")
             await _emit(run_id, on_progress, _event(
-                "signal_collect", "warning",
-                f"Community scan failed: {exc}",
-                agent="Signal Collector",
+                "signal_collect", "warning", f"Community scan failed: {exc}", agent="Signal Collector",
             ))
+
+    # --- Run scans in parallel ---
+    tasks = []
+    if job_type in ("seo", "full"):
+        tasks.append(_run_seo())
+    if job_type in ("geo", "full"):
+        tasks.append(_run_geo())
+    if job_type in ("community", "full"):
+        tasks.append(_run_community())
+
+    if tasks:
+        await _asyncio.gather(*tasks)
 
     # Update job last_run_at
     if job_id is not None:

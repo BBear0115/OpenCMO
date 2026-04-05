@@ -196,7 +196,7 @@ async def analyze_url_with_ai(url: str, on_progress=None, locale: str = "en") ->
 
         discussion: list[str] = []
 
-        # Round 1: Each role gives structured initial analysis with role-specific prompts
+        # Round 1: Each role gives structured initial analysis — run in parallel
         round1_prompts = {
             "product_analyst": (
                 f"{briefing}\n\n"
@@ -220,11 +220,22 @@ async def analyze_url_with_ai(url: str, on_progress=None, locale: str = "en") ->
                 "(awareness / demand / competitive intel / sentiment). Tag with confidence level."
             ),
         }
-        for role_name, system_prompt in roles.items():
+
+        async def _round1_call(role_name: str) -> tuple[str, str]:
+            system_prompt = roles[role_name]
             reply = await _llm_call(client, model, [
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": round1_prompts[role_name]},
             ])
+            return role_name, reply
+
+        import asyncio as _asyncio
+        round1_results = await _asyncio.gather(
+            _round1_call("product_analyst"),
+            _round1_call("seo_specialist"),
+            _round1_call("community_strategist"),
+        )
+        for role_name, reply in round1_results:
             discussion.append(f"[{role_name}] {reply}")
             emit(role_name, reply, 1)
             logger.info("Round 1 - %s done", role_name)
@@ -278,11 +289,19 @@ async def analyze_url_with_ai(url: str, on_progress=None, locale: str = "en") ->
                 "Tag all changes with [ADDED], [REMOVED], or [PROMOTED]."
             ),
         }
-        for role_name, system_prompt in roles.items():
+        async def _round2_call(role_name: str) -> tuple[str, str]:
             reply = await _llm_call(client, model, [
-                {"role": "system", "content": system_prompt},
+                {"role": "system", "content": roles[role_name]},
                 {"role": "user", "content": round2_prompts[role_name]},
             ])
+            return role_name, reply
+
+        round2_results = await _asyncio.gather(
+            _round2_call("product_analyst"),
+            _round2_call("seo_specialist"),
+            _round2_call("community_strategist"),
+        )
+        for role_name, reply in round2_results:
             discussion.append(f"[{role_name}] {reply}")
             emit(role_name, reply, 2)
             logger.info("Round 2 - %s done", role_name)
