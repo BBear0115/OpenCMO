@@ -29,6 +29,7 @@ async def run_report_executor(ctx) -> None:
         result = await service.regenerate_project_report(
             payload["project_id"],
             payload["kind"],
+            source_run_id=payload.get("source_run_id"),
             on_progress=on_progress,
         )
     finally:

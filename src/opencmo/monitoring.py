@@ -965,23 +965,27 @@ async def run_monitoring_workflow(
 
         if job_type == "full":
             try:
-                from opencmo.reports import generate_strategic_report_bundle
+                from opencmo.background import service as _bg_service
 
-                await generate_strategic_report_bundle(project_id, source_run_id=run_id)
-                await _emit(run_id, on_progress, _event(
-                    "reporting",
-                    "completed",
-                    "Strategic report refreshed from the completed monitoring run.",
-                    agent="AI CMO Reporter",
-                ))
+                # Queue report generation as a separate background task so the scan
+                # task can complete quickly and not be vulnerable to server restarts.
+                dedupe_key = f"report:strategic:{project_id}"
+                existing_report_task = await _bg_service.find_active_task_by_dedupe_key(dedupe_key)
+                if existing_report_task is None:
+                    await _bg_service.enqueue_task(
+                        kind="report",
+                        project_id=project_id,
+                        payload={"project_id": project_id, "kind": "strategic", "source_run_id": run_id},
+                        dedupe_key=dedupe_key,
+                    )
+                    await _emit(run_id, on_progress, _event(
+                        "reporting",
+                        "started",
+                        "Strategic report generation queued.",
+                        agent="AI CMO Reporter",
+                    ))
             except Exception as exc:
-                await _emit(run_id, on_progress, _event(
-                    "reporting",
-                    "failed",
-                    f"Strategic report refresh failed: {exc}",
-                    agent="AI CMO Reporter",
-                    detail=str(exc),
-                ))
+                logger.debug("Report task queue failed: %s", exc)
 
         # Auto-trigger graph expansion after successful full scan
         if job_type == "full":
