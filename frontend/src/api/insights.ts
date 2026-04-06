@@ -58,7 +58,7 @@ interface RawInsightsSummary {
   recent: RawInsightSummaryItem[];
 }
 
-function buildInsightsQuery(projectId?: number, unread = false): string {
+function buildInsightsQuery(projectId?: number, unread = false, lang?: string): string {
   const params = new URLSearchParams();
 
   if (typeof projectId === "number") {
@@ -66,6 +66,9 @@ function buildInsightsQuery(projectId?: number, unread = false): string {
   }
   if (unread) {
     params.set("unread", "true");
+  }
+  if (lang && lang !== "en") {
+    params.set("lang", lang);
   }
 
   const query = params.toString();
@@ -105,9 +108,9 @@ function normalizeSummaryItem(raw: RawInsightSummaryItem): InsightSummaryItem {
   };
 }
 
-export async function getInsightsSummary(projectId?: number): Promise<InsightsSummary> {
+export async function getInsightsSummary(projectId?: number, lang?: string): Promise<InsightsSummary> {
   const data = await apiJson<RawInsightsSummary>(
-    `/insights/summary${buildInsightsQuery(projectId)}`,
+    `/insights/summary${buildInsightsQuery(projectId, false, lang)}`,
   );
 
   return {
@@ -119,9 +122,10 @@ export async function getInsightsSummary(projectId?: number): Promise<InsightsSu
 export async function getInsights(
   projectId?: number,
   unread = false,
+  lang?: string,
 ): Promise<InsightRecord[]> {
   const data = await apiJson<RawInsightRecord[]>(
-    `/insights${buildInsightsQuery(projectId, unread)}`,
+    `/insights${buildInsightsQuery(projectId, unread, lang)}`,
   );
 
   return data.map(normalizeInsight);
