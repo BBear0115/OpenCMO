@@ -270,6 +270,33 @@ async def list_stale_tasks(*, stale_after_seconds: int) -> list[dict]:
         await db.close()
 
 
+async def list_orphaned_tasks(*, stale_after_seconds: int) -> list[dict]:
+    """Find tasks stuck in running/claimed with a stale or NULL heartbeat.
+
+    This covers the startup-recovery case where the previous worker died
+    without updating the heartbeat (including tasks that never received one).
+    """
+    cutoff = (
+        datetime.now(timezone.utc) - timedelta(seconds=stale_after_seconds)
+    ).strftime("%Y-%m-%d %H:%M:%S")
+    db = await get_db()
+    try:
+        cursor = await db.execute(
+            """SELECT id, task_id, kind, project_id, status, payload_json, result_json,
+                      error_json, dedupe_key, priority, run_after, attempt_count,
+                      max_attempts, worker_id, claimed_at, heartbeat_at, started_at,
+                      completed_at, created_at, updated_at
+               FROM background_tasks
+               WHERE status IN ('claimed', 'running')
+                 AND (heartbeat_at IS NULL OR heartbeat_at < ?)""",
+            (cutoff,),
+        )
+        rows = await cursor.fetchall()
+        return [_task_row_to_dict(row) for row in rows]
+    finally:
+        await db.close()
+
+
 async def claim_next_queued_task(*, worker_id: str) -> dict | None:
     db = await get_db()
     try:

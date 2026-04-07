@@ -1,6 +1,9 @@
+import { useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getTask, getTaskFindings, getTaskRecommendations } from "../api/tasks";
 import type { Finding, Recommendation } from "../types";
+
+const STALE_TASK_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes (matches backend stale threshold)
 
 export function useTaskPoll(taskId: string | null) {
   return useQuery({
@@ -13,6 +16,27 @@ export function useTaskPoll(taskId: string | null) {
       return 2000;
     },
   });
+}
+
+/**
+ * Returns true when the task is still reported as "running" but the progress
+ * list has not grown for longer than STALE_TASK_TIMEOUT_MS (2 min).
+ */
+export function useTaskStale(
+  status: string | undefined,
+  progressLength: number,
+): boolean {
+  const lastChangeRef = useRef<{ length: number; at: number }>({
+    length: progressLength,
+    at: Date.now(),
+  });
+
+  if (progressLength !== lastChangeRef.current.length) {
+    lastChangeRef.current = { length: progressLength, at: Date.now() };
+  }
+
+  if (status !== "running") return false;
+  return Date.now() - lastChangeRef.current.at > STALE_TASK_TIMEOUT_MS;
 }
 
 export function useTaskFindings(taskId: string | null, enabled = true) {

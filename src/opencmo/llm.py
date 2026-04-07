@@ -68,6 +68,12 @@ def reset_request_keys(token: Token) -> None:
     _request_keys.reset(token)
 
 
+def get_request_keys() -> dict[str, str]:
+    """Return the current per-request API keys context. Used to capture state for background tasks."""
+    return _request_keys.get({}).copy()
+
+
+
 # ---------------------------------------------------------------------------
 # Key resolution — ContextVar > env/.env > DB for router defaults
 # ---------------------------------------------------------------------------
@@ -153,6 +159,20 @@ async def get_openai_client() -> Any:
 
     api_key = await get_key_async("OPENAI_API_KEY")
     base_url = await get_key_async("OPENAI_BASE_URL")
+
+    # Normalize base_url: Many providers (XH, DeepSeek, etc.) require /v1 suffix.
+    # Skip for OpenAI official domains — the SDK handles routing internally.
+    _SKIP_V1_DOMAINS = {"api.openai.com", "api.anthropic.com"}
+    if base_url:
+        base_url = base_url.strip().rstrip("/")
+        from urllib.parse import urlparse as _urlparse
+        host = _urlparse(base_url).hostname or ""
+        if host not in _SKIP_V1_DOMAINS and not base_url.endswith("/v1"):
+            if base_url.count("/") <= 2:
+                base_url += "/v1"
+
+    model = await get_model()
+    logger.debug("LLM client: model=%s, base_url=%s", model, base_url or "OpenAI Default")
 
     return AsyncOpenAI(
         api_key=api_key,

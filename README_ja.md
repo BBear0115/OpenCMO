@@ -81,6 +81,21 @@ OpenCMO にはプロジェクトごとの正式なレポート機能がありま
 - **メール配信**: 週次メールは、画面上と同じ保存済みレポートを再利用します。
 - **グレースフル・フォールバック**: パイプライン障害時は自動的にシングルコール → テンプレート生成に降格。
 
+## 「モニタリング開始」を押すと何が起きるか
+
+1つのURLで6段階AIパイプラインが起動し、完全なグロース分析を構築します：
+
+| 段階 | 名前 | 内容 |
+|:----:|------|------|
+| 1/6 | **Context Build** | URLをクロール。3人のAI専門家（プロダクトアナリスト、SEOストラテジスト、コミュニティストラテジスト）が3ラウンドの議論でブランド名・カテゴリ・キーワード・競合を抽出。 |
+| 2/6 | **Signal Collect** | SEO監査、GEO可視性チェック、コミュニティ検索（Reddit、HN、Dev.to等）、SERPキーワード追跡を並行実行。 |
+| 3/6 | **Signal Normalize** | 生データをクリーニング・標準化：ディスカッションの重複排除、スコア正規化、キーワード・競合レコードの整合。 |
+| 4/6 | **Domain Review** | 4人のAIアナリストがシグナルを独立レビュー：SEO・GEO・コミュニティ・競合アナリスト。 |
+| 5/6 | **Strategy Synthesis** | AI戦略ディレクターが全レビューを統合し、優先順位付きの発見事項と実行可能な提案を生成。 |
+| 6/6 | **Persist & Publish** | 結果をDBに保存、戦略レポートを生成、ダッシュボードにインサイトを表示。 |
+
+> 初回スキャン後、**毎日・毎週・毎月**の再スキャンをスケジュールして変化を継続追跡できます。
+
 ## コア機能
 
 - **SEO Audit**: Core Web Vitals、llms.txt、AI crawler 検出、技術健全性。
@@ -157,6 +172,7 @@ npm run build
 
 - [study8677](https://github.com/study8677) - Creator and maintainer
 - [ParakhJaggi](https://github.com/ParakhJaggi) - Tavily integration ([#2](https://github.com/study8677/OpenCMO/pull/2), [#3](https://github.com/study8677/OpenCMO/pull/3))
+- [BBear0115](https://github.com/BBear0115) - BYOKキー分離、base_url正規化、レポートのバグ修正 ([#9](https://github.com/study8677/OpenCMO/pull/9))
 - 詳細は [CONTRIBUTORS.md](CONTRIBUTORS.md) を参照
 
 ## Acknowledgments

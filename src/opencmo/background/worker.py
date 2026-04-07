@@ -65,7 +65,7 @@ class BackgroundWorker:
         self,
         *,
         poll_interval: float = 0.5,
-        stale_after_seconds: int = 90,
+        stale_after_seconds: int = 300,
         max_concurrency: int = 4,
         kind_concurrency: dict[str, int] | None = None,
     ):
@@ -98,6 +98,19 @@ class BackgroundWorker:
         self._stop.clear()
         self._global_sem = asyncio.Semaphore(self.max_concurrency)
         self._kind_sems.clear()
+
+        # Recover tasks left in running/claimed from a previous worker lifetime
+        try:
+            recovered = await bg_service.recover_orphaned_tasks(
+                stale_after_seconds=self.stale_after_seconds,
+            )
+            if recovered:
+                logger.info(
+                    "Startup recovery: requeued/failed %d orphaned task(s)", recovered
+                )
+        except Exception:
+            logger.exception("Startup recovery failed — continuing anyway")
+
         self._loop_task = asyncio.create_task(self._run_loop())
 
     async def stop(self) -> None:
@@ -145,6 +158,14 @@ class BackgroundWorker:
                     kind_sem.release()
 
     async def _execute_task(self, task: dict) -> None:
+        from opencmo import llm
+
+        # Inject BYOK context if present in task payload
+        byok_keys = task.get("payload", {}).get("_byok_keys", {})
+        token = None
+        if byok_keys:
+            token = llm.set_request_keys(byok_keys)
+
         heartbeat_task = asyncio.create_task(self._heartbeat_loop(task["task_id"]))
         try:
             executor = self._executors[task["kind"]]
@@ -154,7 +175,10 @@ class BackgroundWorker:
         except Exception as exc:
             await bg_service.fail_task(task["task_id"], error={"message": str(exc)})
         finally:
+            if token:
+                llm.reset_request_keys(token)
             heartbeat_task.cancel()
+
             with contextlib.suppress(asyncio.CancelledError):
                 await heartbeat_task
 
@@ -171,7 +195,6 @@ def get_background_worker() -> BackgroundWorker:
     global _default_worker
     if _default_worker is None:
         _default_worker = BackgroundWorker(
-            max_concurrency=4,
-            kind_concurrency={"scan": 1, "report": 1, "graph_expansion": 1},
+            max_concurrency=100,
         )
     return _default_worker

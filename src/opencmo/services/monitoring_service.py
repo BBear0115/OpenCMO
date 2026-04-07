@@ -144,7 +144,9 @@ async def send_project_report(project_id: int) -> dict:
     return await send_report_impl(project_id)
 
 
-async def regenerate_project_report(project_id: int, kind: str, on_progress=None) -> dict:
+async def regenerate_project_report(
+    project_id: int, kind: str, source_run_id: int | None = None, on_progress=None
+) -> dict:
     """Generate and persist a strategic or periodic report bundle."""
     project = await storage.get_project(project_id)
     if not project:
@@ -153,9 +155,13 @@ async def regenerate_project_report(project_id: int, kind: str, on_progress=None
     from opencmo import reports
 
     if kind == "strategic":
-        return await reports.generate_strategic_report_bundle(project_id, on_progress=on_progress)
+        return await reports.generate_strategic_report_bundle(
+            project_id, source_run_id=source_run_id, on_progress=on_progress
+        )
     if kind == "periodic":
-        return await reports.generate_periodic_report_bundle(project_id, on_progress=on_progress)
+        return await reports.generate_periodic_report_bundle(
+            project_id, source_run_id=source_run_id, on_progress=on_progress
+        )
     raise ValueError(f"Unsupported report kind: {kind}")
 
 

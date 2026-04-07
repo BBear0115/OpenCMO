@@ -198,8 +198,8 @@ export const zh: Record<TranslationKey, string> = {
   "settings.apiKeyPlaceholder": "sk-...",
   "settings.apiKeyHint": "您的 OpenAI 兼容 API 密钥，保存在服务端。",
   "settings.baseUrl": "Base URL（可选）",
-  "settings.baseUrlPlaceholder": "https://api.openai.com/v1",
-  "settings.baseUrlHint": "用于自定义服务商，如 DeepSeek、NVIDIA、Ollama 等。",
+  "settings.baseUrlPlaceholder": "https://api.deepseek.com/v1",
+  "settings.baseUrlHint": "OpenAI 兼容 URL。DeepSeek、OpenRouter 等通常需要 /v1 后缀。",
   "settings.model": "模型（可选）",
   "settings.modelPlaceholder": "gpt-4o",
   "settings.modelHint": "覆盖默认模型。",
@@ -419,6 +419,7 @@ export const zh: Record<TranslationKey, string> = {
   "geo.sentiment": "情感",
   "geo.sentimentUnavailable": "最新 GEO 扫描未拿到情感分，这次总分不包含该项。",
   "geo.latestSnapshot": "最新快照",
+  "geo.configHint": "GEO 检测各 AI 平台对你品牌的提及情况。默认 LLM 始终参与检测。在设置中添加更多 API Key 可启用 Claude、Gemini、ChatGPT、Kimi、DeepSeek 等平台。",
 
   // Action Tips
   "actionTip.seoExcellent": "SEO 性能优秀，继续保持！",
@@ -554,6 +555,8 @@ export const zh: Record<TranslationKey, string> = {
   "analysis.runBackground": "后台运行",
   "analysis.backgroundHint": "分析在后台运行，可以随时关闭此窗口。",
   "analysis.closeBackground": "关闭并继续后台运行",
+  "analysis.noApiKey": "未配置 API Key，AI 分析已跳过。",
+  "analysis.taskStale": "任务可能已中断，请尝试重新运行。",
   "analysis.stageContextBuild": "上下文构建",
   "analysis.stageSignalCollect": "信号采集",
   "analysis.stageSignalNormalize": "证据归一化",

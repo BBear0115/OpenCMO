@@ -70,7 +70,12 @@ export function NotificationBell() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const { locale, t } = useI18n();
-  const { data, isLoading } = useInsightsSummary();
+
+  // Show only insights for the currently viewed project (if on a project route).
+  const projectIdMatch = /^\/projects\/(\d+)/.exec(pathname);
+  const currentProjectId = projectIdMatch ? Number(projectIdMatch[1]) : undefined;
+
+  const { data, isLoading } = useInsightsSummary(currentProjectId);
   const markInsightRead = useMarkInsightRead();
 
   const recentInsights = data?.recent ?? [];

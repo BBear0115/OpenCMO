@@ -9,6 +9,7 @@ This file complements GitHub's default Contributors graph and makes project cred
 ## Recognized contributors
 
 - [ParakhJaggi](https://github.com/ParakhJaggi) - Tavily integration work merged via [#2](https://github.com/study8677/OpenCMO/pull/2) and [#3](https://github.com/study8677/OpenCMO/pull/3)
+- [BBear0115](https://github.com/BBear0115) - BYOK key propagation to background tasks, base_url normalization, report hang fix via [#9](https://github.com/study8677/OpenCMO/pull/9)
 
 ## How this file is used
 

@@ -1,3 +1,5 @@
+import asyncio
+
 from agents import function_tool
 from crawl4ai import AsyncWebCrawler
 
@@ -35,8 +37,11 @@ async def fetch_url_content(
     source = "tavily"
 
     if not content:
-        async with AsyncWebCrawler() as crawler:
-            result = await crawler.arun(url=url)
+        async def _crawl():
+            async with AsyncWebCrawler() as crawler:
+                return await crawler.arun(url=url)
+
+        result = await asyncio.wait_for(_crawl(), timeout=90)
         content = _extract_markdown(result)
         source = "crawl4ai"
 

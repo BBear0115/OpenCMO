@@ -27,7 +27,7 @@ export function ProjectPage() {
   return (
     <div>
       <ProjectHeader project={project} isPaused={is_paused} />
-      <InsightBanner />
+      <InsightBanner projectId={projectId} />
       <ProjectTabs projectId={projectId} />
 
       {/* Action Feed — the primary "what to do" section */}

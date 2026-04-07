@@ -150,6 +150,7 @@ from opencmo.storage.reports import (
 from opencmo.storage.scan_runs import (
     add_scan_run_step,
     create_scan_run,
+    fail_scan_run_by_task_id,
     get_latest_monitoring_summary,
     get_task_findings,
     get_task_findings_by_project,
@@ -241,6 +242,7 @@ __all__ = [
     "save_serp_snapshot", "get_serp_history", "get_all_serp_latest",
     # scan_runs
     "create_scan_run", "list_scan_runs_by_monitor", "update_scan_run",
+    "fail_scan_run_by_task_id",
     "add_scan_run_step", "replace_scan_artifacts",
     "get_task_findings", "get_task_findings_by_project",
     "get_task_recommendations", "get_latest_monitoring_summary",

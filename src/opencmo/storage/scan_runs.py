@@ -80,6 +80,24 @@ async def update_scan_run(
         await db.close()
 
 
+async def fail_scan_run_by_task_id(task_id: str, message: str) -> None:
+    """Mark the scan_run for a given background task_id as failed.
+
+    Called when the background task is failed externally (stale heartbeat / recovery)
+    so that the scan_run table stays in sync with the background_tasks table.
+    """
+    db = await get_db()
+    try:
+        await db.execute(
+            """UPDATE scan_runs SET status='failed', summary=?, completed_at=datetime('now')
+               WHERE task_id=? AND status='running'""",
+            (message, task_id),
+        )
+        await db.commit()
+    finally:
+        await db.close()
+
+
 async def update_scan_run_notes(task_id: str, notes: str) -> None:
     """Update user-editable notes on a scan run by task_id."""
     db = await get_db()
