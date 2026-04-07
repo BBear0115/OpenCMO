@@ -12,7 +12,7 @@ import {
   TriangleAlert,
   Lightbulb,
 } from "lucide-react";
-import { useTaskPoll, useTaskFindings, useTaskRecommendations } from "../../hooks/useTasks";
+import { useTaskPoll, useTaskFindings, useTaskRecommendations, useTaskStale } from "../../hooks/useTasks";
 import { useI18n } from "../../i18n";
 import type { TranslationKey } from "../../i18n";
 import type { AnalysisProgress } from "../../types";
@@ -31,6 +31,7 @@ const STATUS_STYLE: Record<string, string> = {
   running: "bg-indigo-50 text-indigo-700 ring-indigo-200",
   completed: "bg-emerald-50 text-emerald-700 ring-emerald-200",
   failed: "bg-rose-50 text-rose-700 ring-rose-200",
+  warning: "bg-amber-50 text-amber-700 ring-amber-200",
 };
 
 function getLatestStageEvents(progress: AnalysisProgress[]) {
@@ -60,6 +61,7 @@ export function AnalysisDialog({
 
   const progress: AnalysisProgress[] = task?.progress ?? [];
   const isDone = task?.status === "completed" || task?.status === "failed";
+  const isStale = useTaskStale(task?.status, progress.length);
   const latestStageEvents = useMemo(() => getLatestStageEvents(progress), [progress]);
   const analystEvents = useMemo(() => getAnalystEvents(progress), [progress]);
 
@@ -93,11 +95,20 @@ export function AnalysisDialog({
         </div>
 
         <div id="analysis-scroll" className="flex-1 space-y-6 overflow-y-auto px-6 py-4">
-          {progress.length === 0 && !isDone && (
+          {progress.length === 0 && !isDone && !isStale && (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <Loader2 size={32} className="mb-3 animate-spin text-indigo-400" />
               <p className="text-sm text-slate-400">
                 {t("analysis.initializing")}
+              </p>
+            </div>
+          )}
+
+          {isStale && (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <TriangleAlert size={32} className="mb-3 text-amber-500" />
+              <p className="text-sm text-amber-600 font-medium">
+                {t("analysis.taskStale")}
               </p>
             </div>
           )}
@@ -232,6 +243,13 @@ export function AnalysisDialog({
                   {task?.status === "failed"
                     ? t("analysis.workflowFailed")
                     : t("analysis.workflowComplete")}
+                </span>
+              </>
+            ) : isStale ? (
+              <>
+                <TriangleAlert size={14} className="text-amber-500" />
+                <span className="text-amber-600">
+                  {t("analysis.taskStale")}
                 </span>
               </>
             ) : (

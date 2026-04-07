@@ -98,7 +98,7 @@ export interface AnalysisProgress {
   content?: string;
   round?: number;
   stage?: string;
-  status?: "started" | "running" | "completed" | "failed";
+  status?: "started" | "running" | "completed" | "failed" | "warning";
   agent?: string;
   summary?: string;
   detail?: string;

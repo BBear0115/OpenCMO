@@ -34,11 +34,11 @@ function getSeverityStyles(severity: InsightSeverity) {
   }
 }
 
-export function InsightBanner() {
+export function InsightBanner({ projectId }: { projectId?: number }) {
   const [dismissedIds, setDismissedIds] = useState<number[]>([]);
   const navigate = useNavigate();
   const { t } = useI18n();
-  const { data: insights } = useInsights(undefined, true);
+  const { data: insights } = useInsights(projectId, true);
   const markInsightRead = useMarkInsightRead();
 
   const visibleInsights = (insights ?? [])

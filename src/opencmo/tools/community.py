@@ -116,8 +116,9 @@ async def _crawl4ai_site_search(
 ) -> list[dict]:
     """Google site-search via crawl4ai, returns [{url, title, content}, ...]."""
     try:
-        from crawl4ai import AsyncWebCrawler
         import re as _re
+
+        from crawl4ai import AsyncWebCrawler
     except ImportError:
         return []
 

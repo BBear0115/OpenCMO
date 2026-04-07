@@ -196,8 +196,8 @@ export const en = {
   "settings.apiKeyPlaceholder": "sk-...",
   "settings.apiKeyHint": "Your OpenAI-compatible API key. Stored on the server.",
   "settings.baseUrl": "Base URL (optional)",
-  "settings.baseUrlPlaceholder": "https://api.openai.com/v1",
-  "settings.baseUrlHint": "For custom providers like DeepSeek, NVIDIA, Ollama, etc.",
+  "settings.baseUrlPlaceholder": "https://api.deepseek.com/v1",
+  "settings.baseUrlHint": "OpenAI-compatible URL. Providers like DeepSeek, OpenRouter usually need /v1 suffix.",
   "settings.model": "Model (optional)",
   "settings.modelPlaceholder": "gpt-4o",
   "settings.modelHint": "Override the default model.",
@@ -417,6 +417,7 @@ export const en = {
   "geo.sentiment": "Sentiment",
   "geo.sentimentUnavailable": "Sentiment is unavailable for the latest GEO scan; the total excludes that component.",
   "geo.latestSnapshot": "Latest Snapshot",
+  "geo.configHint": "GEO checks how AI platforms mention your brand. Your default LLM is always checked. Add more API keys in Settings for Claude, Gemini, ChatGPT, Kimi, DeepSeek, and other platforms.",
 
   // Action Tips
   "actionTip.seoExcellent": "SEO performance is excellent — keep it up!",
@@ -552,6 +553,8 @@ export const en = {
   "analysis.runBackground": "Run in background",
   "analysis.backgroundHint": "Analysis runs in the background — you can close this window anytime.",
   "analysis.closeBackground": "Close — continues in background",
+  "analysis.noApiKey": "No API key configured. AI analysis was skipped.",
+  "analysis.taskStale": "Task may have been interrupted. Try running again.",
   "analysis.stageContextBuild": "Context Build",
   "analysis.stageSignalCollect": "Signal Collection",
   "analysis.stageSignalNormalize": "Normalization",

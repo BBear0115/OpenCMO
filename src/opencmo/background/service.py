@@ -17,7 +17,16 @@ async def enqueue_task(
     max_attempts: int = 3,
     run_after: str | None = None,
 ) -> dict:
+    from opencmo import llm
+
+    # Capture BYOK keys from current request context
+    keys = llm.get_request_keys()
+    if keys:
+        payload = payload.copy()
+        payload["_byok_keys"] = keys
+
     if dedupe_key:
+
         existing = await bg_storage.find_active_task_by_dedupe_key(dedupe_key)
         if existing is not None:
             return existing
@@ -123,6 +132,7 @@ async def complete_task(task_id: str, *, result: dict | None = None) -> None:
 
 
 async def fail_task(task_id: str, *, error: dict) -> None:
+    task = await bg_storage.get_task(task_id)
     await bg_storage.fail_task(task_id, error=error)
     await bg_storage.append_task_event(
         task_id,
@@ -131,6 +141,40 @@ async def fail_task(task_id: str, *, error: dict) -> None:
         summary=error.get("message", "Task failed"),
         payload=error,
     )
+    # Keep scan_runs table in sync when a scan task is failed externally
+    if task and task.get("kind") == "scan":
+        try:
+            from opencmo.storage import fail_scan_run_by_task_id
+            await fail_scan_run_by_task_id(task_id, error.get("message", "Task failed"))
+        except Exception:
+            pass
+
+
+async def recover_orphaned_tasks(*, stale_after_seconds: int) -> int:
+    """Recover tasks left in running/claimed from a previous worker lifetime.
+
+    Unlike ``recover_stale_tasks`` (which only looks at non-NULL heartbeats),
+    this also catches tasks whose heartbeat is NULL — e.g. tasks that were
+    claimed but never started before the process died.
+    """
+    orphaned = await bg_storage.list_orphaned_tasks(stale_after_seconds=stale_after_seconds)
+    fixed = 0
+    for task in orphaned:
+        if task["attempt_count"] < task["max_attempts"]:
+            await bg_storage.requeue_task(task["task_id"])
+            await bg_storage.append_task_event(
+                task["task_id"],
+                event_type="state_change",
+                status="queued",
+                summary="Task requeued after worker restart recovery",
+            )
+        else:
+            await fail_task(
+                task["task_id"],
+                error={"message": "Task exceeded max attempts (recovered after restart)"},
+            )
+        fixed += 1
+    return fixed
 
 
 async def recover_stale_tasks(*, stale_after_seconds: int) -> int:

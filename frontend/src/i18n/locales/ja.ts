@@ -398,6 +398,7 @@ export const ja: Record<TranslationKey, string> = {
   "geo.sentiment": "センチメント",
   "geo.sentimentUnavailable": "最新の GEO スキャンではセンチメントを算出できず、合計点には含まれていません。",
   "geo.latestSnapshot": "最新スナップショット",
+  "geo.configHint": "GEO は各 AI プラットフォームでのブランド言及を検出します。デフォルト LLM は常にチェックされます。設定で API キーを追加すると Claude、Gemini、ChatGPT、Kimi、DeepSeek などのプラットフォームも有効になります。",
 
   // Action Tips
   "actionTip.seoExcellent": "SEO パフォーマンスは優秀です。そのまま継続しましょう！",
@@ -532,6 +533,8 @@ export const ja: Record<TranslationKey, string> = {
   "analysis.runBackground": "バックグラウンドで実行",
   "analysis.backgroundHint": "分析はバックグラウンドで実行されます。いつでも閉じられます。",
   "analysis.closeBackground": "閉じる（バックグラウンドで継続）",
+  "analysis.taskStale": "タスクが中断された可能性があります。再実行してください。",
+  "analysis.noApiKey": "APIキーが設定されていません。AI分析はスキップされました。",
   "analysis.stageContextBuild": "コンテキスト構築",
   "analysis.stageSignalCollect": "シグナル収集",
   "analysis.stageSignalNormalize": "正規化",

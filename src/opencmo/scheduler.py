@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 
 from opencmo import storage
@@ -81,8 +82,11 @@ async def run_scheduled_scan(
                 _SEOParser,
             )
 
-            async with AsyncWebCrawler() as crawler:
-                result = await crawler.arun(url=url)
+            async def _crawl():
+                async with AsyncWebCrawler() as crawler:
+                    return await crawler.arun(url=url)
+
+            result = await asyncio.wait_for(_crawl(), timeout=90)
             parser = _SEOParser()
             html = getattr(result, "html", "") or ""
             parser.feed(html)
