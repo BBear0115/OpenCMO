@@ -265,27 +265,37 @@ def _seo_review(data: dict) -> tuple[str, list[Finding], list[Recommendation]]:
         ))
         return "SEO review found no usable baseline.", findings, recommendations
 
-    score = seo.get("score_performance")
-    if score is not None and score < 0.6:
-        findings.append(Finding(
-            domain="seo",
-            severity="critical",
-            title="Performance score is materially weak",
-            summary=f"Latest performance score is {round(score * 100)}%, which is likely harming crawl efficiency and rankings.",
-            confidence=0.85,
-            evidence_refs=[_metric_ref("seo", "seo_scan", "score_performance", round(score * 100), project["url"])],
-        ))
-        recommendations.append(Recommendation(
-            domain="seo",
-            priority="high",
-            owner_type="engineering",
-            action_type="improve_performance",
-            title="Prioritize performance fixes on the monitored site",
-            summary="Reduce render-blocking work and large page payloads on the landing pages that drive acquisition.",
-            rationale="Low performance score is a ranking and conversion drag.",
-            confidence=0.82,
-            evidence_refs=[_metric_ref("seo", "seo_scan", "score_performance", round(score * 100), project["url"])],
-        ))
+    health_score = seo.get("seo_health_score")
+    if health_score is not None:
+        if health_score < 50.0:
+            findings.append(Finding(
+                domain="seo",
+                severity="critical",
+                title="Overall SEO health is critically weak",
+                summary=f"Latest SEO health score is {health_score}/100, indicating severe gaps in technical fundamentals or on-page quality.",
+                confidence=0.85,
+                evidence_refs=[_metric_ref("seo", "seo_scan", "seo_health_score", health_score, project["url"])],
+            ))
+            recommendations.append(Recommendation(
+                domain="seo",
+                priority="high",
+                owner_type="engineering",
+                action_type="improve_seo_health",
+                title="Prioritize core SEO technical fixes",
+                summary="Address critical gaps across robots.txt, sitemaps, structured data, or page performance.",
+                rationale="A critical SEO health score directly suppresses organic visibility.",
+                confidence=0.82,
+                evidence_refs=[_metric_ref("seo", "seo_scan", "seo_health_score", health_score, project["url"])],
+            ))
+        elif health_score < 75.0:
+            findings.append(Finding(
+                domain="seo",
+                severity="warning",
+                title="SEO health needs improvement",
+                summary=f"Latest SEO health score is {health_score}/100, leaving room for technical or on-page optimization.",
+                confidence=0.80,
+                evidence_refs=[_metric_ref("seo", "seo_scan", "seo_health_score", health_score, project["url"])],
+            ))
 
     lcp = seo.get("score_lcp")
     if lcp is not None and lcp >= 4000:

@@ -122,6 +122,85 @@ def _cwv_status(value: float, good: float, poor: float) -> str:
         return "[WARNING]"
 
 
+def _compute_seo_health_score(
+    parser: "_SEOParser",
+    *,
+    cwv: dict | None = None,
+    robots_sitemap: dict | None = None,
+) -> float:
+    """Compute a holistic SEO health score in [0, 100].
+
+    Three dimensions, each scored independently:
+
+    1. Technical Foundation — 40 pts
+       robots.txt present & not blocking (10) + sitemap.xml (10)
+       + Schema.org markup (10) + canonical URL (10)
+
+    2. On-Page Quality — 30 pts
+       title quality (10) + meta description quality (10)
+       + single H1 (5) + OG tag coverage (5)
+
+    3. Page Performance — 30 pts
+       PageSpeed Performance score × 30.
+       When PageSpeed is unavailable (no API key / timeout), award a
+       *neutral* 15 pts so the absence of the key doesn't crater the score.
+    """
+    score = 0.0
+
+    # ── Technical Foundation (40 pts) ──────────────────────────────────────
+    if robots_sitemap:
+        has_robots = robots_sitemap.get("has_robots", False)
+        disallow_all = robots_sitemap.get("robots_disallow_all", False)
+        if has_robots and not disallow_all:
+            score += 10
+        elif has_robots:  # exists but blocks all crawlers — half credit
+            score += 5
+        if robots_sitemap.get("has_sitemap", False):
+            score += 10
+
+    if parser.schema_types:
+        score += 10
+
+    if parser.canonical:
+        score += 10
+
+    # ── On-Page Quality (30 pts) ────────────────────────────────────────────
+    title_len = len(parser.title)
+    if 30 <= title_len <= 60:
+        score += 10   # ideal length
+    elif parser.title:
+        score += 5    # present but not ideal
+
+    desc_len = len(parser.meta_description)
+    if 70 <= desc_len <= 155:
+        score += 10   # ideal length
+    elif parser.meta_description:
+        score += 5    # present but not ideal
+
+    h1_count = len(parser.headings.get("h1", []))
+    if h1_count == 1:
+        score += 5    # exactly one H1
+    elif h1_count > 1:
+        score += 2    # multiple H1s is suboptimal
+
+    og_present = sum(
+        1 for tag in ["og:title", "og:description", "og:image"]
+        if parser.og_tags.get(tag)
+    )
+    score += min(5.0, round(og_present / 3 * 5, 1))  # 0-5 proportional
+
+    # ── Page Performance (30 pts) ───────────────────────────────────────────
+    if cwv and cwv.get("performance") is not None:
+        perf = float(cwv["performance"])  # 0.0 – 1.0
+        score += perf * 30
+    else:
+        # PageSpeed unavailable — award neutral 15 pts (don't penalise absence
+        # of API key on otherwise healthy sites like modern SPAs).
+        score += 15
+
+    return round(min(100.0, max(0.0, score)), 1)
+
+
 async def _fetch_core_web_vitals(url: str) -> dict | None:
     """Fetch Core Web Vitals from Google PageSpeed Insights API.
 
@@ -417,6 +496,11 @@ async def audit_page_seo(url: str) -> str:
 
         report = _build_report(parser, result, url, cwv=cwv, robots_sitemap=robots_sitemap)
 
+        # Compute multi-dimensional health score
+        seo_health_score = _compute_seo_health_score(
+            parser, cwv=cwv, robots_sitemap=robots_sitemap
+        )
+
         # Persist to storage (best-effort)
         try:
             from opencmo import storage
@@ -435,6 +519,7 @@ async def audit_page_seo(url: str) -> str:
                 has_robots_txt=robots_sitemap.get("has_robots") if robots_sitemap else None,
                 has_sitemap=robots_sitemap.get("has_sitemap") if robots_sitemap else None,
                 has_schema_org=bool(parser.schema_types),
+                seo_health_score=seo_health_score,
             )
         except Exception:
             pass  # Storage failure should not block the audit

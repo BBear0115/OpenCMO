@@ -202,33 +202,59 @@ async def _get_recent_approvals(project_id: int, start: datetime) -> list[dict]:
 
 
 async def _build_strategic_facts(project_id: int) -> tuple[dict, dict]:
+    import asyncio
+
     project = await storage.get_project(project_id)
     if not project:
         raise ValueError(f"Project {project_id} not found.")
 
-    keywords = await storage.list_tracked_keywords(project_id)
-    competitors = await storage.list_competitors(project_id)
+    # Parallel data aggregation - Phase 1 optimization
+    (
+        keywords,
+        competitors,
+        latest,
+        previous,
+        monitoring,
+        findings,
+        recommendations,
+        previous_human,
+        insights,
+        citability_history,
+        ai_crawler_history,
+        brand_presence_history,
+        discussions,
+        serp_latest,
+    ) = await asyncio.gather(
+        storage.list_tracked_keywords(project_id),
+        storage.list_competitors(project_id),
+        storage.get_latest_scans(project_id),
+        storage.get_previous_scans(project_id),
+        storage.get_latest_monitoring_summary(project_id),
+        storage.get_task_findings_by_project(project_id, limit=15),
+        _get_recent_recommendations(project_id, limit=12),
+        storage.get_latest_report(project_id, "strategic", "human"),
+        storage.list_insights(project_id=project_id, limit=15),
+        storage.get_citability_history(project_id, limit=3),
+        storage.get_ai_crawler_history(project_id, limit=3),
+        storage.get_brand_presence_history(project_id, limit=3),
+        storage.get_tracked_discussions(project_id),
+        storage.get_all_serp_latest(project_id),
+    )
+
+    # Fetch competitor keywords in parallel
     competitor_cards: list[dict] = []
-    for competitor in competitors:
-        competitor_cards.append({
-            **competitor,
-            "keywords": await storage.list_competitor_keywords(competitor["id"]),
-        })
-
-    latest = await storage.get_latest_scans(project_id)
-    previous = await storage.get_previous_scans(project_id)
-    monitoring = await storage.get_latest_monitoring_summary(project_id)
-    findings = await storage.get_task_findings_by_project(project_id, limit=15)
-    recommendations = await _get_recent_recommendations(project_id, limit=12)
-    previous_human = await storage.get_latest_report(project_id, "strategic", "human")
-
-    # --- Multi-agent enrichment: pull data from ALL specialist agents ---
-    insights = await storage.list_insights(project_id=project_id, limit=15)
-    citability_history = await storage.get_citability_history(project_id, limit=3)
-    ai_crawler_history = await storage.get_ai_crawler_history(project_id, limit=3)
-    brand_presence_history = await storage.get_brand_presence_history(project_id, limit=3)
-    discussions = await storage.get_tracked_discussions(project_id)
-    serp_latest = await storage.get_all_serp_latest(project_id)
+    if competitors:
+        competitor_keyword_tasks = [
+            storage.list_competitor_keywords(comp["id"]) for comp in competitors
+        ]
+        competitor_keywords_list = await asyncio.gather(*competitor_keyword_tasks)
+        for competitor, keywords_data in zip(competitors, competitor_keywords_list):
+            competitor_cards.append({
+                **competitor,
+                "keywords": keywords_data,
+            })
+    else:
+        competitor_cards = []
 
     # Try to get knowledge graph data for competitive landscape
     graph_data = None
@@ -373,6 +399,8 @@ async def _build_periodic_facts(
     now: datetime | None = None,
     window_days: int = _PERIODIC_WINDOW_DAYS,
 ) -> tuple[dict, dict]:
+    import asyncio
+
     project = await storage.get_project(project_id)
     if not project:
         raise ValueError(f"Project {project_id} not found.")
@@ -385,24 +413,39 @@ async def _build_periodic_facts(
     window_start = window_start_dt.isoformat(timespec="seconds")
     window_end = now.isoformat(timespec="seconds")
 
-    seo_history = _filter_window(await storage.get_seo_history(project_id, limit=30), "scanned_at", window_start_dt)
-    geo_history = _filter_window(await storage.get_geo_history(project_id, limit=30), "scanned_at", window_start_dt)
-    community_history = _filter_window(
-        await storage.get_community_history(project_id, limit=30),
-        "scanned_at",
-        window_start_dt,
+    # Parallel data aggregation - Phase 1 optimization
+    (
+        seo_history_raw,
+        geo_history_raw,
+        community_history_raw,
+        discussions,
+        recent_approvals,
+        recommendations,
+        findings,
+        serp_latest,
+        insights,
+        citability_history,
+        ai_crawler_history,
+        brand_presence_history,
+    ) = await asyncio.gather(
+        storage.get_seo_history(project_id, limit=30),
+        storage.get_geo_history(project_id, limit=30),
+        storage.get_community_history(project_id, limit=30),
+        storage.get_tracked_discussions(project_id),
+        _get_recent_approvals(project_id, window_start_dt),
+        _get_recent_recommendations(project_id, limit=12),
+        storage.get_task_findings_by_project(project_id, limit=15),
+        storage.get_all_serp_latest(project_id),
+        storage.list_insights(project_id=project_id, limit=15),
+        storage.get_citability_history(project_id, limit=5),
+        storage.get_ai_crawler_history(project_id, limit=5),
+        storage.get_brand_presence_history(project_id, limit=5),
     )
-    discussions = await storage.get_tracked_discussions(project_id)
-    recent_approvals = await _get_recent_approvals(project_id, window_start_dt)
-    recommendations = await _get_recent_recommendations(project_id, limit=12)
-    findings = await storage.get_task_findings_by_project(project_id, limit=15)
-    serp_latest = await storage.get_all_serp_latest(project_id)
 
-    # --- Multi-agent enrichment ---
-    insights = await storage.list_insights(project_id=project_id, limit=15)
-    citability_history = await storage.get_citability_history(project_id, limit=5)
-    ai_crawler_history = await storage.get_ai_crawler_history(project_id, limit=5)
-    brand_presence_history = await storage.get_brand_presence_history(project_id, limit=5)
+    # Apply time window filtering
+    seo_history = _filter_window(seo_history_raw, "scanned_at", window_start_dt)
+    geo_history = _filter_window(geo_history_raw, "scanned_at", window_start_dt)
+    community_history = _filter_window(community_history_raw, "scanned_at", window_start_dt)
 
     data_sources = [seo_history, geo_history, community_history, serp_latest,
                     insights, citability_history, ai_crawler_history, brand_presence_history]
@@ -515,12 +558,18 @@ def _prompts(kind: str, audience: str, facts: dict, meta: dict, previous_exists:
         "SERP排名追踪器、社区舆情监控(Reddit/HN/Dev.to/知乎/V2EX/掘金等)、AI引文可信度(Citability)评估引擎、"
         "AI爬虫检测模块、品牌数字足迹(Brand Presence)扫描器、竞品知识图谱、以及Insights洞察引擎。"
         "以下事实包(facts)是上述所有智能体在真实运行中采集到的一手数据。\n\n"
+        "【打分与量纲规范（百分制）】\n"
+        "- 系统所有核心健康度指标必须使用严格的 **百分制 (0-100分)** 进行评价和展示：\n"
+        "  - `seo_health_score` (0-100): 综合了技术基础与页面质量的 SEO 评分。\n"
+        "  - `geo_score` (0-100): 综合了提及率与情感倾向的 AI 可见性评分。\n"
+        "  - `engagement_score` (0-100): 经过算法归一化的社区讨论相对潜力和热度。\n"
+        "- 事实包中的 `raw_score` (如 16,525) 代表平台的**绝对物理流量**（播放量/点赞数等），绝对**不能**被用作“评分”，而应解读为具体的“流量表现”与“增长短板”进行交叉对比（例如流量极大但搜索增长极低）。\n\n"
         "核心原则：\n"
         "1. 你必须对事实包中的每一类数据进行深入解读，不能遗漏任何智能体的产出。\n"
-        "2. 不是简单罗列数据，而是像真正的 CMO 那样做业务推演——数据现象背后意味着什么？对增长有什么影响？应该怎么做？\n"
-        "3. 不要虚构数据；某个维度数据缺失时，明确标注并说明获取方法。\n"
-        "4. 必须使用中文输出。\n"
-        "5. 报告要足够深入和详实，像一份面向CEO/投资人级别的商业分析文档。\n"
+        "2. 不要使用含糊的“分数”表述，必须明确说是“SEO百分制健康度”、“社区原始流量表现”等，且不可偏离事实数据。\n"
+        "3. 不是简单罗列数据，而是像真正的 CMO 那样做业务推演——高流量为何不能转化为高排名？对增长有什么影响？应该怎么做？\n"
+        "4. 不要虚构数据；某个维度数据缺失时，明确标注并说明获取方法。\n"
+        "5. 必须使用中文输出，报告要足够深入和详实，像一份面向CEO/投资人级别的商业分析文档。\n"
     )
     if kind == "strategic" and audience == "human":
         system = (

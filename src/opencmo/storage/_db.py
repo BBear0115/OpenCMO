@@ -39,17 +39,19 @@ CREATE TABLE IF NOT EXISTS seo_scans (
     score_tbt REAL,
     has_robots_txt INTEGER,
     has_sitemap INTEGER,
-    has_schema_org INTEGER
+    has_schema_org INTEGER,
+    seo_health_score REAL   -- multi-dimensional health score 0-100 (v9+)
 );
 
 CREATE TABLE IF NOT EXISTS geo_scans (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     project_id INTEGER NOT NULL REFERENCES projects(id),
     scanned_at TEXT NOT NULL DEFAULT (datetime('now')),
-    geo_score INTEGER NOT NULL,
+    geo_score INTEGER,            -- NULL = all providers errored (v9+)
     visibility_score INTEGER,
     position_score INTEGER,
     sentiment_score INTEGER,
+    crawl_success_rate REAL,      -- fraction of providers that returned data (v9+)
     platform_results_json TEXT NOT NULL
 );
 
@@ -502,6 +504,10 @@ _MIGRATIONS: list[tuple[int, str, list[str]]] = [
     ]),
     (8, "dedupe partial unique index on background_tasks", [
         "CREATE UNIQUE INDEX IF NOT EXISTS idx_background_tasks_dedupe_active ON background_tasks(dedupe_key) WHERE dedupe_key IS NOT NULL AND status IN ('queued', 'claimed', 'running', 'cancel_requested')",
+    ]),
+    (9, "seo_health_score and geo crawl_success_rate columns", [
+        "ALTER TABLE seo_scans ADD COLUMN seo_health_score REAL",
+        "ALTER TABLE geo_scans ADD COLUMN crawl_success_rate REAL",
     ]),
 ]
 

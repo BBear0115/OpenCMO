@@ -53,9 +53,12 @@ async def scan_geo_visibility(brand_name: str, category: str) -> str:
             )
 
     # Compute GEO Score
+    successful_providers = sum(1 for r in flat_results.values() if not r.error)
+    crawl_success_rate = successful_providers / len(enabled_providers) if enabled_providers else 0.0
+
     # Visibility (0-40): mentioned on how many platforms
     platforms_mentioned = sum(1 for r in flat_results.values() if r.mentioned)
-    visibility_score = int(platforms_mentioned / len(enabled_providers) * 40)
+    visibility_score = int(platforms_mentioned / len(enabled_providers) * 40) if enabled_providers else 0
 
     # Position (0-30): earlier mentions = higher score
     position_scores = []
@@ -84,14 +87,18 @@ async def scan_geo_visibility(brand_name: str, category: str) -> str:
             if parts:
                 sentiment_snippets[name] = "\n".join(parts)
 
-        signal = await analyze_geo_sentiment(brand_name, sentiment_snippets)
-        sentiment_score = signal.score
-        sentiment_label = signal.label
-        sentiment_reasoning = signal.reasoning
+        if sentiment_snippets:
+            signal = await analyze_geo_sentiment(brand_name, sentiment_snippets)
+            sentiment_score = signal.score
+            sentiment_label = signal.label
+            sentiment_reasoning = signal.reasoning
     except Exception as exc:
         sentiment_reasoning = f"Sentiment analysis unavailable: {exc}"
 
-    geo_score = visibility_score + position_score + (sentiment_score or 0)
+    if crawl_success_rate == 0.0:
+        geo_score = None
+    else:
+        geo_score = visibility_score + position_score + (sentiment_score or 0)
 
     # Persist scan (best-effort, do not block on failure)
     try:
@@ -122,22 +129,24 @@ async def scan_geo_visibility(brand_name: str, category: str) -> str:
             visibility_score=visibility_score,
             position_score=position_score,
             sentiment_score=sentiment_score,
+            crawl_success_rate=crawl_success_rate,
             platform_results_json=platform_results_json,
         )
     except Exception:
         pass  # storage persistence is best-effort
 
     # Build report
+    geo_score_display = f"{geo_score}/100" if geo_score is not None else "N/A (Crawl Failed)"
     lines = [
         f"# GEO Visibility Report: {brand_name}",
         f"**Category**: {category}\n",
-        f"## GEO Score: {geo_score}/100\n",
+        f"## GEO Score: {geo_score_display}\n",
         "| Component | Score | Max |",
         "|-----------|-------|-----|",
         f"| Visibility | {visibility_score} | 40 |",
         f"| Position | {position_score} | 30 |",
         f"| Sentiment ({sentiment_label}) | {sentiment_score if sentiment_score is not None else '—'} | 30 |",
-        f"| **Total** | **{geo_score}** | **100** |",
+        f"| **Total** | **{geo_score_display}** | **100** |",
         "",
         f"**Sentiment Analysis**: {sentiment_reasoning}",
         "",

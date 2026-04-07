@@ -26,9 +26,11 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 # Maximum retry count for the grader loop (Phase 5)
-_MAX_GRADER_RETRIES = 2
+_MAX_GRADER_RETRIES = 1  # Phase 1 optimization: reduced from 2 to 1
 # Minimum average score to pass the grader
-_GRADER_PASS_THRESHOLD = 3.8
+_GRADER_PASS_THRESHOLD = 3.5  # Phase 1 optimization: reduced from 3.8 to 3.5
+# Maximum concurrent LLM calls to prevent API rate limiting
+_MAX_CONCURRENT_LLM_CALLS = 5  # Phase 1 optimization: limit concurrent API calls
 
 
 def _json_dump(data: object) -> str:
@@ -224,9 +226,15 @@ async def _phase_reflect(facts: dict, meta: dict) -> dict:
     """Phase 1: Run per-dimension auditors in parallel, then aggregate."""
     logger.info("[Pipeline Phase 1] Reflection — %d dimension auditors in parallel", len(_DIMENSIONS))
 
-    # Run all dimension auditors in parallel
+    # Run all dimension auditors in parallel with concurrency limit
+    semaphore = asyncio.Semaphore(_MAX_CONCURRENT_LLM_CALLS)
+
+    async def _bounded_reflect(dim):
+        async with semaphore:
+            return await _reflect_one_dimension(facts, dim, meta)
+
     dim_results = await asyncio.gather(
-        *[_reflect_one_dimension(facts, dim, meta) for dim in _DIMENSIONS],
+        *[_bounded_reflect(dim) for dim in _DIMENSIONS],
         return_exceptions=True,
     )
 
@@ -378,8 +386,15 @@ async def _phase_distill(facts: dict, meta: dict, reflection: dict) -> dict:
     """Phase 2: Run per-dimension insight analysts in parallel, then cross-cut."""
     logger.info("[Pipeline Phase 2] Insight Distiller — %d dimension analysts in parallel", len(_DIMENSIONS))
 
+    # Run all dimension analysts in parallel with concurrency limit
+    semaphore = asyncio.Semaphore(_MAX_CONCURRENT_LLM_CALLS)
+
+    async def _bounded_distill(dim):
+        async with semaphore:
+            return await _distill_one_dimension(facts, dim, reflection)
+
     dim_results = await asyncio.gather(
-        *[_distill_one_dimension(facts, dim, reflection) for dim in _DIMENSIONS],
+        *[_bounded_distill(dim) for dim in _DIMENSIONS],
         return_exceptions=True,
     )
 
@@ -716,9 +731,15 @@ async def _phase_synthesize(
 
     project = facts["project"]
 
-    # Step 1: Parallel per-section summarizers
+    # Step 1: Parallel per-section summarizers with concurrency limit
     logger.info("[Pipeline Phase 6.1] Summarizing %d sections in parallel", len(section_contents))
-    summary_tasks = [_summarize_one_section(sec, content) for sec, content in section_contents]
+    semaphore = asyncio.Semaphore(_MAX_CONCURRENT_LLM_CALLS)
+
+    async def _bounded_summarize(sec, content):
+        async with semaphore:
+            return await _summarize_one_section(sec, content)
+
+    summary_tasks = [_bounded_summarize(sec, content) for sec, content in section_contents]
     summaries = await asyncio.gather(*summary_tasks, return_exceptions=True)
 
     section_summaries = []
@@ -873,10 +894,16 @@ async def run_deep_report_pipeline(
 
         return section, content
 
-    # Run all main sections in parallel
+    # Run all main sections in parallel with concurrency limit
     logger.info("[Pipeline] Writing %d main sections in parallel...", len(main_sections))
+    semaphore = asyncio.Semaphore(_MAX_CONCURRENT_LLM_CALLS)
+
+    async def _bounded_write_and_grade(section: dict) -> tuple[dict, str]:
+        async with semaphore:
+            return await _write_and_grade(section)
+
     section_results = await asyncio.gather(
-        *[_write_and_grade(sec) for sec in main_sections],
+        *[_bounded_write_and_grade(sec) for sec in main_sections],
         return_exceptions=True,
     )
 
