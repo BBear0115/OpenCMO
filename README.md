@@ -175,6 +175,16 @@ The dev app runs at `http://localhost:5173` and proxies API traffic to `:8080`.
 - [last30days-skill](https://github.com/mvanhorn/last30days-skill) by [@mvanhorn](https://github.com/mvanhorn)
 - [Agent-Reach](https://github.com/Panniantong/Agent-Reach) by [@Panniantong](https://github.com/Panniantong) — Chinese platform integration inspiration
 
+## Star History
+
+<a href="https://star-history.com/#study8677/OpenCMO&Date">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=study8677/OpenCMO&type=Date&theme=dark" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=study8677/OpenCMO&type=Date" />
+   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=study8677/OpenCMO&type=Date" width="100%" />
+ </picture>
+</a>
+
 ## Links
 
 - [LINUX DO](https://linux.do/) — Where enthusiasts gather

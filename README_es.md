@@ -180,6 +180,16 @@ La app de desarrollo corre en `http://localhost:5173` y proxya la API a `:8080`.
 - [geo-seo-claude](https://github.com/zubair-trabzada/geo-seo-claude) by [@zubair-trabzada](https://github.com/zubair-trabzada)
 - [last30days-skill](https://github.com/mvanhorn/last30days-skill) by [@mvanhorn](https://github.com/mvanhorn)
 
+## Star History
+
+<a href="https://star-history.com/#study8677/OpenCMO&Date">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=study8677/OpenCMO&type=Date&theme=dark" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=study8677/OpenCMO&type=Date" />
+   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=study8677/OpenCMO&type=Date" width="100%" />
+ </picture>
+</a>
+
 ## Enlaces
 
 - [LINUX DO](https://linux.do/) — Donde se reúnen los entusiastas de la tecnología
