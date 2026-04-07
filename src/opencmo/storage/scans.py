@@ -17,6 +17,7 @@ async def save_seo_scan(
     has_robots_txt: bool | None = None,
     has_sitemap: bool | None = None,
     has_schema_org: bool | None = None,
+    seo_health_score: float | None = None,
 ) -> int:
     """Save an SEO scan snapshot. Returns scan id."""
     db = await get_db()
@@ -25,14 +26,15 @@ async def save_seo_scan(
             """INSERT INTO seo_scans
                (project_id, url, report_json,
                 score_performance, score_lcp, score_cls, score_tbt,
-                has_robots_txt, has_sitemap, has_schema_org)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                has_robots_txt, has_sitemap, has_schema_org, seo_health_score)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (
                 project_id, url, report_json,
                 score_performance, score_lcp, score_cls, score_tbt,
                 int(has_robots_txt) if has_robots_txt is not None else None,
                 int(has_sitemap) if has_sitemap is not None else None,
                 int(has_schema_org) if has_schema_org is not None else None,
+                seo_health_score,
             ),
         )
         await db.commit()
@@ -43,11 +45,12 @@ async def save_seo_scan(
 
 async def save_geo_scan(
     project_id: int,
-    geo_score: int,
+    geo_score: int | None,
     *,
     visibility_score: int | None = None,
     position_score: int | None = None,
     sentiment_score: int | None = None,
+    crawl_success_rate: float | None = None,
     platform_results_json: str = "{}",
 ) -> int:
     """Save a GEO scan snapshot. Returns scan id."""
@@ -56,10 +59,10 @@ async def save_geo_scan(
         cursor = await db.execute(
             """INSERT INTO geo_scans
                (project_id, geo_score, visibility_score, position_score,
-                sentiment_score, platform_results_json)
-               VALUES (?, ?, ?, ?, ?, ?)""",
+                sentiment_score, crawl_success_rate, platform_results_json)
+               VALUES (?, ?, ?, ?, ?, ?, ?)""",
             (project_id, geo_score, visibility_score, position_score,
-             sentiment_score, platform_results_json),
+             sentiment_score, crawl_success_rate, platform_results_json),
         )
         await db.commit()
         return cursor.lastrowid
@@ -91,7 +94,8 @@ async def get_seo_history(project_id: int, limit: int = 20) -> list[dict]:
     try:
         cursor = await db.execute(
             """SELECT id, url, scanned_at, score_performance, score_lcp, score_cls,
-                      score_tbt, has_robots_txt, has_sitemap, has_schema_org
+                      score_tbt, has_robots_txt, has_sitemap, has_schema_org,
+                      seo_health_score
                FROM seo_scans WHERE project_id = ? ORDER BY scanned_at DESC LIMIT ?""",
             (project_id, limit),
         )
@@ -103,6 +107,7 @@ async def get_seo_history(project_id: int, limit: int = 20) -> list[dict]:
                 "score_tbt": r[6], "has_robots_txt": bool(r[7]) if r[7] is not None else None,
                 "has_sitemap": bool(r[8]) if r[8] is not None else None,
                 "has_schema_org": bool(r[9]) if r[9] is not None else None,
+                "seo_health_score": r[10],
             }
             for r in rows
         ]
@@ -116,7 +121,7 @@ async def get_geo_history(project_id: int, limit: int = 20) -> list[dict]:
     try:
         cursor = await db.execute(
             """SELECT id, scanned_at, geo_score, visibility_score, position_score,
-                      sentiment_score, platform_results_json
+                      sentiment_score, crawl_success_rate, platform_results_json
                FROM geo_scans WHERE project_id = ? ORDER BY scanned_at DESC LIMIT ?""",
             (project_id, limit),
         )
@@ -125,7 +130,8 @@ async def get_geo_history(project_id: int, limit: int = 20) -> list[dict]:
             {
                 "id": r[0], "scanned_at": r[1], "geo_score": r[2],
                 "visibility_score": r[3], "position_score": r[4],
-                "sentiment_score": r[5], "platform_results_json": r[6],
+                "sentiment_score": r[5], "crawl_success_rate": r[6],
+                "platform_results_json": r[7],
             }
             for r in rows
         ]

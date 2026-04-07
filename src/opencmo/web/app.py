@@ -43,6 +43,11 @@ async def _startup_fix_stale_expansions():
     except Exception:
         pass  # table may not exist yet on first run
 
+    # Load DB-stored API settings into os.environ so background workers can read them.
+    from opencmo.config import apply_runtime_settings
+    await apply_runtime_settings()
+    logger.info("Runtime settings loaded from DB into environment")
+
 
 @app.on_event("startup")
 async def _startup_runtime_services():

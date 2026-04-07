@@ -12,6 +12,11 @@ async def run_report_executor(ctx) -> None:
     payload = task["payload"]
     event_tasks: list[asyncio.Task] = []
 
+    # Restore BYOK keys saved at enqueue time so the worker can call the LLM.
+    from opencmo import llm
+    user_keys: dict = payload.get("__user_keys") or {}
+    llm_token = llm.set_request_keys(user_keys) if user_keys else None
+
     def on_progress(event: dict) -> None:
         event_tasks.append(
             asyncio.create_task(
@@ -35,6 +40,8 @@ async def run_report_executor(ctx) -> None:
     finally:
         if event_tasks:
             await asyncio.gather(*event_tasks, return_exceptions=True)
+        if llm_token is not None:
+            llm.reset_request_keys(llm_token)
 
     await ctx.complete(
         {
