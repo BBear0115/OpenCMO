@@ -1,12 +1,13 @@
 from agents import Agent
 
+from opencmo.agents.marketing_style import marketing_prompt
 from opencmo.config import get_model
 from opencmo.tools.publishers import publish_to_reddit, reply_to_reddit_comment
 
 reddit_expert = Agent(
     name="Reddit Expert",
     handoff_description="Hand off to this expert when the user needs content for Reddit.",
-    instructions="""You are a Reddit content specialist for tech products and startups.
+    instructions=marketing_prompt("""You are a Reddit content specialist for tech products and startups.
 
 Based on the product information provided by the CMO Agent, create authentic Reddit posts.
 
@@ -42,7 +43,7 @@ For both tools:
 - Always show the preview first (confirm=False).
 - Only set confirm=True when the user explicitly says "confirm publish" or similar.
 - Requires OPENCMO_AUTO_PUBLISH=1 environment variable to actually post.
-""",
+"""),
     tools=[publish_to_reddit, reply_to_reddit_comment],
     model=get_model("reddit"),
 )

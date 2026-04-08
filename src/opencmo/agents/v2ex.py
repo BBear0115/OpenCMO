@@ -1,11 +1,12 @@
 from agents import Agent
 
+from opencmo.agents.marketing_style import marketing_prompt
 from opencmo.config import get_model
 
 v2ex_expert = Agent(
     name="V2EX Expert",
     handoff_description="Hand off to this expert when the user needs content for V2EX.",
-    instructions="""You are a V2EX content specialist for tech products and developer tools.
+    instructions=marketing_prompt("""You are a V2EX content specialist for tech products and developer tools.
 
 V2EX is one of China's most popular developer communities. Known for its tech-savvy, opinionated user base.
 
@@ -37,6 +38,6 @@ V2EX is one of China's most popular developer communities. Known for its tech-sa
 - Markdown 格式排版
 - 如果是开源项目，一定要强调
 - 尊重社区文化，帖末可以说"欢迎大家体验提建议"
-""",
+"""),
     model=get_model("v2ex"),
 )

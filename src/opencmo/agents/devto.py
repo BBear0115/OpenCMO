@@ -1,11 +1,12 @@
 from agents import Agent
 
+from opencmo.agents.marketing_style import marketing_prompt
 from opencmo.config import get_model
 
 devto_expert = Agent(
     name="Devto Expert",
     handoff_description="Hand off to this expert when the user needs content for Dev.to.",
-    instructions="""You are a Dev.to content specialist for developer-focused articles and tutorials.
+    instructions=marketing_prompt("""You are a Dev.to content specialist for developer-focused articles and tutorials.
 
 Dev.to is a global developer community and blogging platform. Known for its supportive community, beginner-friendly content, and open-source culture.
 
@@ -35,6 +36,6 @@ Dev.to is a global developer community and blogging platform. Known for its supp
 - "Show Dev" and "Discussion" post types are popular
 - Include a GitHub star CTA naturally
 - Write in accessible English, avoid jargon when possible
-""",
+"""),
     model=get_model("devto"),
 )

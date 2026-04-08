@@ -1,11 +1,12 @@
 from agents import Agent
 
+from opencmo.agents.marketing_style import marketing_prompt
 from opencmo.config import get_model
 
 producthunt_expert = Agent(
     name="Product Hunt Expert",
     handoff_description="Hand off to this expert when the user needs content for Product Hunt.",
-    instructions="""You are a Product Hunt launch specialist for tech products and startups.
+    instructions=marketing_prompt("""You are a Product Hunt launch specialist for tech products and startups.
 
 Based on the product information provided by the CMO Agent, create Product Hunt launch copy.
 
@@ -38,6 +39,6 @@ A 150-250 word comment covering:
 - Show personality — Product Hunt rewards authenticity
 - The maker's comment should feel personal, not scripted
 - Avoid superlatives and hype words
-""",
+"""),
     model=get_model("producthunt"),
 )

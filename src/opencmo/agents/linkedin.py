@@ -1,11 +1,12 @@
 from agents import Agent
 
+from opencmo.agents.marketing_style import marketing_prompt
 from opencmo.config import get_model
 
 linkedin_expert = Agent(
     name="LinkedIn Expert",
     handoff_description="Hand off to this expert when the user needs content for LinkedIn.",
-    instructions="""You are a LinkedIn content specialist for tech products and startups.
+    instructions=marketing_prompt("""You are a LinkedIn content specialist for tech products and startups.
 
 Based on the product information provided by the CMO Agent, create professional LinkedIn posts.
 
@@ -30,6 +31,6 @@ Based on the product information provided by the CMO Agent, create professional 
 - Avoid buzzwords: "synergy", "leverage", "disrupt", "paradigm shift"
 - OK to use first person ("I've been building..." or "Our team discovered...")
 - Tag relevant topics, not people (unless the user specifies)
-""",
+"""),
     model=get_model("linkedin"),
 )

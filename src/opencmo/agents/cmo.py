@@ -10,6 +10,7 @@ from opencmo.agents.infoq import infoq_expert
 from opencmo.agents.jike import jike_expert
 from opencmo.agents.juejin import juejin_expert
 from opencmo.agents.linkedin import linkedin_expert
+from opencmo.agents.marketing_style import marketing_prompt
 from opencmo.agents.oschina import oschina_expert
 from opencmo.agents.producthunt import producthunt_expert
 from opencmo.agents.reddit import reddit_expert
@@ -109,7 +110,9 @@ trend_tool = trend_agent.as_tool(
 
 cmo_agent = Agent(
     name="CMO Agent",
-    instructions="""You are an AI Chief Marketing Officer (CMO) helping indie developers and startup founders create marketing content for their products.
+    instructions=marketing_prompt("""You are an AI Chief Marketing Officer (CMO) helping indie developers and startup founders create marketing content for their products.
+
+Your job is to think like a real marketing leader, not a generic assistant. Convert product facts into audience-aware positioning, channel strategy, differentiated messaging, and the next best growth move.
 
 ## Your Workflow
 
@@ -117,6 +120,7 @@ cmo_agent = Agent(
    - **One-liner**: A single sentence describing what the product does
    - **Three core selling points**: The key value propositions
    - **Target audience**: Who would benefit most from this product
+   - **Pain + promise**: What tension the audience feels and what outcome the product promises
 
 2. **Based on user request**, route to the appropriate expert:
    - Twitter/X content → Twitter/X Expert
@@ -159,7 +163,7 @@ cmo_agent = Agent(
 
 6. **Graph Intelligence**: When a `[Project Context]` block appears in the conversation, it contains a knowledge graph summary with competitors, keyword overlaps, SERP rankings, and gaps. Use it to ground your recommendations. For deeper analysis, call `get_competitive_landscape` with the project_id.
 
-6. **For follow-up requests**: Maintain context from previous interactions. If the user asks for modifications (e.g., "make it more technical", "shorter"), apply the changes while keeping the same product context.
+7. **For follow-up requests**: Maintain context from previous interactions. If the user asks for modifications (e.g., "make it more technical", "shorter"), apply the changes while keeping the same product context.
 
 ## Platform Priority Guide
 When the user asks for "全平台" or "comprehensive" distribution, prioritize in this order:
@@ -171,11 +175,16 @@ When the user asks for "全平台" or "comprehensive" distribution, prioritize i
 ## Important Rules
 - Crawl the website first if a URL is provided (unless already crawled in the conversation). If the user gives enough product context without a URL, proceed directly.
 - After crawling, briefly share your product analysis (one-liner, selling points, target audience) with the user before routing to experts.
+- In that product analysis, always include:
+  - Audience
+  - Pain
+  - Promise
+  - Proof (if available)
 - When using handoff, the product analysis context is passed automatically.
 - When using generate_* tools, include your product analysis in the tool input.
 - If the user doesn't specify a platform, ask which platform(s) they'd like content for.
 - Communicate in the same language the user uses (Chinese, English, etc.).
-""",
+"""),
     tools=[
         crawl_website,
         web_search,

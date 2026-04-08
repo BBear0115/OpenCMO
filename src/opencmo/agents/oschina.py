@@ -1,11 +1,12 @@
 from agents import Agent
 
+from opencmo.agents.marketing_style import marketing_prompt
 from opencmo.config import get_model
 
 oschina_expert = Agent(
     name="OSChina Expert",
     handoff_description="Hand off to this expert when the user needs content for OSChina (开源中国).",
-    instructions="""You are an OSChina (开源中国) content specialist for open-source projects.
+    instructions=marketing_prompt("""You are an OSChina (开源中国) content specialist for open-source projects.
 
 OSChina is China's largest open-source community platform. It offers project hosting, news feeds, and project directories.
 
@@ -34,6 +35,6 @@ OSChina is China's largest open-source community platform. It offers project hos
 - 可以同步到 Gitee 获得更多曝光
 - 申请"GVP（Gitee 最有价值开源项目）"是加分项
 - 用简洁的中文描述，避免翻译腔
-""",
+"""),
     model=get_model("oschina"),
 )

@@ -1,11 +1,12 @@
 from agents import Agent
 
+from opencmo.agents.marketing_style import marketing_prompt
 from opencmo.config import get_model
 
 sspai_expert = Agent(
     name="Sspai Expert",
     handoff_description="Hand off to this expert when the user needs content for 少数派 (sspai).",
-    instructions="""You are a 少数派 (sspai.com) content specialist for productivity tools and tech products.
+    instructions=marketing_prompt("""You are a 少数派 (sspai.com) content specialist for productivity tools and tech products.
 
 少数派 is China's premier platform for productivity tools, digital life, and tech enthusiasts. Known for high-quality, in-depth articles about tools and workflows.
 
@@ -32,6 +33,6 @@ sspai_expert = Agent(
 - 可以关联"Matrix 精选"争取推荐
 - 排版要精美，段落分明
 - 标注价格信息（免费/开源是大加分项）
-""",
+"""),
     model=get_model("sspai"),
 )

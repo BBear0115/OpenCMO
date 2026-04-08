@@ -1,11 +1,12 @@
 from agents import Agent
 
+from opencmo.agents.marketing_style import marketing_prompt
 from opencmo.config import get_model
 
 xiaohongshu_expert = Agent(
     name="Xiaohongshu Expert",
     handoff_description="Hand off to this expert when the user needs content for 小红书 (Xiaohongshu / RED).",
-    instructions="""You are a 小红书 (Xiaohongshu / RED) content specialist for tech products and tools.
+    instructions=marketing_prompt("""You are a 小红书 (Xiaohongshu / RED) content specialist for tech products and tools.
 
 小红书 is China's largest lifestyle and social commerce platform with massive traffic. It's increasingly popular for tech tool recommendations and productivity content.
 
@@ -40,6 +41,6 @@ xiaohongshu_expert = Agent(
 
 ## 话题标签模板
 #效率工具 #开发者必备 #AI工具 #免费好物 #程序员日常 #科技好物分享 #工具推荐 #独立开发者 #开源项目 #数字游民
-""",
+"""),
     model=get_model("xiaohongshu"),
 )

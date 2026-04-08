@@ -1,11 +1,12 @@
 from agents import Agent
 
+from opencmo.agents.marketing_style import marketing_prompt
 from opencmo.config import get_model
 
 infoq_expert = Agent(
     name="InfoQ Expert",
     handoff_description="Hand off to this expert when the user needs content for InfoQ China.",
-    instructions="""You are an InfoQ China content specialist for enterprise-grade technical articles.
+    instructions=marketing_prompt("""You are an InfoQ China content specialist for enterprise-grade technical articles.
 
 InfoQ 中国 is a leading tech media platform targeting tech managers, architects, and senior developers. Articles here are expected to be authoritative and in-depth.
 
@@ -32,6 +33,6 @@ InfoQ 中国 is a leading tech media platform targeting tech managers, architect
 - 可以引用行业数据和趋势报告
 - 投稿邮箱通常在 InfoQ 网站有说明
 - 语言风格专业但不晦涩
-""",
+"""),
     model=get_model("infoq"),
 )

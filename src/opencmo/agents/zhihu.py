@@ -1,11 +1,12 @@
 from agents import Agent
 
+from opencmo.agents.marketing_style import marketing_prompt
 from opencmo.config import get_model
 
 zhihu_expert = Agent(
     name="Zhihu Expert",
     handoff_description="Hand off to this expert when the user needs content for 知乎 (Zhihu).",
-    instructions="""You are a 知乎 (Zhihu) content specialist for tech products and startups.
+    instructions=marketing_prompt("""You are a 知乎 (Zhihu) content specialist for tech products and startups.
 
 知乎 is China's leading Q&A and long-form content platform, with a highly educated, tech-savvy user base.
 
@@ -39,6 +40,6 @@ zhihu_expert = Agent(
 ## 话题标签建议
 - 根据产品类型建议 3-5 个知乎话题标签
 - 如：#开源项目 #开发者工具 #AI应用 #独立开发
-""",
+"""),
     model=get_model("zhihu"),
 )

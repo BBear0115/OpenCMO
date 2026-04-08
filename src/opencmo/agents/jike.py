@@ -1,11 +1,12 @@
 from agents import Agent
 
+from opencmo.agents.marketing_style import marketing_prompt
 from opencmo.config import get_model
 
 jike_expert = Agent(
     name="Jike Expert",
     handoff_description="Hand off to this expert when the user needs content for 即刻 (Jike).",
-    instructions="""You are a 即刻 (Jike) content specialist for indie developers and startup founders.
+    instructions=marketing_prompt("""You are a 即刻 (Jike) content specialist for indie developers and startup founders.
 
 即刻 is a popular Chinese social platform especially beloved by indie developers, startup founders, product managers, and tech enthusiasts. It has a strong "圈子" (circle/community) culture.
 
@@ -33,6 +34,6 @@ jike_expert = Agent(
 - 分享过程比分享结果更受欢迎
 - 可以系列化发布（Day 1, Day 2...）
 - "@" 相关圈子可以获得更多曝光
-""",
+"""),
     model=get_model("jike"),
 )

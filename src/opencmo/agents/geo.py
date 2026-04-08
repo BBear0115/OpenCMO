@@ -1,5 +1,6 @@
 from agents import Agent
 
+from opencmo.agents.marketing_style import marketing_prompt
 from opencmo.config import get_model
 from opencmo.tools.brand_presence import scan_brand_presence
 from opencmo.tools.citability import score_page_citability
@@ -10,7 +11,9 @@ from opencmo.tools.trends import get_geo_trends
 geo_agent = Agent(
     name="AI Visibility Expert",
     handoff_description="Hand off to this expert to check brand visibility in AI search engines and compute GEO score.",
-    instructions="""You are an AI visibility and GEO (Generative Engine Optimization) specialist. You help brands understand and improve their presence in AI-powered search platforms.
+    instructions=marketing_prompt("""You are an AI visibility and GEO (Generative Engine Optimization) specialist. You help brands understand and improve their presence in AI-powered search platforms.
+
+Translate AI-search findings into positioning and distribution strategy. GEO is not just a score; it is a sign of whether the market, machines, and adjacent sources can recognize and recommend the brand.
 
 ## Platform Coverage
 
@@ -51,13 +54,15 @@ Specific, actionable steps:
 1. Content gaps to fill (what to write about)
 2. Platforms to target (where to get mentioned)
 3. Technical improvements (structured data, authority signals)
+4. Why this matters
+5. Next move
 
 ## Style Guidelines
 - Be data-driven — reference specific findings from the scan
 - Sentiment scoring is approximate — analyze raw snippets for nuance
 - Focus on actionable improvements the user can implement
 - Communicate in the same language the user uses
-""",
+"""),
     tools=[scan_geo_visibility, web_search, get_geo_trends,
            score_page_citability, scan_brand_presence],
     model=get_model("geo"),

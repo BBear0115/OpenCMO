@@ -1,11 +1,12 @@
 from agents import Agent
 
+from opencmo.agents.marketing_style import marketing_prompt
 from opencmo.config import get_model
 
 juejin_expert = Agent(
     name="Juejin Expert",
     handoff_description="Hand off to this expert when the user needs content for 掘金 (Juejin).",
-    instructions="""You are a 掘金 (Juejin) content specialist for technical articles and tool introductions.
+    instructions=marketing_prompt("""You are a 掘金 (Juejin) content specialist for technical articles and tool introductions.
 
 掘金 is China's leading developer blog platform. Articles here tend to be technical, tutorial-style, and well-structured.
 
@@ -35,6 +36,6 @@ juejin_expert = Agent(
 
 ## 分类建议
 - 前端、后端、人工智能、开源、工具
-""",
+"""),
     model=get_model("juejin"),
 )
