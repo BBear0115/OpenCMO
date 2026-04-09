@@ -392,25 +392,18 @@ class ChatGPTProvider(GeoProvider):
     ) -> GeoProviderResult:
         snippet_chars = _get_snippet_chars()
         try:
-            from openai import AsyncOpenAI
-
             from opencmo import llm
 
-            client = AsyncOpenAI(
-                api_key=llm.get_key("OPENAI_API_KEY"),
-                base_url=llm.get_key("OPENAI_BASE_URL") or None,
-            )
-            response = await client.chat.completions.create(
-                model="gpt-4o-mini",
+            content = await llm.chat_completion_messages(
                 messages=[
                     {
                         "role": "user",
                         "content": query,
                     }
                 ],
+                model_override="gpt-4o-mini",
                 max_tokens=1024,
             )
-            content = response.choices[0].message.content or ""
             mentioned, mention_count, position_pct = _analyze_text(
                 content, brand_name
             )
@@ -583,20 +576,15 @@ class _OpenAICompatibleProvider(GeoProvider):
     ) -> GeoProviderResult:
         snippet_chars = _get_snippet_chars()
         try:
-            from openai import AsyncOpenAI
-
             from opencmo import llm
 
-            client = AsyncOpenAI(
-                api_key=llm.get_key(self.api_key_env),
-                base_url=self.base_url,
-            )
-            response = await client.chat.completions.create(
-                model=self.model_name,
+            content = await llm.chat_completion_messages(
                 messages=[{"role": "user", "content": query}],
+                model_override=self.model_name,
                 max_tokens=1024,
+                api_key_override=llm.get_key(self.api_key_env),
+                base_url_override=self.base_url,
             )
-            content = response.choices[0].message.content or ""
             mentioned, mention_count, position_pct = _analyze_text(
                 content, brand_name
             )

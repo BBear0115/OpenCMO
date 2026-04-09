@@ -279,12 +279,22 @@ async def chat_completion_messages(
     timeout: float | None = None,
     model_override: str | None = None,
     max_tokens: int | None = None,
+    api_key_override: str | None = None,
+    base_url_override: str | None = None,
 ) -> str:
     """LLM chat completion with custom message list.
 
     For cases where the caller needs more than system+user (e.g. multi-turn).
     """
-    client = await get_openai_client()
+    if api_key_override is not None or base_url_override is not None:
+        from openai import AsyncOpenAI
+
+        client = AsyncOpenAI(
+            api_key=api_key_override if api_key_override is not None else await get_key_async("OPENAI_API_KEY"),
+            base_url=base_url_override if base_url_override is not None else await get_key_async("OPENAI_BASE_URL"),
+        )
+    else:
+        client = await get_openai_client()
     model = model_override or await get_model()
 
     kwargs: dict[str, Any] = {
