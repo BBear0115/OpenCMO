@@ -208,3 +208,27 @@ class TestChatCompletion:
         assert call_kwargs.kwargs["model"] == "gpt-4o"
         assert call_kwargs.kwargs["messages"][0]["content"] == "sys"
         assert call_kwargs.kwargs["messages"][1]["content"] == "usr"
+
+
+class TestRetryHints:
+    def test_extract_retry_delay_seconds_reads_provider_hints(self):
+        assert llm._extract_retry_delay_seconds(RuntimeError("reset_seconds': 14945")) == 14945
+        assert llm._extract_retry_delay_seconds(RuntimeError("quotaResetDelay': '1.241962846s'")) == 1.241962846
+        assert llm._extract_retry_delay_seconds(RuntimeError("retryDelay': '2.5s'")) == 2.5
+
+    @pytest.mark.asyncio
+    async def test_call_with_retry_prefers_provider_delay_hint(self):
+        attempts = {"count": 0}
+
+        async def flaky():
+            attempts["count"] += 1
+            if attempts["count"] < 2:
+                raise RuntimeError("429 model_cooldown reset_seconds': 42")
+            return "ok"
+
+        sleep_mock = AsyncMock()
+        with patch("asyncio.sleep", sleep_mock):
+            result = await llm._call_with_retry(flaky)
+
+        assert result == "ok"
+        sleep_mock.assert_awaited_once_with(42)

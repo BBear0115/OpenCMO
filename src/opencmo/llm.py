@@ -34,6 +34,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import os
+import re
 from contextvars import ContextVar, Token
 from typing import Any
 
@@ -197,8 +198,27 @@ async def get_model(purpose: str = "default") -> str:
 # ---------------------------------------------------------------------------
 
 
-_MAX_RETRIES = 3
-_RETRY_BACKOFF = [2, 5, 10]  # seconds
+_MAX_RETRIES = 8
+_RETRY_BACKOFF = [2, 5, 10, 20, 30, 60, 120, 300]  # seconds
+
+
+def _extract_retry_delay_seconds(exc: Exception) -> float | None:
+    """Best-effort parse of provider retry hints from exception text."""
+    text = str(exc)
+    patterns = [
+        r"reset_seconds['\"]?\s*:\s*(\d+)",
+        r"Retry-After['\"]?\s*:\s*(\d+)",
+        r"retryDelay['\"]?\s*:\s*['\"]?([0-9.]+)s['\"]?",
+        r"quotaResetDelay['\"]?\s*:\s*['\"]?([0-9.]+)s['\"]?",
+    ]
+    for pattern in patterns:
+        match = re.search(pattern, text, flags=re.IGNORECASE)
+        if match:
+            try:
+                return float(match.group(1))
+            except ValueError:
+                return None
+    return None
 
 
 async def _call_with_retry(coro_factory, *, timeout: float | None = None) -> Any:
@@ -213,7 +233,11 @@ async def _call_with_retry(coro_factory, *, timeout: float | None = None) -> Any
             return resp
         except Exception as exc:
             if attempt < _MAX_RETRIES - 1:
-                wait = _RETRY_BACKOFF[attempt]
+                provider_wait = _extract_retry_delay_seconds(exc)
+                if provider_wait is not None:
+                    wait = provider_wait
+                else:
+                    wait = _RETRY_BACKOFF[min(attempt, len(_RETRY_BACKOFF) - 1)]
                 logger.warning("LLM call failed (attempt %d/%d): %s — retrying in %ds",
                                attempt + 1, _MAX_RETRIES, exc, wait)
                 await asyncio.sleep(wait)

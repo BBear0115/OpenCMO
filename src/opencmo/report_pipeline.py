@@ -30,7 +30,7 @@ _MAX_GRADER_RETRIES = 1  # Phase 1 optimization: reduced from 2 to 1
 # Minimum average score to pass the grader
 _GRADER_PASS_THRESHOLD = 3.8  # Phase 1 optimization: raised from 3.5 to 3.8 to reduce low-quality retries
 # Maximum concurrent LLM calls to prevent API rate limiting
-_MAX_CONCURRENT_LLM_CALLS = 20  # Phase 1 optimization: increased from 5 to 20 for better throughput
+_MAX_CONCURRENT_LLM_CALLS = 3  # conservative default for unstable local gateways
 
 
 def _json_dump(data: object) -> str:

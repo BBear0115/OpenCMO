@@ -145,7 +145,10 @@ def _simple_markdown_to_html(markdown_text: str) -> str:
     return "\n".join(html_lines)
 
 
-async def _generate_llm_markdown(system_prompt: str, user_prompt: str) -> str:
+_EMPTY_REPORT_FALLBACK_MODEL = "gemini-3-flash"
+
+
+async def _generate_llm_markdown(system_prompt: str, user_prompt: str, *, model_override: str | None = None) -> str:
     """Generate markdown with the configured LLM."""
     from opencmo import llm
 
@@ -158,7 +161,32 @@ async def _generate_llm_markdown(system_prompt: str, user_prompt: str) -> str:
         system_prompt, user_prompt,
         temperature=0.5,
         timeout=timeout,
+        model_override=model_override,
     )
+
+
+async def _generate_llm_markdown_with_empty_retry(
+    system_prompt: str,
+    user_prompt: str,
+    *,
+    primary_model: str,
+) -> tuple[str, str | None]:
+    """Generate markdown and retry with a fallback model when the content is empty."""
+    content = await _generate_llm_markdown(system_prompt, user_prompt, model_override=primary_model)
+    if content.strip():
+        return content, None
+
+    if primary_model == _EMPTY_REPORT_FALLBACK_MODEL:
+        raise RuntimeError("LLM returned empty report content.")
+
+    fallback_content = await _generate_llm_markdown(
+        system_prompt,
+        user_prompt,
+        model_override=_EMPTY_REPORT_FALLBACK_MODEL,
+    )
+    if fallback_content.strip():
+        return fallback_content, _EMPTY_REPORT_FALLBACK_MODEL
+    raise RuntimeError("LLM returned empty report content.")
 
 
 async def _get_runtime_setting(key: str, default: str | None = None) -> str | None:
@@ -738,9 +766,11 @@ async def _generate_report_record(
     on_progress=None,
 ) -> dict:
     used_pipeline = False
+    used_fallback = False
     llm_error = None
     pipeline_error = None
     model = await _get_report_model()
+    report_model = model
     content = ""
 
     # Human reports use the deep multi-agent pipeline;
@@ -765,9 +795,14 @@ async def _generate_report_record(
             # Fallback to single-call LLM
             try:
                 system_prompt, user_prompt = _prompts(kind, audience, facts, meta, previous_exists)
-                content = await _generate_llm_markdown(system_prompt, user_prompt)
-                if not content.strip():
-                    raise RuntimeError("LLM returned empty report content.")
+                content, fallback_model = await _generate_llm_markdown_with_empty_retry(
+                    system_prompt,
+                    user_prompt,
+                    primary_model=model,
+                )
+                used_fallback = True
+                if fallback_model:
+                    report_model = fallback_model
             except Exception as exc:
                 llm_error = str(exc) or exc.__class__.__name__
                 logger.exception("Report generation failed for %s/%s", kind, audience)
@@ -782,9 +817,14 @@ async def _generate_report_record(
         # Agent brief — single-call path
         system_prompt, user_prompt = _prompts(kind, audience, facts, meta, previous_exists)
         try:
-            content = await _generate_llm_markdown(system_prompt, user_prompt)
-            if not content.strip():
-                raise RuntimeError("LLM returned empty report content.")
+            content, fallback_model = await _generate_llm_markdown_with_empty_retry(
+                system_prompt,
+                user_prompt,
+                primary_model=model,
+            )
+            used_fallback = fallback_model is not None
+            if fallback_model:
+                report_model = fallback_model
         except Exception as exc:
             llm_error = str(exc) or exc.__class__.__name__
             logger.exception("Report generation failed for %s/%s", kind, audience)
@@ -797,9 +837,9 @@ async def _generate_report_record(
 
     record_meta = {
         **meta,
-        "used_fallback": False,
+        "used_fallback": used_fallback,
         "used_pipeline": used_pipeline,
-        "model": model,
+        "model": report_model,
     }
     if llm_error:
         record_meta["llm_error"] = llm_error
