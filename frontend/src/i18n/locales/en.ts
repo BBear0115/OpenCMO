@@ -158,6 +158,12 @@ export const en = {
   "runHistory.jobType.geo": "GEO Only",
   "runHistory.jobType.community": "Community Only",
   "runHistory.jobType.serp": "SERP Only",
+  "runHistory.recentCount": "{{count}} recent scans",
+  "siteFooter.description": "AI CMO for SEO, GEO, SERP, community intelligence, and growth execution.",
+  "siteFooter.sourceCode": "Source Code",
+  "siteFooter.githubRepo": "OpenCMO on GitHub",
+  "siteFooter.friendLinks": "Friend Links",
+  "siteFooter.okara": "Okara AI",
 
   // Keywords
   "keywords.addPlaceholder": "Add keyword...",

@@ -157,6 +157,12 @@ export const ja: Record<TranslationKey, string> = {
   "runHistory.jobType.geo": "GEOのみ",
   "runHistory.jobType.community": "コミュニティのみ",
   "runHistory.jobType.serp": "SERPのみ",
+  "runHistory.recentCount": "最近のスキャン {{count}} 件",
+  "siteFooter.description": "SEO、GEO、SERP、コミュニティインテリジェンス、成長実行のための AI CMO。",
+  "siteFooter.sourceCode": "ソースコード",
+  "siteFooter.githubRepo": "OpenCMO GitHub リポジトリ",
+  "siteFooter.friendLinks": "友好リンク",
+  "siteFooter.okara": "Okara AI",
 
   // Keywords
   "keywords.addPlaceholder": "キーワードを追加...",

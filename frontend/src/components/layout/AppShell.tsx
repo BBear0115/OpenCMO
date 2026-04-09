@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Sidebar } from "./Sidebar";
+import { SiteFooter } from "./SiteFooter";
 import { TopBar } from "./TopBar";
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -26,8 +27,11 @@ export function AppShell({ children }: { children: ReactNode }) {
       <div className="flex flex-1 flex-col overflow-hidden lg:pl-0 pl-0 relative">
         <TopBar onMenuClick={() => setSidebarOpen(true)} />
         <main className="flex-1 overflow-y-auto px-4 pb-8 lg:px-8">
-          <div className="mx-auto max-w-5xl h-full w-full">
-            {children}
+          <div className="mx-auto flex min-h-full w-full max-w-5xl flex-col">
+            <div className="flex-1">
+              {children}
+            </div>
+            <SiteFooter />
           </div>
         </main>
       </div>

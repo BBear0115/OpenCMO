@@ -160,6 +160,12 @@ export const zh: Record<TranslationKey, string> = {
   "runHistory.jobType.geo": "仅 GEO",
   "runHistory.jobType.community": "仅社区",
   "runHistory.jobType.serp": "仅 SERP",
+  "runHistory.recentCount": "最近 {{count}} 次扫描",
+  "siteFooter.description": "面向 SEO、GEO、SERP、社区情报与增长执行的 AI CMO。",
+  "siteFooter.sourceCode": "源码",
+  "siteFooter.githubRepo": "OpenCMO GitHub 仓库",
+  "siteFooter.friendLinks": "友情链接",
+  "siteFooter.okara": "Okara AI",
 
   // Keywords
   "keywords.addPlaceholder": "添加关键词...",

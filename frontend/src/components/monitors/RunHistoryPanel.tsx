@@ -1,9 +1,10 @@
 import { useMemo, useState } from "react";
-import { ChevronDown, Loader2, TriangleAlert, Lightbulb } from "lucide-react";
+import { ChevronDown, History, Loader2, TriangleAlert, Lightbulb } from "lucide-react";
 import { useMonitorRuns } from "../../hooks/useMonitors";
 import { useI18n, type TranslationKey } from "../../i18n";
 import { RunResultsDialog } from "./RunResultsDialog";
 import type { MonitorRun } from "../../types";
+import { utcDate } from "../../utils/time";
 
 const STATUS_STYLE: Record<MonitorRun["status"], string> = {
   pending: "bg-amber-50 text-amber-700 ring-amber-200/80",
@@ -18,8 +19,6 @@ const STATUS_LABELS: Record<MonitorRun["status"], TranslationKey> = {
   completed: "runHistory.status.completed",
   failed: "runHistory.status.failed",
 };
-
-import { utcDate } from "../../utils/time";
 
 function formatTimeAgo(value: string, locale: string) {
   const timestamp = utcDate(value).getTime();
@@ -87,25 +86,46 @@ export function RunHistoryPanel({
     [runs],
   );
 
+  const summaryText = isLoading
+    ? t("runHistory.loading")
+    : recentRuns.length === 0
+      ? t("runHistory.empty")
+      : t("runHistory.recentCount", { count: recentRuns.length });
+
   return (
     <>
-      <div className="mt-4 rounded-2xl border border-white/60 bg-[linear-gradient(180deg,rgba(255,255,255,0.82),rgba(248,250,252,0.92))] p-3 shadow-[0_12px_30px_rgba(15,23,42,0.06)] backdrop-blur-xl ring-1 ring-slate-950/5">
+      <div className="mt-4">
         <button
           type="button"
           onClick={() => setOpen((current) => !current)}
-          className="flex w-full items-center justify-between gap-3 text-left"
+          className="flex w-full items-center justify-between gap-3 rounded-2xl border border-slate-200/80 bg-slate-50/90 px-4 py-3 text-left shadow-sm ring-1 ring-slate-950/5 transition-all hover:border-indigo-200 hover:bg-indigo-50/80 hover:shadow-md"
         >
-          <span className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
-            {t("runHistory.title")}
-          </span>
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white text-indigo-600 ring-1 ring-slate-200">
+              <History size={18} />
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-slate-900">
+                {t("runHistory.title")}
+              </p>
+              <p className="truncate text-xs text-slate-500">
+                {summaryText}
+              </p>
+            </div>
+          </div>
+          {recentRuns.length > 0 && !isLoading ? (
+            <span className="hidden shrink-0 rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-600 ring-1 ring-slate-200 sm:inline-flex">
+              {recentRuns.length}
+            </span>
+          ) : null}
           <ChevronDown
-            size={16}
-            className={`text-slate-400 transition-transform ${open ? "rotate-180" : ""}`}
+            size={18}
+            className={`shrink-0 text-slate-400 transition-transform ${open ? "rotate-180" : ""}`}
           />
         </button>
 
         {open && (
-          <div className="mt-3 space-y-2">
+          <div className="mt-3 space-y-2 rounded-2xl border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.82),rgba(248,250,252,0.92))] p-3 shadow-[0_12px_30px_rgba(15,23,42,0.06)] backdrop-blur-xl ring-1 ring-slate-950/5">
             {isLoading ? (
               <div className="flex items-center gap-2 rounded-xl bg-white/70 px-3 py-3 text-xs text-slate-500 ring-1 ring-slate-200/70">
                 <Loader2 size={14} className="animate-spin" />
