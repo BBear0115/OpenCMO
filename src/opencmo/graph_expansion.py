@@ -67,36 +67,14 @@ async def _web_search_direct(query: str) -> str:
 
 
 # ---------------------------------------------------------------------------
-# LLM helper (reuses service._llm_call pattern)
+# LLM helper
 # ---------------------------------------------------------------------------
 
 
-def _get_llm_client():
-    """Get LLM client — delegates to centralized llm module.
-
-    Note: This is sync because it's called in contexts where we need
-    the client immediately. The client is created with ContextVar-aware keys.
-    """
-    from openai import AsyncOpenAI
-
+async def _llm_call(messages: list[dict]) -> str:
     from opencmo import llm
 
-    return AsyncOpenAI(
-        api_key=llm.get_key("OPENAI_API_KEY"),
-        base_url=llm.get_key("OPENAI_BASE_URL") or None,
-    )
-
-
-def _get_model() -> str:
-    from opencmo import llm
-    return llm.get_key("OPENCMO_MODEL_DEFAULT", "gpt-4o")
-
-
-async def _llm_call(client, model: str, messages: list[dict]) -> str:
-    resp = await client.chat.completions.create(
-        model=model, messages=messages, temperature=0.7,
-    )
-    return resp.choices[0].message.content.strip()
+    return await llm.chat_completion_messages(messages=messages, temperature=0.7)
 
 
 # ---------------------------------------------------------------------------
@@ -120,11 +98,8 @@ async def _expand_competitor(
     if not search_text:
         return 0
 
-    client = _get_llm_client()
-    model = _get_model()
-
     try:
-        result_text = await _llm_call(client, model, [
+        result_text = await _llm_call([
             {
                 "role": "system",
                 "content": (
@@ -230,11 +205,8 @@ async def _expand_keyword(
             logger.debug("SERP check failed for %s", keyword_text, exc_info=True)
 
     # Generate related keywords via LLM
-    client = _get_llm_client()
-    model = _get_model()
-
     try:
-        result_text = await _llm_call(client, model, [
+        result_text = await _llm_call([
             {
                 "role": "system",
                 "content": (

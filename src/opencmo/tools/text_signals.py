@@ -17,23 +17,6 @@ class SentimentSignal:
     label: str  # "positive", "neutral", "negative", "not_mentioned", "unavailable"
     reasoning: str  # brief explanation
 
-
-def _get_llm_client():
-    from openai import AsyncOpenAI
-
-    from opencmo import llm
-
-    return AsyncOpenAI(
-        api_key=llm.get_key("OPENAI_API_KEY"),
-        base_url=llm.get_key("OPENAI_BASE_URL") or None,
-    )
-
-
-def _get_model() -> str:
-    from opencmo import llm
-    return llm.get_key("OPENCMO_MODEL_DEFAULT", "gpt-4o")
-
-
 async def analyze_geo_sentiment(
     brand_name: str,
     snippets: dict[str, str],
@@ -67,11 +50,9 @@ async def analyze_geo_sentiment(
     context = "\n\n".join(combined)
 
     try:
-        client = _get_llm_client()
-        model = _get_model()
+        from opencmo import llm
 
-        resp = await client.chat.completions.create(
-            model=model,
+        text = await llm.chat_completion_messages(
             messages=[
                 {
                     "role": "system",
@@ -97,9 +78,9 @@ async def analyze_geo_sentiment(
                 },
             ],
             temperature=0.3,
+            model_override=llm.get_key("OPENCMO_MODEL_DEFAULT", "gpt-4o"),
         )
-
-        text = resp.choices[0].message.content.strip()
+        text = text.strip()
         if text.startswith("```"):
             text = text.split("\n", 1)[-1]
         if text.endswith("```"):
