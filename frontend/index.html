@@ -38,6 +38,14 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+      document.documentElement.classList.add("js");
+    </script>
+    <style>
+      .js #static-site-copy {
+        display: none;
+      }
+    </style>
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -65,6 +73,34 @@
     </script>
   </head>
   <body class="bg-zinc-50 text-zinc-900 font-sans antialiased selection:bg-indigo-100 selection:text-indigo-900">
+    <main id="static-site-copy">
+      <header>
+        <p>OpenCMO</p>
+        <h1>Open-source AI CMO for SEO, GEO, SERP, and community monitoring</h1>
+        <p>
+          OpenCMO helps teams understand how their brand is discovered by Google,
+          AI assistants, and public communities, then turns those signals into
+          concrete growth actions.
+        </p>
+      </header>
+      <section>
+        <h2>Core capabilities</h2>
+        <ul>
+          <li>Technical SEO and performance auditing</li>
+          <li>GEO visibility tracking across AI assistants</li>
+          <li>SERP keyword monitoring</li>
+          <li>Community discussion discovery and review</li>
+          <li>Growth recommendations and execution workflows</li>
+        </ul>
+      </section>
+      <section>
+        <h2>Machine-readable access</h2>
+        <p>
+          Search engines and AI crawlers can use the canonical homepage, robots.txt,
+          sitemap.xml, and llms.txt to understand the public product surface.
+        </p>
+      </section>
+    </main>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
