@@ -1,4 +1,4 @@
-import { ArrowRight, Bot, Radar, Search, Users } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Bot, CheckCircle2, FileText, Radar, Search, ShieldCheck, Sparkles, Users } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link } from "react-router";
 import { PublicSiteHeader } from "../components/marketing/PublicSiteHeader";
@@ -6,8 +6,12 @@ import { SectionReveal } from "../components/marketing/SectionReveal";
 import { SiteFooter } from "../components/layout/SiteFooter";
 import {
   BLOG_ARTICLES,
+  BLOG_DECISION_ARTICLE_SLUGS,
   LANDING_FAQS,
+  LANDING_CAPABILITY_KEYS,
+  LANDING_CRAWLER_BULLETS,
   LANDING_PLATFORM_ITEMS,
+  LANDING_PROOF_ITEMS,
   LANDING_WORKFLOW_STEPS,
   PUBLIC_HOME_NAV,
 } from "../content/marketing";
@@ -15,26 +19,16 @@ import { useSiteStats } from "../hooks/useSiteStats";
 import { usePageMetadata } from "../hooks/usePageMetadata";
 import { useI18n } from "../i18n";
 
-const HERO_ICONS = [Search, Bot, Users];
-const HERO_SIGNAL_KEYS = [
-  "landing.boardStream1",
-  "landing.boardStream2",
-  "landing.boardStream3",
-] as const;
-const PIPELINE_STAGE_KEYS = [
-  "landing.stage1",
-  "landing.stage2",
-  "landing.stage3",
-  "landing.stage4",
-  "landing.stage5",
-  "landing.stage6",
-] as const;
+const HERO_CAPABILITY_ICONS = [Search, Bot, Users];
+const PROOF_ICONS = [Sparkles, ShieldCheck, FileText];
 
 export function LandingPage() {
   const { t, locale } = useI18n();
   const { data: siteStats } = useSiteStats();
   const numberFormatter = new Intl.NumberFormat(locale);
-  const featuredBlogArticle = BLOG_ARTICLES[0]!;
+  const featuredBlogArticle =
+    BLOG_ARTICLES.find((article) => article.slug === BLOG_DECISION_ARTICLE_SLUGS[0]) ?? BLOG_ARTICLES[0]!;
+  const blogPreviewArticles = BLOG_ARTICLES.filter((article) => article.slug !== featuredBlogArticle.slug).slice(0, 2);
 
   usePageMetadata({
     title: t("landing.metaTitle"),
@@ -53,17 +47,20 @@ export function LandingPage() {
           <div className="absolute bottom-6 right-[10%] h-72 w-72 rounded-full bg-[#86c8bc]/16 blur-3xl animate-float-slower" />
           <div className="absolute inset-x-0 bottom-0 h-px bg-white/12" />
 
-          <div className="relative mx-auto grid min-h-[calc(100svh-80px)] max-w-7xl gap-10 px-4 py-14 lg:grid-cols-[minmax(0,1.05fr)_minmax(360px,0.95fr)] lg:px-8 lg:py-20">
+          <div className="relative mx-auto grid min-h-[calc(100svh-80px)] max-w-7xl gap-10 px-4 py-14 lg:grid-cols-[minmax(0,1.02fr)_minmax(380px,0.98fr)] lg:px-8 lg:py-20">
             <motion.div
               initial={{ opacity: 0, y: 32 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.75, ease: [0.22, 1, 0.36, 1] }}
-              className="flex flex-col justify-center"
+              className="flex flex-col justify-start pt-6 lg:pt-14"
             >
               <p className="inline-flex w-fit rounded-full border border-white/14 bg-white/8 px-4 py-2 text-xs font-semibold uppercase tracking-[0.28em] text-[#f3dcc9]">
                 {t("landing.heroEyebrow")}
               </p>
-              <h1 className="font-display mt-6 max-w-5xl text-4xl font-semibold tracking-tight sm:text-5xl lg:text-[4.5rem] lg:leading-[0.98]">
+              <p className="mt-5 text-sm font-medium tracking-[0.08em] text-white/56">
+                {t("landing.badge")}
+              </p>
+              <h1 className="font-display mt-6 max-w-5xl text-4xl font-semibold tracking-tight sm:text-5xl lg:text-[3.25rem] lg:leading-[1.04] xl:text-[3.75rem] xl:leading-[1.01]">
                 {t("landing.heroTitle")}
               </h1>
               <p className="mt-6 max-w-3xl text-lg leading-8 text-white/72 sm:text-xl">
@@ -84,33 +81,32 @@ export function LandingPage() {
                 >
                   {t("landing.blogCta")}
                 </Link>
+                <a
+                  href="https://github.com/study8677/OpenCMO"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-2 rounded-full border border-white/14 bg-transparent px-5 py-3 text-sm font-semibold text-white/78 transition-colors hover:border-white/28 hover:bg-white/10 hover:text-white"
+                >
+                  {t("landing.secondaryCta")}
+                  <ArrowUpRight size={16} />
+                </a>
               </div>
 
               <div className="mt-10 grid gap-3 sm:grid-cols-3">
-                <div className="rounded-[1.75rem] border border-white/10 bg-white/7 p-5">
-                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-white/44">
-                    {t("siteFooter.totalVisits")}
-                  </p>
-                  <p className="mt-3 font-display text-3xl font-semibold tracking-tight text-white">
-                    {numberFormatter.format(siteStats?.total_visits ?? 0)}
-                  </p>
-                </div>
-                <div className="rounded-[1.75rem] border border-white/10 bg-white/7 p-5">
-                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-white/44">
-                    {t("landing.metricPipelineLabel")}
-                  </p>
-                  <p className="mt-3 font-display text-3xl font-semibold tracking-tight text-white">
-                    {t("landing.metricPipelineValue")}
-                  </p>
-                </div>
-                <div className="rounded-[1.75rem] border border-white/10 bg-white/7 p-5">
-                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-white/44">
-                    {t("landing.metricChannelsLabel")}
-                  </p>
-                  <p className="mt-3 font-display text-3xl font-semibold tracking-tight text-white">
-                    {t("landing.metricChannelsValue")}
-                  </p>
-                </div>
+                {LANDING_PROOF_ITEMS.map((item, index) => {
+                  const Icon = PROOF_ICONS[index] ?? Sparkles;
+                  return (
+                    <div key={item.title} className="rounded-[1.75rem] border border-white/10 bg-white/7 p-5">
+                      <div className="flex items-center gap-2 text-sm font-semibold text-[#f3dcc9]">
+                        <Icon size={16} />
+                        <span>{t(item.title)}</span>
+                      </div>
+                      <p className="mt-3 text-sm leading-7 text-white/68">
+                        {t(item.description)}
+                      </p>
+                    </div>
+                  );
+                })}
               </div>
             </motion.div>
 
@@ -118,65 +114,67 @@ export function LandingPage() {
               initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.85, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
-              className="relative flex items-center"
+              className="relative flex items-start pt-2 lg:pt-6"
             >
               <div className="relative w-full overflow-hidden rounded-[2rem] border border-white/12 bg-[linear-gradient(160deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-6 shadow-[0_28px_100px_rgba(0,0,0,0.3)]">
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(201,111,69,0.18),transparent_32%),linear-gradient(180deg,rgba(255,255,255,0.04),transparent_64%)]" />
                 <div className="relative">
                   <p className="text-sm font-semibold uppercase tracking-[0.24em] text-[#f3dcc9]">
-                    {t("landing.signalBoardEyebrow")}
+                    {t("landing.capabilitiesTitle")}
                   </p>
-                  <div className="mt-5 grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
-                    <div className="space-y-4">
-                      <div className="rounded-[1.6rem] border border-white/10 bg-[#08141f]/60 p-5">
-                        <p className="text-sm font-semibold text-white">
-                          {t("landing.signalBoardTitle")}
-                        </p>
-                        <p className="mt-2 text-sm leading-7 text-white/68">
-                          {t("landing.signalBoardSummary")}
-                        </p>
-                      </div>
-                      <div className="rounded-[1.6rem] border border-white/10 bg-[#08141f]/60 p-5">
-                        <div className="flex items-center gap-2 text-sm font-semibold text-white">
-                          <Radar size={16} className="text-[#86c8bc]" />
-                          <span>{t("landing.boardStreamTitle")}</span>
-                        </div>
-                        <div className="mt-4 space-y-3">
-                          {HERO_SIGNAL_KEYS.map((key, index) => {
-                            const Icon = HERO_ICONS[index] ?? Search;
-                            return (
-                              <div
-                                key={key}
-                                className="flex items-start gap-3 rounded-2xl border border-white/8 bg-white/[0.03] px-4 py-3 text-sm leading-6 text-white/72"
-                              >
-                                <Icon size={16} className="mt-1 text-[#f3dcc9]" />
-                                <p>{t(key)}</p>
-                              </div>
-                            );
-                          })}
-                        </div>
+                  <div className="mt-5 space-y-4">
+                    <div className="rounded-[1.6rem] border border-white/10 bg-[#08141f]/60 p-5">
+                      <p className="text-sm leading-7 text-white/68">
+                        {t("landing.capabilitiesSubtitle")}
+                      </p>
+                      <div className="mt-5 space-y-3">
+                        {LANDING_CAPABILITY_KEYS.map((key, index) => {
+                          const Icon = HERO_CAPABILITY_ICONS[index] ?? Search;
+                          return (
+                            <div
+                              key={key}
+                              className="flex items-start gap-3 rounded-2xl border border-white/8 bg-white/[0.03] px-4 py-3 text-sm leading-6 text-white/72"
+                            >
+                              <Icon size={16} className="mt-1 text-[#f3dcc9]" />
+                              <p>{t(key)}</p>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
 
-                    <div className="rounded-[1.6rem] border border-white/10 bg-[#08141f]/60 p-5">
-                      <p className="text-sm font-semibold text-white">
-                        {t("landing.boardStagesTitle")}
-                      </p>
-                      <div className="mt-4 space-y-3">
-                        {PIPELINE_STAGE_KEYS.map((key, index) => (
-                          <div
-                            key={key}
-                            className="flex items-center gap-3 rounded-2xl border border-white/8 bg-white/[0.03] px-4 py-3"
-                          >
-                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/10 text-xs font-semibold text-white/80">
-                              0{index + 1}
+                    <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_210px]">
+                      <div className="rounded-[1.6rem] border border-white/10 bg-[#08141f]/60 p-5">
+                        <div className="flex items-center gap-2 text-sm font-semibold text-white">
+                          <Radar size={16} className="text-[#86c8bc]" />
+                          <span>{t("landing.crawlerTitle")}</span>
+                        </div>
+                        <p className="mt-3 text-sm leading-7 text-white/68">
+                          {t("landing.crawlerBody")}
+                        </p>
+                        <div className="mt-4 space-y-3">
+                          {LANDING_CRAWLER_BULLETS.map((key) => (
+                            <div
+                              key={key}
+                              className="flex items-start gap-3 rounded-2xl border border-white/8 bg-white/[0.03] px-4 py-3 text-sm leading-6 text-white/72"
+                            >
+                              <CheckCircle2 size={16} className="mt-1 shrink-0 text-[#86c8bc]" />
+                              <p>{t(key)}</p>
                             </div>
-                            <p className="text-sm font-medium text-white/74">{t(key)}</p>
-                          </div>
-                        ))}
+                          ))}
+                        </div>
                       </div>
-                      <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                        <div className="rounded-2xl bg-white/[0.04] p-4">
+
+                      <div className="grid gap-3">
+                        <div className="rounded-[1.4rem] border border-white/10 bg-white/[0.04] p-4">
+                          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-white/40">
+                            {t("siteFooter.totalVisits")}
+                          </p>
+                          <p className="mt-2 font-display text-2xl font-semibold text-white">
+                            {numberFormatter.format(siteStats?.total_visits ?? 0)}
+                          </p>
+                        </div>
+                        <div className="rounded-[1.4rem] border border-white/10 bg-white/[0.04] p-4">
                           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-white/40">
                             {t("siteFooter.uniqueVisitors")}
                           </p>
@@ -184,12 +182,12 @@ export function LandingPage() {
                             {numberFormatter.format(siteStats?.unique_visitors ?? 0)}
                           </p>
                         </div>
-                        <div className="rounded-2xl bg-white/[0.04] p-4">
+                        <div className="rounded-[1.4rem] border border-white/10 bg-white/[0.04] p-4">
                           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-white/40">
-                            {t("landing.metricOutputLabel")}
+                            {t("landing.metricPipelineLabel")}
                           </p>
                           <p className="mt-2 font-display text-2xl font-semibold text-white">
-                            {t("landing.metricOutputValue")}
+                            {t("landing.metricPipelineValue")}
                           </p>
                         </div>
                       </div>
@@ -198,6 +196,40 @@ export function LandingPage() {
                 </div>
               </div>
             </motion.div>
+          </div>
+        </section>
+
+        <section className="mx-auto max-w-7xl px-4 pt-16 lg:px-8">
+          <SectionReveal>
+            <div className="max-w-3xl">
+              <p className="text-sm font-semibold uppercase tracking-[0.26em] text-[#c96f45]">
+                {t("landing.proofTitle")}
+              </p>
+              <h2 className="font-display mt-3 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
+                {t("landing.proofSubtitle")}
+              </h2>
+            </div>
+          </SectionReveal>
+
+          <div className="mt-10 grid gap-5 lg:grid-cols-3">
+            {LANDING_PROOF_ITEMS.map((item, index) => {
+              const Icon = PROOF_ICONS[index] ?? Sparkles;
+              return (
+                <SectionReveal key={item.title} delay={index * 0.06}>
+                  <article className="rounded-[2rem] border border-black/8 bg-white/78 p-6 shadow-[0_18px_60px_rgba(8,32,50,0.05)]">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#082032] text-white">
+                      <Icon size={18} />
+                    </div>
+                    <h3 className="font-display mt-5 text-2xl font-semibold tracking-tight text-slate-950">
+                      {t(item.title)}
+                    </h3>
+                    <p className="mt-3 text-base leading-8 text-slate-700">
+                      {t(item.description)}
+                    </p>
+                  </article>
+                </SectionReveal>
+              );
+            })}
           </div>
         </section>
 
@@ -338,7 +370,7 @@ export function LandingPage() {
             </SectionReveal>
 
             <div className="space-y-4">
-              {BLOG_ARTICLES.slice(1).map((article, index) => (
+              {blogPreviewArticles.map((article, index) => (
                 <SectionReveal key={article.slug} delay={index * 0.08}>
                   <Link
                     to={`/blog#${article.slug}`}

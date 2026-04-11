@@ -6,6 +6,7 @@ import { SectionReveal } from "../components/marketing/SectionReveal";
 import { SiteFooter } from "../components/layout/SiteFooter";
 import {
   BLOG_ARTICLES,
+  BLOG_DECISION_ARTICLE_SLUGS,
   BLOG_PRINCIPLES,
   BLOG_READER_PATHS,
   PUBLIC_BLOG_NAV,
@@ -15,7 +16,11 @@ import { useI18n } from "../i18n";
 
 export function BlogPage() {
   const { t } = useI18n();
-  const featuredArticle = BLOG_ARTICLES[0]!;
+  const featuredArticle =
+    BLOG_ARTICLES.find((article) => article.slug === BLOG_DECISION_ARTICLE_SLUGS[0]) ?? BLOG_ARTICLES[0]!;
+  const decisionArticles = BLOG_ARTICLES.filter((article) =>
+    BLOG_DECISION_ARTICLE_SLUGS.includes(article.slug as (typeof BLOG_DECISION_ARTICLE_SLUGS)[number])
+  );
 
   usePageMetadata({
     title: t("blog.metaTitle"),
@@ -42,7 +47,7 @@ export function BlogPage() {
               <p className="inline-flex rounded-full border border-white/14 bg-white/7 px-4 py-2 text-xs font-semibold uppercase tracking-[0.28em] text-[#f3dcc9]">
                 {t("blog.eyebrow")}
               </p>
-              <h1 className="font-display mt-6 max-w-4xl text-4xl font-semibold tracking-tight sm:text-5xl lg:text-6xl">
+              <h1 className="font-display mt-6 max-w-4xl text-4xl font-semibold tracking-tight sm:text-5xl lg:text-[3.2rem] lg:leading-[1.04] xl:text-[3.9rem] xl:leading-[1.01]">
                 {t("blog.title")}
               </h1>
               <p className="mt-5 max-w-3xl text-lg leading-8 text-white/72 sm:text-xl">
@@ -115,6 +120,67 @@ export function BlogPage() {
             </motion.article>
           </div>
         </section>
+
+        <SectionReveal className="mx-auto max-w-7xl px-4 pt-14 lg:px-8">
+          <div className="rounded-[2rem] border border-black/8 bg-white/74 p-6 shadow-[0_18px_60px_rgba(8,32,50,0.06)] sm:p-8">
+            <div className="max-w-3xl">
+              <p className="text-sm font-semibold uppercase tracking-[0.24em] text-[#c96f45]">
+                {t("blog.buyingTrackEyebrow")}
+              </p>
+              <h2 className="font-display mt-3 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
+                {t("blog.buyingTrackTitle")}
+              </h2>
+              <p className="mt-4 text-base leading-8 text-slate-700">
+                {t("blog.buyingTrackSubtitle")}
+              </p>
+            </div>
+
+            <div className="mt-8 grid gap-5 lg:grid-cols-2">
+              {decisionArticles.map((article) => (
+                <a
+                  key={article.slug}
+                  href={`#${article.slug}`}
+                  className={`group relative overflow-hidden rounded-[1.8rem] border border-black/8 bg-gradient-to-br p-6 shadow-[0_18px_50px_rgba(8,32,50,0.08)] transition-transform duration-300 hover:-translate-y-1 ${article.accentClass}`}
+                >
+                  <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.42),rgba(255,255,255,0.82))]" />
+                  <div className="relative flex h-full flex-col">
+                    <div className="flex items-start justify-between gap-4">
+                      <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+                        {t(article.category)}
+                      </p>
+                      <span className="rounded-full border border-black/8 bg-white/78 px-2.5 py-1 text-xs font-semibold text-slate-600">
+                        {article.index}
+                      </span>
+                    </div>
+                    <h3 className="font-display mt-5 text-2xl font-semibold tracking-tight text-slate-950">
+                      {t(article.title)}
+                    </h3>
+                    <p className="mt-3 text-sm leading-7 text-slate-700">
+                      {t(article.summary)}
+                    </p>
+                    <div className="mt-5 rounded-2xl border border-black/8 bg-white/72 p-4 text-sm leading-6 text-slate-700">
+                      {t(article.highlight)}
+                    </div>
+                    <div className="mt-5 space-y-2 border-t border-black/8 pt-4">
+                      {article.takeawayKeys.map((key) => (
+                        <p key={key} className="text-sm leading-6 text-slate-700">
+                          {t(key)}
+                        </p>
+                      ))}
+                    </div>
+                    <div className="mt-6 flex items-center justify-between text-sm font-semibold text-slate-700">
+                      <span>{t(article.readTime)}</span>
+                      <span className="inline-flex items-center gap-1 text-slate-900">
+                        {t("blog.readArticleCta")}
+                        <ArrowRight size={15} className="transition-transform group-hover:translate-x-1" />
+                      </span>
+                    </div>
+                  </div>
+                </a>
+              ))}
+            </div>
+          </div>
+        </SectionReveal>
 
         <SectionReveal className="mx-auto max-w-7xl px-4 pt-14 lg:px-8">
           <div className="grid gap-5 lg:grid-cols-[minmax(0,1.05fr)_minmax(340px,0.95fr)]">

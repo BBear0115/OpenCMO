@@ -89,6 +89,33 @@ export const LANDING_FAQS: Array<{ question: TranslationKey; answer: Translation
   },
 ];
 
+export const LANDING_CAPABILITY_KEYS: TranslationKey[] = [
+  "landing.capabilitySeo",
+  "landing.capabilityGeo",
+  "landing.capabilityCommunity",
+];
+
+export const LANDING_CRAWLER_BULLETS: TranslationKey[] = [
+  "landing.crawlerBullet1",
+  "landing.crawlerBullet2",
+  "landing.crawlerBullet3",
+];
+
+export const LANDING_PROOF_ITEMS: MarketingItem[] = [
+  {
+    title: "landing.proofResearchTitle",
+    description: "landing.proofResearchDesc",
+  },
+  {
+    title: "landing.proofCrawlerTitle",
+    description: "landing.proofCrawlerDesc",
+  },
+  {
+    title: "landing.proofWorkflowTitle",
+    description: "landing.proofWorkflowDesc",
+  },
+];
+
 export const BLOG_PRINCIPLES: MarketingItem[] = [
   {
     title: "blog.principle1Title",
@@ -118,6 +145,11 @@ export const BLOG_READER_PATHS: MarketingItem[] = [
     description: "blog.reader3Desc",
   },
 ];
+
+export const BLOG_DECISION_ARTICLE_SLUGS = [
+  "who-should-use-opencmo",
+  "first-30-days-with-opencmo",
+] as const;
 
 export const BLOG_ARTICLES: BlogArticle[] = [
   {
@@ -247,5 +279,69 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     ],
     accentClass:
       "from-[#f3dcc9]/55 via-[#f7ecde] to-[#86c8bc]/18",
+  },
+  {
+    slug: "who-should-use-opencmo",
+    index: "05",
+    category: "blog.post5.category",
+    title: "blog.post5.title",
+    summary: "blog.post5.summary",
+    readTime: "blog.post5.readTime",
+    highlight: "blog.post5.highlight",
+    audience: "blog.post5.audience",
+    thesis: "blog.post5.thesis",
+    takeawayKeys: ["blog.post5.point1", "blog.post5.point2", "blog.post5.point3"],
+    sections: [
+      {
+        title: "blog.post5.section1Title",
+        body: "blog.post5.section1Body",
+      },
+      {
+        title: "blog.post5.section2Title",
+        body: "blog.post5.section2Body",
+      },
+      {
+        title: "blog.post5.section3Title",
+        body: "blog.post5.section3Body",
+      },
+      {
+        title: "blog.post5.section4Title",
+        body: "blog.post5.section4Body",
+      },
+    ],
+    accentClass:
+      "from-[#c96f45]/28 via-[#f8e6d7] to-[#f3dcc9]/52",
+  },
+  {
+    slug: "first-30-days-with-opencmo",
+    index: "06",
+    category: "blog.post6.category",
+    title: "blog.post6.title",
+    summary: "blog.post6.summary",
+    readTime: "blog.post6.readTime",
+    highlight: "blog.post6.highlight",
+    audience: "blog.post6.audience",
+    thesis: "blog.post6.thesis",
+    takeawayKeys: ["blog.post6.point1", "blog.post6.point2", "blog.post6.point3"],
+    sections: [
+      {
+        title: "blog.post6.section1Title",
+        body: "blog.post6.section1Body",
+      },
+      {
+        title: "blog.post6.section2Title",
+        body: "blog.post6.section2Body",
+      },
+      {
+        title: "blog.post6.section3Title",
+        body: "blog.post6.section3Body",
+      },
+      {
+        title: "blog.post6.section4Title",
+        body: "blog.post6.section4Body",
+      },
+    ],
+    accentClass:
+      "from-[#86c8bc]/20 via-[#eff7f5] to-[#dce9f0]",
   },
 ];
