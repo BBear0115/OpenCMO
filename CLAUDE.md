@@ -31,11 +31,14 @@ OpenCMO is an open-source AI Chief Marketing Officer — a multi-agent system fo
 - `report_pipeline.py` — Multi-agent deep report pipeline (6 phases): Reflection → Insight Distiller → Outline Planner → Section Writers → Section Grader → Report Synthesizer. Uses `asyncio.Semaphore` to limit concurrent LLM calls (`_MAX_CONCURRENT_LLM_CALLS = 5`)
 - `llm.py` — Centralized LLM client with per-request key isolation via ContextVar. Solves BYOK concurrency bug. Key resolution: ContextVar → os.environ → DB settings. Includes retry logic with exponential backoff
 - `background/` — Background task queue system for long-running operations (scans, reports). Tasks have status tracking and progress events
+- `agents/github.py` + `tools/github_discovery.py` — GitHub Potential Users (developer outreach): discovers users from seed profiles via social graph, enriches profiles in background (bio, repos, languages, stars), scores by outreach priority, generates personalized messages (email/Twitter/GitHub issue). All outreach queued for approval, never auto-sent
+- `services/github_service.py` + `storage/github.py` — GitHub lead management: CRUD for leads, batch scoring, opt-out tracking, enrichment status
 
 ### Frontend layers
 
-- `pages/` — Route-level components (Dashboard, SEO, GEO, SERP, Community, Graph, Chat, Approvals, Monitors)
-- `components/` — Organized by domain: `charts/` (recharts + react-force-graph-3d), `chat/` (SSE streaming), `monitors/`, `auth/`, `layout/`, `dashboard/`, `project/`
+- `pages/` — Route-level components (Dashboard, SEO, GEO, SERP, Community, Graph, Chat, Approvals, Monitors, GitHubLeadsPage). Also includes public marketing pages: `LandingPage.tsx`, `BlogPage.tsx`
+- `components/` — Organized by domain: `charts/` (recharts + react-force-graph-3d), `chat/` (SSE streaming), `monitors/`, `auth/`, `layout/`, `dashboard/`, `project/`, `marketing/` (PublicSiteHeader, SectionReveal for landing page)
+- `content/marketing.ts` — Centralized content for public site: landing page copy, blog articles, FAQs, navigation items. Supports i18n
 - `hooks/` — TanStack Query hooks per domain (`useProjects`, `useSeoData`, `useGraphData`, etc.). Stale time 30s, retry 1. `useChat` manages local state + SSE via async generator
 - `api/client.ts` — `apiFetch()` adds Bearer token, dispatches `opencmo:unauthorized` on 401. Domain modules export typed wrappers around `apiJson()`
 - `i18n/` — React context-based EN + ZH translations
@@ -53,6 +56,8 @@ OpenCMO is an open-source AI Chief Marketing Officer — a multi-agent system fo
 - **Frontend proxies `/api` to `http://127.0.0.1:8080` in dev (vite.config.ts)
 - **Report generation optimization**: Data aggregation parallelized with `asyncio.gather()`. LLM concurrency limited to 5 simultaneous calls via `asyncio.Semaphore`. Grader threshold at 3.5/5.0 with max 1 retry to balance quality and speed
 - **BYOK (Bring Your Own Key)**: Per-request API keys isolated via ContextVar in `llm.py`. Never use `os.environ` for request-scoped keys to avoid concurrency bugs
+- **Public marketing site**: Landing page and blog served at root `/` for unauthenticated users. Static fallback HTML for crawlers (SEO). Authenticated app at `/app/*`. Content centralized in `frontend/src/content/marketing.ts`
+- **GitHub Potential Users workflow**: 1) Discover from seed username → 2) Background enrichment (async) → 3) Score leads by priority → 4) Generate personalized outreach → 5) Human approval required before sending
 
 ## Commands
 
@@ -104,6 +109,7 @@ Key optional variables — see `.env.example` for full list:
 - `DATAFORSEO_LOGIN/PASSWORD` — SERP tracking
 - `OPENCMO_AUTO_PUBLISH=1` + Reddit/Twitter credentials — auto-publishing
 - `OPENCMO_SMTP_*` + `OPENCMO_REPORT_EMAIL` — email reports
+- `GITHUB_TOKEN` — GitHub API access for Potential Users feature (discovery, enrichment, outreach)
 
 ## Performance Optimization Guidelines
 
