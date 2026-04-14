@@ -40,6 +40,7 @@ export function WelcomeHero({
   const settingsQuery = useSettings();
   const keyStatus = getEffectiveKeyStatus(settingsQuery.data);
   const keysReady = keyStatus.effective.llm;
+  const serverModel = settingsQuery.data?.model?.trim() || "gpt-5.4-mini";
   void keyRefresh;
 
   useEffect(() => {
@@ -128,6 +129,9 @@ export function WelcomeHero({
                       </p>
                       <p className={`mt-2 text-xs ${keysReady ? "text-emerald-800/70" : "text-amber-800/70"}`}>
                         {t("onboarding.privacyHint")}
+                      </p>
+                      <p className={`mt-1 text-xs ${keysReady ? "text-emerald-800/70" : "text-amber-800/70"}`}>
+                        {t("onboarding.serverDefaultModel", { model: serverModel })}
                       </p>
                       <div className="mt-3 grid gap-3 sm:grid-cols-2">
                         <div className="rounded-2xl bg-white/80 px-3 py-3">

@@ -1,4 +1,4 @@
-import { Bot, FileText, GitBranch, Globe, Search, Users } from "lucide-react";
+import { ArrowRight, Bot, FileText, GitBranch, Globe, Search, Users } from "lucide-react";
 import { Link } from "react-router";
 import type { LatestReports, LatestScans, MonitoringSummary } from "../../types";
 import { useI18n } from "../../i18n";
@@ -14,22 +14,16 @@ type AgentCardData = {
   found: string;
   why: string;
   next: string;
-  actionLabel: string;
-  actionTo: string;
 };
 
 function SummaryCard({
   label,
   value,
   body,
-  actionLabel,
-  actionTo,
 }: {
   label: string;
   value: string | number;
   body: string;
-  actionLabel: string;
-  actionTo: string;
 }) {
   return (
     <article className="rounded-2xl border border-slate-200/80 bg-white/90 p-5 shadow-sm">
@@ -38,12 +32,6 @@ function SummaryCard({
       </p>
       <p className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">{value}</p>
       <p className="mt-2 text-sm leading-6 text-slate-600">{body}</p>
-      <Link
-        to={actionTo}
-        className="mt-4 inline-flex items-center rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-slate-800"
-      >
-        {actionLabel}
-      </Link>
     </article>
   );
 }
@@ -54,8 +42,6 @@ function AgentCard({
   found,
   why,
   next,
-  actionLabel,
-  actionTo,
   whatFoundLabel,
   whyLabel,
   nextLabel,
@@ -92,15 +78,11 @@ function AgentCard({
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
             {nextLabel}
           </p>
-          <p className="mt-1 text-sm font-medium leading-6 text-slate-950">{next}</p>
+          <p className="mt-1 rounded-2xl bg-slate-50 px-3 py-2 text-sm font-medium leading-6 text-slate-950">
+            {next}
+          </p>
         </div>
       </div>
-      <Link
-        to={actionTo}
-        className="mt-4 inline-flex items-center rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 transition-colors hover:border-slate-300 hover:bg-slate-50"
-      >
-        {actionLabel}
-      </Link>
     </article>
   );
 }
@@ -178,6 +160,13 @@ export function ProjectCommandCenter({
 
   const getActionTitle = (domain: string, fallbackKey: TranslationKey) =>
     actions.find((item) => item.domain === domain)?.title ?? t(fallbackKey);
+  const routeByDomain = {
+    seo: routes.siteHealth,
+    geo: routes.aiSearch,
+    community: routes.community,
+    graph: routes.competitor,
+    report: routes.report,
+  } satisfies Partial<Record<string, string>>;
 
   const siteHealthFound =
     latest.seo?.score != null
@@ -200,6 +189,31 @@ export function ProjectCommandCenter({
       ? t("agents.reportFound", { findings: findingsCount, actions: recommendationsCount })
       : t("agents.reportPending");
 
+  const primaryAction =
+    pendingApprovals > 0
+      ? {
+          label: t("command.reviewDraft"),
+          to: routes.readyToShip,
+          summary: t("project.commandMattersText", { count: findingsCount, approvals: pendingApprovals }),
+        }
+      : reportReady
+        ? {
+            label: t("command.exportReport"),
+            to: routes.report,
+            summary: reportFound,
+          }
+        : actions[0]
+          ? {
+              label: t("command.openOpportunities"),
+              to: routeByDomain[actions[0].domain as keyof typeof routeByDomain] ?? routes.whatMattersNow,
+              summary: actions[0].title,
+            }
+          : {
+              label: t("command.reviewFixes"),
+              to: routes.changedToday,
+              summary: t("project.commandChangedEmpty"),
+            };
+
   const agentCards: AgentCardData[] = [
     {
       key: "site-health",
@@ -208,8 +222,6 @@ export function ProjectCommandCenter({
       found: siteHealthFound,
       why: t("agents.siteHealthWhy"),
       next: getActionTitle("seo", "agents.defaultNext"),
-      actionLabel: t("command.reviewFixes"),
-      actionTo: routes.siteHealth,
     },
     {
       key: "ai-search",
@@ -218,8 +230,6 @@ export function ProjectCommandCenter({
       found: aiSearchFound,
       why: t("agents.aiSearchWhy"),
       next: getActionTitle("geo", "agents.defaultNext"),
-      actionLabel: t("command.openAiSearch"),
-      actionTo: routes.aiSearch,
     },
     {
       key: "community",
@@ -228,8 +238,6 @@ export function ProjectCommandCenter({
       found: communityFound,
       why: t("agents.communityWhy"),
       next: getActionTitle("community", "agents.defaultNext"),
-      actionLabel: t("command.openOpportunities"),
-      actionTo: routes.community,
     },
     {
       key: "competitor",
@@ -238,8 +246,6 @@ export function ProjectCommandCenter({
       found: competitorFound,
       why: t("agents.competitorWhy"),
       next: getActionTitle("graph", "agents.defaultNext"),
-      actionLabel: t("command.compareCompetitors"),
-      actionTo: routes.competitor,
     },
     {
       key: "report",
@@ -248,25 +254,41 @@ export function ProjectCommandCenter({
       found: reportFound,
       why: t("agents.reportWhy"),
       next: reportReady ? t("agents.reportNext") : t("agents.defaultNext"),
-      actionLabel: reportReady ? t("command.exportReport") : t("command.reviewDraft"),
-      actionTo: routes.report,
     },
   ];
 
   return (
     <section className="space-y-5">
       <div className="rounded-3xl border border-slate-200/80 bg-[radial-gradient(circle_at_top,_rgba(99,102,241,0.08),_transparent_40%),linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] p-6 shadow-sm">
-        <div className="flex items-start gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-900 text-white">
-            <Bot size={18} />
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+          <div className="flex items-start gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-900 text-white">
+              <Bot size={18} />
+            </div>
+            <div className="max-w-3xl">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">
+                {t("project.commandTitle")}
+              </p>
+              <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
+                {t("project.commandSubtitle")}
+              </h2>
+            </div>
           </div>
-          <div className="max-w-3xl">
+
+          <div className="max-w-md rounded-2xl border border-slate-200/80 bg-white/92 p-4 shadow-sm">
             <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">
-              {t("project.commandTitle")}
+              {t("command.readyToShip")}
             </p>
-            <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
-              {t("project.commandSubtitle")}
-            </h2>
+            <p className="mt-3 text-sm font-semibold leading-6 text-slate-950">
+              {primaryAction.summary}
+            </p>
+            <Link
+              to={primaryAction.to}
+              className="mt-4 inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-slate-800"
+            >
+              {primaryAction.label}
+              <ArrowRight size={14} />
+            </Link>
           </div>
         </div>
 
@@ -279,15 +301,11 @@ export function ProjectCommandCenter({
                 ? t("project.commandChangedText", { count: surfaceUpdates })
                 : t("project.commandChangedEmpty")
             }
-            actionLabel={t("command.reviewFixes")}
-            actionTo={routes.changedToday}
           />
           <SummaryCard
             label={t("command.whatMattersNow")}
             value={findingsCount}
             body={t("project.commandMattersText", { count: findingsCount, approvals: pendingApprovals })}
-            actionLabel={pendingApprovals > 0 ? t("command.reviewDraft") : t("command.openOpportunities")}
-            actionTo={routes.whatMattersNow}
           />
           <SummaryCard
             label={t("command.readyToShip")}
@@ -297,13 +315,11 @@ export function ProjectCommandCenter({
                 ? t("project.commandReportReady", { count: recommendationsCount, approvals: pendingApprovals })
                 : t("project.commandReportPending", { count: recommendationsCount, approvals: pendingApprovals })
             }
-            actionLabel={reportReady ? t("command.exportReport") : t("command.reviewDraft")}
-            actionTo={routes.readyToShip}
           />
         </div>
       </div>
 
-      <div>
+      <div className="rounded-3xl border border-slate-200/80 bg-white/85 p-5 shadow-sm">
         <div className="mb-4">
           <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">
             {t("agents.title")}

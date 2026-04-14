@@ -4,6 +4,9 @@ export interface Project {
   url: string;
   category: string;
   latest?: LatestScans;
+  latest_monitoring?: MonitoringSummary | null;
+  latest_reports?: LatestReports;
+  pending_approvals?: number;
 }
 
 export interface SiteStats {

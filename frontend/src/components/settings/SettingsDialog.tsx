@@ -143,6 +143,7 @@ export function SettingsDialog({ onClose }: { onClose: () => void }) {
   const [smtpPass, setSmtpPass] = useState("");
   const [reportEmail, setReportEmail] = useState("");
   const keyStatus = getEffectiveKeyStatus(status);
+  const serverModel = status?.model?.trim() || "gpt-5.4-mini";
 
   useEffect(() => {
     // Load user-local keys
@@ -277,7 +278,7 @@ export function SettingsDialog({ onClose }: { onClose: () => void }) {
           <Field
             label={t("settings.model")}
             placeholder={t("settings.modelPlaceholder")}
-            hint={t("settings.modelHint")}
+            hint={t("settings.modelHint", { model: serverModel })}
             value={model}
             onChange={setModel}
           />

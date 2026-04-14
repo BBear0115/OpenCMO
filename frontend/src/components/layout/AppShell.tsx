@@ -13,7 +13,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     const previousTitle = document.title;
 
     if (robotsMeta) {
-      robotsMeta.setAttribute("content", "noindex,nofollow");
+      robotsMeta.setAttribute("content", "noindex,nofollow,noarchive,nosnippet");
     }
     document.title = "OpenCMO Workspace";
 

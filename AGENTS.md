@@ -38,13 +38,17 @@ Frontend (React 19 + Vite)  ←→  FastAPI /api/v1/  ←→  SQLite (WAL)
 - **Community search**: Tavily → crawl4ai Google scrape fallback. Skip category queries when category is placeholder `"auto"`.
 - **BYOK**: Per-request API keys via `X-User-Keys` header → ContextVar. Background tasks capture and restore keys.
 - **SPA routing**: No `AnimatePresence key={pathname}` in AppShell — causes full remount and breaks query cache.
+- **Production topology**: Primary production is `newyork` (`192.3.16.77`). OpenCMO runs behind nginx on `80/443`, proxied to local `127.0.0.1:8081`.
+- **Port allocation**: Do not assume production app port is `8080`. `8080` is occupied by `sub2api` on `newyork`; OpenCMO uses `8081`.
+- **BWG role**: `BWG` is no longer the primary OpenCMO host. Treat it as a lightweight box, temporary reverse proxy, or fallback node unless explicitly re-promoted.
+- **Browser-backed scans**: SEO/context fallback paths use `crawl4ai`/Playwright. Fresh servers need browser binaries installed, or scans will fail with `BrowserType.launch` executable errors.
 
 ## Commands
 
 ```bash
 # Backend
 pip install -e ".[all]"        # Install
-opencmo-web                    # Run (port 8080)
+opencmo-web                    # Run locally (port 8080 by default)
 pytest tests/                  # Test
 ruff check src/ tests/         # Lint
 
@@ -53,10 +57,29 @@ cd frontend && npm install
 npm run dev                    # Dev (port 5173, proxies /api → 8080)
 npm run build                  # Prod build
 
-# Deploy to BWG (97.64.16.217, SSH port 2222)
-cd frontend && npm run build   # Build locally (server OOMs)
-rsync -avz --delete frontend/dist/ root@97.64.16.217:/opt/OpenCMO/frontend/dist/ -e "ssh -p 2222"
-ssh -p 2222 root@97.64.16.217 "cd /opt/OpenCMO && git pull && source .venv/bin/activate && pip install -e . -q && pkill -f opencmo-web; sleep 1; nohup opencmo-web > /tmp/opencmo.log 2>&1 &"
+# Deploy frontend assets to New York
+cd frontend && npm run build   # Build locally (avoid server-side frontend builds)
+rsync -avz --delete frontend/dist/ root@192.3.16.77:/opt/OpenCMO/frontend/dist/
+
+# Deploy backend code to New York
+rsync -avz --delete \
+  --exclude '.git' \
+  --exclude 'frontend/node_modules' \
+  --exclude 'frontend/dist' \
+  --exclude '.venv' \
+  ./ root@192.3.16.77:/opt/OpenCMO/
+ssh newyork "cd /opt/OpenCMO && source .venv/bin/activate && pip install -e . -q && systemctl restart opencmo"
+
+# New York service / runtime checks
+ssh newyork "systemctl status opencmo --no-pager"
+ssh newyork "journalctl -u opencmo -n 200 --no-pager"
+ssh newyork "ss -ltnp | grep -E ':80|:443|:8081'"
+
+# Install Playwright browsers on New York when scan workers need them
+ssh newyork "cd /opt/OpenCMO && .venv/bin/playwright install chromium"
+
+# BWG is optional fallback / proxy only
+ssh bwg "systemctl status nginx --no-pager"
 ```
 
 ## Coding Conventions

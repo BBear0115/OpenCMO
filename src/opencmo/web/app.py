@@ -16,7 +16,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.responses import StreamingResponse
 
@@ -135,62 +135,253 @@ _BLOG_JSON_LD = json.dumps(
     separators=(",", ":"),
 )
 
+_SAMPLE_AUDIT_STATIC_SITE_COPY = """
+<main id="static-site-copy">
+  <header>
+    <p>OpenCMO Sample Audit</p>
+    <h1>A public walkthrough of how OpenCMO turns visibility signals into next actions</h1>
+    <p>
+      This sample audit shows the shape of an OpenCMO review: what changed across SEO,
+      AI search, community discussion, competitors, and which actions are ready to ship.
+    </p>
+  </header>
+  <section>
+    <h2>What this public page includes</h2>
+    <ul>
+      <li>SEO findings that explain crawl, metadata, and site-health gaps</li>
+      <li>AI visibility notes that show how assistants currently frame the brand</li>
+      <li>Community and competitor signals that influence the public narrative</li>
+      <li>Prioritized next actions that operators can actually ship</li>
+    </ul>
+  </section>
+  <section>
+    <h2>Why this page is public</h2>
+    <p>
+      It gives search engines, buyers, and AI agents a concrete example of the
+      product output without exposing the private workspace routes.
+    </p>
+  </section>
+</main>
+""".strip()
 
-def _apply_public_route_metadata(html: str, full_path: str) -> str:
-    normalized = full_path.strip("/")
-    if normalized != "blog":
-        return html
+_SAMPLE_AUDIT_JSON_LD = json.dumps(
+    {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "name": "OpenCMO Sample Audit",
+        "description": (
+            "A public walkthrough of a sample OpenCMO visibility audit covering SEO, "
+            "AI search, community signal review, competitors, and next actions."
+        ),
+        "url": "https://www.aidcmo.com/sample-audit",
+        "isPartOf": {
+            "@type": "WebSite",
+            "name": "OpenCMO",
+            "url": "https://www.aidcmo.com/",
+        },
+        "about": {
+            "@type": "SoftwareApplication",
+            "name": "OpenCMO",
+            "url": "https://www.aidcmo.com/",
+            "applicationCategory": "BusinessApplication",
+            "operatingSystem": "Web",
+        },
+    },
+    separators=(",", ":"),
+)
 
-    replacements = [
-        (
-            r"<title>.*?</title>",
-            "<title>OpenCMO Blog | Field Guide to Visibility Operations and OpenCMO</title>",
-        ),
-        (
-            r'<meta\s+name="description"\s+content="[^"]*"\s*/?>',
-            '<meta name="description" content="Read the public OpenCMO field guide covering adoption fit, first-30-day rollout, crawler-readable surfaces, and visibility operations." />',
-        ),
-        (
-            r'<link\s+rel="canonical"\s+href="[^"]*"\s*/?>',
-            '<link rel="canonical" href="https://www.aidcmo.com/blog" />',
-        ),
-        (
-            r'<meta\s+property="og:title"\s+content="[^"]*"\s*/?>',
-            '<meta property="og:title" content="OpenCMO Blog | Field Guide to Visibility Operations and OpenCMO" />',
-        ),
-        (
-            r'<meta\s+property="og:description"\s+content="[^"]*"\s*/?>',
-            '<meta property="og:description" content="Read the public OpenCMO field guide covering adoption fit, rollout, crawler-readable surfaces, and visibility operations." />',
-        ),
-        (
-            r'<meta\s+property="og:url"\s+content="[^"]*"\s*/?>',
-            '<meta property="og:url" content="https://www.aidcmo.com/blog" />',
-        ),
-        (
-            r'<meta\s+name="twitter:title"\s+content="[^"]*"\s*/?>',
-            '<meta name="twitter:title" content="OpenCMO Blog | Field Guide to Visibility Operations and OpenCMO" />',
-        ),
-        (
-            r'<meta\s+name="twitter:description"\s+content="[^"]*"\s*/?>',
-            '<meta name="twitter:description" content="Read the public OpenCMO field guide covering adoption fit, rollout, crawler-readable surfaces, and visibility operations." />',
-        ),
-        (
-            r'<script\s+type="application/ld\+json">.*?</script>',
-            f'<script type="application/ld+json">{_BLOG_JSON_LD}</script>',
-        ),
-    ]
+_APP_STATIC_SITE_COPY = """
+<main id="static-site-copy">
+  <header>
+    <p>OpenCMO Workspace</p>
+    <h1>Private application surface</h1>
+    <p>
+      This route belongs to the operator workspace for projects, approvals,
+      reports, and AI-assisted review. Use the public homepage and blog for
+      product overview and machine-readable discovery.
+    </p>
+  </header>
+  <section>
+    <h2>Public product resources</h2>
+    <ul>
+      <li>Homepage: https://www.aidcmo.com/</li>
+      <li>Blog: https://www.aidcmo.com/blog</li>
+      <li>Machine-readable summary: https://www.aidcmo.com/llms.txt</li>
+    </ul>
+  </section>
+</main>
+""".strip()
 
-    rendered = html
+
+_CANONICAL_HOST_REDIRECTS = {
+    "aidcmo.com": "www.aidcmo.com",
+}
+
+
+def _replace_metadata(rendered: str, replacements: list[tuple[str, str]]) -> str:
     for pattern, replacement in replacements:
         rendered = re.sub(pattern, replacement, rendered, count=1, flags=re.IGNORECASE)
+    return rendered
 
+
+def _replace_static_site_copy(rendered: str, static_copy: str) -> str:
     return re.sub(
         r'<main id="static-site-copy">.*?</main>',
-        _BLOG_STATIC_SITE_COPY,
+        static_copy,
         rendered,
         count=1,
         flags=re.DOTALL,
     )
+
+
+def _is_app_surface(full_path: str) -> bool:
+    normalized = full_path.strip("/")
+    if not normalized:
+        return False
+    return (
+        normalized in {"workspace", "approvals", "chat"}
+        or normalized.startswith("projects/")
+        or normalized == "projects"
+    )
+
+
+def _apply_public_route_metadata(html: str, full_path: str) -> str:
+    normalized = full_path.strip("/")
+    if _is_app_surface(normalized):
+        canonical_url = f"https://www.aidcmo.com/{normalized}" if normalized else "https://www.aidcmo.com/"
+        replacements = [
+            (
+                r"<title>.*?</title>",
+                "<title>OpenCMO Workspace | Private application surface</title>",
+            ),
+            (
+                r'<meta\s+name="description"\s+content="[^"]*"\s*/?>',
+                '<meta name="description" content="Private OpenCMO workspace route for operators. Use the homepage and blog for the public product overview." />',
+            ),
+            (
+                r'<meta\s+name="robots"\s+content="[^"]*"\s*/?>',
+                '<meta name="robots" content="noindex,nofollow,noarchive,nosnippet" />',
+            ),
+            (
+                r'<link\s+rel="canonical"\s+href="[^"]*"\s*/?>',
+                f'<link rel="canonical" href="{canonical_url}" />',
+            ),
+            (
+                r'<meta\s+property="og:title"\s+content="[^"]*"\s*/?>',
+                '<meta property="og:title" content="OpenCMO Workspace | Private application surface" />',
+            ),
+            (
+                r'<meta\s+property="og:description"\s+content="[^"]*"\s*/?>',
+                '<meta property="og:description" content="Private OpenCMO workspace route for projects, approvals, reports, and operator workflows." />',
+            ),
+            (
+                r'<meta\s+property="og:url"\s+content="[^"]*"\s*/?>',
+                f'<meta property="og:url" content="{canonical_url}" />',
+            ),
+            (
+                r'<meta\s+name="twitter:title"\s+content="[^"]*"\s*/?>',
+                '<meta name="twitter:title" content="OpenCMO Workspace | Private application surface" />',
+            ),
+            (
+                r'<meta\s+name="twitter:description"\s+content="[^"]*"\s*/?>',
+                '<meta name="twitter:description" content="Private OpenCMO workspace route for projects, approvals, reports, and operator workflows." />',
+            ),
+        ]
+
+        rendered = _replace_metadata(html, replacements)
+        return _replace_static_site_copy(rendered, _APP_STATIC_SITE_COPY)
+
+    route_configs = {
+        "blog": {
+            "replacements": [
+                (
+                    r"<title>.*?</title>",
+                    "<title>OpenCMO Blog | Field Guide to Visibility Operations and OpenCMO</title>",
+                ),
+                (
+                    r'<meta\s+name="description"\s+content="[^"]*"\s*/?>',
+                    '<meta name="description" content="Read the public OpenCMO field guide covering adoption fit, first-30-day rollout, crawler-readable surfaces, and visibility operations." />',
+                ),
+                (
+                    r'<link\s+rel="canonical"\s+href="[^"]*"\s*/?>',
+                    '<link rel="canonical" href="https://www.aidcmo.com/blog" />',
+                ),
+                (
+                    r'<meta\s+property="og:title"\s+content="[^"]*"\s*/?>',
+                    '<meta property="og:title" content="OpenCMO Blog | Field Guide to Visibility Operations and OpenCMO" />',
+                ),
+                (
+                    r'<meta\s+property="og:description"\s+content="[^"]*"\s*/?>',
+                    '<meta property="og:description" content="Read the public OpenCMO field guide covering adoption fit, rollout, crawler-readable surfaces, and visibility operations." />',
+                ),
+                (
+                    r'<meta\s+property="og:url"\s+content="[^"]*"\s*/?>',
+                    '<meta property="og:url" content="https://www.aidcmo.com/blog" />',
+                ),
+                (
+                    r'<meta\s+name="twitter:title"\s+content="[^"]*"\s*/?>',
+                    '<meta name="twitter:title" content="OpenCMO Blog | Field Guide to Visibility Operations and OpenCMO" />',
+                ),
+                (
+                    r'<meta\s+name="twitter:description"\s+content="[^"]*"\s*/?>',
+                    '<meta name="twitter:description" content="Read the public OpenCMO field guide covering adoption fit, rollout, crawler-readable surfaces, and visibility operations." />',
+                ),
+                (
+                    r'<script\s+type="application/ld\+json">.*?</script>',
+                    f'<script type="application/ld+json">{_BLOG_JSON_LD}</script>',
+                ),
+            ],
+            "static_copy": _BLOG_STATIC_SITE_COPY,
+        },
+        "sample-audit": {
+            "replacements": [
+                (
+                    r"<title>.*?</title>",
+                    "<title>OpenCMO Sample Audit | Public walkthrough of a visibility operating report</title>",
+                ),
+                (
+                    r'<meta\s+name="description"\s+content="[^"]*"\s*/?>',
+                    '<meta name="description" content="See a public OpenCMO sample audit covering SEO, AI visibility, community signals, competitors, and the next actions an operator would ship." />',
+                ),
+                (
+                    r'<link\s+rel="canonical"\s+href="[^"]*"\s*/?>',
+                    '<link rel="canonical" href="https://www.aidcmo.com/sample-audit" />',
+                ),
+                (
+                    r'<meta\s+property="og:title"\s+content="[^"]*"\s*/?>',
+                    '<meta property="og:title" content="OpenCMO Sample Audit | Public walkthrough of a visibility operating report" />',
+                ),
+                (
+                    r'<meta\s+property="og:description"\s+content="[^"]*"\s*/?>',
+                    '<meta property="og:description" content="A public example of how OpenCMO reviews SEO, AI search, community narrative, competitors, and execution priorities." />',
+                ),
+                (
+                    r'<meta\s+property="og:url"\s+content="[^"]*"\s*/?>',
+                    '<meta property="og:url" content="https://www.aidcmo.com/sample-audit" />',
+                ),
+                (
+                    r'<meta\s+name="twitter:title"\s+content="[^"]*"\s*/?>',
+                    '<meta name="twitter:title" content="OpenCMO Sample Audit | Public walkthrough of a visibility operating report" />',
+                ),
+                (
+                    r'<meta\s+name="twitter:description"\s+content="[^"]*"\s*/?>',
+                    '<meta name="twitter:description" content="See a public OpenCMO sample audit covering SEO, AI visibility, community signals, competitors, and the next actions an operator would ship." />',
+                ),
+                (
+                    r'<script\s+type="application/ld\+json">.*?</script>',
+                    f'<script type="application/ld+json">{_SAMPLE_AUDIT_JSON_LD}</script>',
+                ),
+            ],
+            "static_copy": _SAMPLE_AUDIT_STATIC_SITE_COPY,
+        },
+    }
+
+    route_config = route_configs.get(normalized)
+    if not route_config:
+        return html
+
+    rendered = _replace_metadata(html, route_config["replacements"])
+    return _replace_static_site_copy(rendered, route_config["static_copy"])
 
 
 # ---------------------------------------------------------------------------
@@ -264,6 +455,20 @@ _INJECTABLE_KEYS = frozenset({
     "TAVILY_API_KEY", "ANTHROPIC_API_KEY", "GOOGLE_AI_API_KEY",
     "PAGESPEED_API_KEY",
 })
+
+
+@app.middleware("http")
+async def canonical_host_middleware(request: Request, call_next):
+    """Redirect production traffic to the canonical public host."""
+    host_header = request.headers.get("host", "")
+    incoming_host = host_header.split(":", 1)[0].lower()
+    redirect_host = _CANONICAL_HOST_REDIRECTS.get(incoming_host)
+    if redirect_host:
+        forwarded_proto = request.headers.get("x-forwarded-proto", "https")
+        scheme = forwarded_proto.split(",", 1)[0].strip() or request.url.scheme
+        target_url = request.url.replace(scheme=scheme, netloc=redirect_host)
+        return RedirectResponse(str(target_url), status_code=308)
+    return await call_next(request)
 
 
 @app.middleware("http")
@@ -365,7 +570,9 @@ app.include_router(github_router)
 
 
 @app.get("/")
+@app.head("/")
 @app.get("/{full_path:path}")
+@app.head("/{full_path:path}")
 async def spa_catchall(request: Request, full_path: str = ""):
     spa_root = _SPA_DIR.resolve()
     index = spa_root / "index.html"
@@ -395,6 +602,8 @@ async def spa_catchall(request: Request, full_path: str = ""):
 
     # SPA fallback — always return index.html
     response = HTMLResponse(rendered_html)
+    if _is_app_surface(full_path):
+        response.headers["X-Robots-Tag"] = "noindex, nofollow, noarchive, nosnippet"
     if new_visitor_id:
         response.set_cookie(
             "opencmo_visitor_id",

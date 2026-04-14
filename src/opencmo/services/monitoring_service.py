@@ -171,5 +171,16 @@ async def get_status_summary() -> list[dict]:
     result = []
     for p in projects:
         latest = await storage.get_latest_scans(p["id"])
-        result.append({**p, "latest": latest})
+        latest_monitoring = await storage.get_latest_monitoring_summary(p["id"])
+        latest_reports = await storage.get_latest_reports(p["id"])
+        pending_approvals = len(
+            [item for item in await storage.list_approvals(status="pending", limit=200) if item.get("project_id") == p["id"]]
+        )
+        result.append({
+            **p,
+            "latest": latest,
+            "latest_monitoring": latest_monitoring,
+            "latest_reports": latest_reports,
+            "pending_approvals": pending_approvals,
+        })
     return result

@@ -30,6 +30,8 @@ export const ja: Partial<Record<TranslationKey, string>> = {
   "dashboard.noProjects": "プロジェクトはまだありません",
   "dashboard.noProjectsDesc": "ウェブサイトの URL を入力して、ブランドのオンラインプレゼンスの監視を開始しましょう。",
   "dashboard.createMonitor": "ウェブサイトを追加",
+  "dashboard.subtitle": "今日何が変わり、今何が重要で、次に何を出荷できるかを確認します。",
+  "dashboard.pendingReviews": "保留中のレビュー",
   "insights.title": "インサイト",
   "insights.proactive": "プロアクティブインサイト",
   "insights.topUnread": "未読の重要アラート",
@@ -50,6 +52,9 @@ export const ja: Partial<Record<TranslationKey, string>> = {
   "project.community": "コミュニティ",
   "project.graph": "ナレッジグラフ",
   "project.monitors": "モニター",
+  "project.tabGroupObserve": "観測",
+  "project.tabGroupDecide": "判断",
+  "project.tabGroupExecute": "実行",
 
   // Score Panel
   "score.seoScore": "SEO スコア",
@@ -63,6 +68,13 @@ export const ja: Partial<Record<TranslationKey, string>> = {
   "project.nextActions": "次のベストアクション",
   "project.campaigns": "キャンペーン実行",
   "project.artifacts": "件の成果物",
+  "projectCard.freshness": "鮮度",
+  "projectCard.fresh": "本日更新",
+  "projectCard.reportReady": "準備完了",
+  "projectCard.reportPending": "未準備",
+  "projectCard.pendingApprovals": "{{count}} 件のドラフトが Review & Publish で待機中です。",
+  "projectCard.findingsSummary": "{{count}} 件の発見がまだレビュー待ちです。",
+  "projectCard.reportSummary": "最新ブリーフをチームに共有できます。",
 
   // Global Overview
   "overview.avgSeo": "平均 SEO スコア",
@@ -173,8 +185,9 @@ export const ja: Partial<Record<TranslationKey, string>> = {
   "landing.navBlog": "Blog",
   "landing.navFaq": "FAQ",
   "landing.heroEyebrow": "Open-source visibility operating system",
-  "landing.heroTitle": "検索、AI 回答、公開会話に出るブランド可視性を、一つのシステムへ。",
-  "landing.heroSubtitle": "OpenCMO は SEO、GEO、SERP、コミュニティシグナルを一か所で監視し、その結果を判断、承認、レポート、実行へつなげます。",
+  "landing.heroTitle": "まず一度スキャンして、あなたの開発者向けプロダクトが検索、AI 回答、コミュニティでどう理解されているかを確認します。",
+  "landing.heroSubtitle": "OpenCMO は最初のスキャンを、実行可能な一枚のブリーフにまとめます。サイト健全性の阻害要因、AI 検索のギャップ、コミュニティ需要、そして次に出荷すべき動きです。",
+  "landing.previewSubtitle": "一回の実行で、公開面をレビュー・優先順位付け・出荷まで進められる運用ブリーフへ変換します。",
   "landing.blogCta": "Read the Blog",
   "landing.metricPipelineLabel": "Operating model",
   "landing.metricPipelineValue": "6 段階",
@@ -412,8 +425,8 @@ export const ja: Partial<Record<TranslationKey, string>> = {
   "settings.baseUrlPlaceholder": "https://api.deepseek.com/v1",
   "settings.baseUrlHint": "カスタム OpenAI 互換 URL。DeepSeek、OpenRouter、XH などは通常 /v1 サフィックスが必要です（例: https://xh.v1api.cc/v1）。",
   "settings.model": "モデル（任意）",
-  "settings.modelPlaceholder": "gpt-4o",
-  "settings.modelHint": "デフォルトモデルをオーバーライドします。",
+  "settings.modelPlaceholder": "gpt-5.4-mini",
+  "settings.modelHint": "デフォルトモデルを上書きします。このデプロイの既定値は {{model}} です。",
   "settings.save": "保存",
   "settings.saved": "保存しました！",
   "settings.apiKeySet": "API キー設定済み",
@@ -522,9 +535,6 @@ export const ja: Partial<Record<TranslationKey, string>> = {
   // Settings — local keys
   "settings.localKeysHint": "API キーはブラウザのローカルストレージに保存されます。サーバーには送信されません。",
 
-  // Dashboard — subtitle
-  "dashboard.subtitle": "AI マーケティングキャンペーンの概要",
-
   // Welcome Hero
   "welcome.title": "OpenCMO へようこそ",
   "welcome.subtitle": "AI マーケティング責任者がここからスタートします。URL を貼り付けて、マーケティング監査を取得しましょう。",
@@ -537,6 +547,7 @@ export const ja: Partial<Record<TranslationKey, string>> = {
   "welcome.featureGeoDesc": "ChatGPT、Claude、Gemini、Perplexity がブランドをどう言及しているか確認。",
   "welcome.featureCommunity": "コミュニティ監視",
   "welcome.featureCommunityDesc": "Reddit、HN、Twitter などのディスカッションを追跡。",
+  "onboarding.serverDefaultModel": "現在のサーバー既定モデル: {{model}}。",
   "landing.headerTagline": "公開検索可視性、AI 可視性、成長実行。",
   "landing.badge": "可視性の把握と実行管理を両立したい成長チーム向け",
   "landing.title": "SEO、GEO、SERP、コミュニティインテリジェンスを一つにまとめたオープンソースのワークスペース。",

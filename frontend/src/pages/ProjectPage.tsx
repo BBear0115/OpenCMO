@@ -6,7 +6,6 @@ import { ProjectHeader } from "../components/project/ProjectHeader";
 import { ProjectTabs } from "../components/project/ProjectTabs";
 import { ScorePanel } from "../components/project/ScorePanel";
 import { ScanHistoryTable } from "../components/project/ScanHistoryTable";
-import { NextActions } from "../components/project/NextActions";
 import { CampaignTimeline } from "../components/project/CampaignTimeline";
 import { ActionFeed } from "../components/project/ActionFeed";
 import { InsightBanner } from "../components/dashboard/InsightBanner";
@@ -40,7 +39,7 @@ export function ProjectPage() {
       <InsightBanner projectId={projectId} />
       <ProjectTabs projectId={projectId} />
 
-      <div className="mt-6">
+      <div className="mt-6 space-y-6">
         <ProjectCommandCenter
           projectId={projectId}
           latest={latest}
@@ -49,28 +48,32 @@ export function ProjectPage() {
           competitorCount={competitor_count}
           pendingApprovals={pending_approvals}
         />
-      </div>
 
-      <div className="mt-6">
-        <ScorePanel latest={latest} previous={previous} latestMonitoring={latest_monitoring} />
-      </div>
+        <section className="rounded-3xl border border-slate-200/80 bg-white/90 p-6 shadow-sm">
+          <ScorePanel latest={latest} previous={previous} latestMonitoring={latest_monitoring} />
+        </section>
 
-      <div className="mt-6">
-        <ActionFeed projectId={projectId} />
-      </div>
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_minmax(320px,0.9fr)]">
+          <section className="rounded-3xl border border-slate-200/80 bg-white/90 p-6 shadow-sm">
+            <ActionFeed projectId={projectId} />
+          </section>
 
-      <NextActions projectId={projectId} />
-      <CampaignTimeline projectId={projectId} />
+          <div className="space-y-6">
+            <section className="rounded-3xl border border-slate-200/80 bg-white/90 p-6 shadow-sm">
+              <CampaignTimeline projectId={projectId} />
+            </section>
 
-      {/* Scan history collapsed at the bottom */}
-      <details className="mt-8 group">
-        <summary className="cursor-pointer text-sm font-semibold text-slate-500 hover:text-slate-700 transition">
-          Scan History ▾
-        </summary>
-        <div className="mt-3">
-          <ScanHistoryTable latest={latest} />
+            <details className="group rounded-3xl border border-slate-200/80 bg-white/90 p-6 shadow-sm">
+              <summary className="cursor-pointer text-sm font-semibold text-slate-500 transition hover:text-slate-700">
+                Scan History ▾
+              </summary>
+              <div className="mt-4">
+                <ScanHistoryTable latest={latest} />
+              </div>
+            </details>
+          </div>
         </div>
-      </details>
+      </div>
     </div>
   );
 }

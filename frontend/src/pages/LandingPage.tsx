@@ -19,7 +19,6 @@ import { SiteFooter } from "../components/layout/SiteFooter";
 import {
   BLOG_ARTICLES,
   BLOG_DECISION_ARTICLE_SLUGS,
-  LANDING_CAPABILITY_KEYS,
   LANDING_CRAWLER_BULLETS,
   LANDING_FAQS,
   LANDING_PLATFORM_ITEMS,
@@ -70,10 +69,7 @@ export function LandingPage() {
               <p className="inline-flex w-fit rounded-full border border-white/14 bg-white/8 px-4 py-2 text-xs font-semibold uppercase tracking-[0.28em] text-[#f3dcc9]">
                 {t("landing.heroEyebrow")}
               </p>
-              <p className="mt-5 text-sm font-medium tracking-[0.08em] text-white/56">
-                {t("landing.badge")}
-              </p>
-              <h1 className="font-display mt-6 max-w-5xl text-4xl font-semibold tracking-tight sm:text-5xl lg:text-[3.25rem] lg:leading-[1.04] xl:text-[3.75rem] xl:leading-[1.01]">
+              <h1 className="font-display mt-6 max-w-4xl text-4xl font-semibold tracking-tight sm:text-5xl lg:text-[3.25rem] lg:leading-[1.04] xl:text-[3.75rem] xl:leading-[1.01]">
                 {t("landing.heroTitle")}
               </h1>
               <p className="mt-6 max-w-3xl text-lg leading-8 text-white/72 sm:text-xl">
@@ -96,15 +92,28 @@ export function LandingPage() {
                 </Link>
               </div>
 
-              <div className="mt-10 flex flex-wrap gap-3 text-sm text-white/70">
-                {LANDING_CAPABILITY_KEYS.map((key) => (
-                  <div
-                    key={key}
-                    className="rounded-full border border-white/12 bg-white/8 px-4 py-2"
-                  >
-                    {t(key)}
-                  </div>
-                ))}
+              <div className="mt-10">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#f3dcc9]">
+                  {t("landing.proofTitle")}
+                </p>
+                <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                  {LANDING_PROOF_ITEMS.map((item, index) => {
+                    const Icon = PROOF_ICONS[index] ?? Sparkles;
+                    return (
+                      <div
+                        key={item.title}
+                        className="rounded-2xl border border-white/12 bg-white/8 px-4 py-4"
+                      >
+                        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/10 text-[#f3dcc9]">
+                          <Icon size={16} />
+                        </div>
+                        <p className="mt-3 text-sm font-semibold leading-6 text-white">
+                          {t(item.title)}
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </motion.div>
 
