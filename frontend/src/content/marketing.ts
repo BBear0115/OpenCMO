@@ -380,3 +380,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
       "from-[#86c8bc]/20 via-[#eff7f5] to-[#dce9f0]",
   },
 ];
+
+export function getBlogArticlePath(slug: string) {
+  return `/blog/${slug}`;
+}
+
+export function findBlogArticleBySlug(slug: string) {
+  return BLOG_ARTICLES.find((article) => article.slug === slug);
+}

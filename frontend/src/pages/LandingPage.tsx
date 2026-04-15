@@ -26,6 +26,7 @@ import {
   LANDING_TRUST_ITEMS,
   LANDING_WORKFLOW_STEPS,
   PUBLIC_HOME_NAV,
+  getBlogArticlePath,
 } from "../content/marketing";
 import { useSiteStats } from "../hooks/useSiteStats";
 import { usePageMetadata } from "../hooks/usePageMetadata";
@@ -450,7 +451,7 @@ export function LandingPage() {
 
             <SectionReveal delay={0.1}>
               <Link
-                to={`/blog#${featuredBlogArticle.slug}`}
+                to={getBlogArticlePath(featuredBlogArticle.slug)}
                 className={`group block overflow-hidden rounded-[2rem] border border-black/8 bg-gradient-to-br p-6 shadow-[0_18px_60px_rgba(8,32,50,0.06)] transition-transform duration-300 hover:-translate-y-1 ${featuredBlogArticle.accentClass}`}
               >
                 <div className="rounded-[1.4rem] bg-white/78 p-5">

@@ -12,6 +12,7 @@ import logging
 import os
 import re
 import uuid
+from html import escape
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -43,10 +44,10 @@ _BLOG_STATIC_SITE_COPY = """
   <section>
     <h2>Start with these notes</h2>
     <ul>
-      <li>Who should use OpenCMO, and when it starts paying for itself</li>
-      <li>Your first 30 days with OpenCMO: a practical rollout plan</li>
-      <li>Why we refused to build another marketing dashboard</li>
-      <li>How to make your site readable to Google and AI agents</li>
+      <li><a href="https://www.aidcmo.com/blog/who-should-use-opencmo">Who should use OpenCMO, and when it starts paying for itself</a></li>
+      <li><a href="https://www.aidcmo.com/blog/first-30-days-with-opencmo">Your first 30 days with OpenCMO: a practical rollout plan</a></li>
+      <li><a href="https://www.aidcmo.com/blog/ai-cmo-workspace">Why we refused to build another marketing dashboard</a></li>
+      <li><a href="https://www.aidcmo.com/blog/crawler-readable-brand-surface">How to make your site readable to Google and AI agents</a></li>
     </ul>
   </section>
   <section>
@@ -60,80 +61,210 @@ _BLOG_STATIC_SITE_COPY = """
 </main>
 """.strip()
 
-_BLOG_JSON_LD = json.dumps(
+_BLOG_ARTICLE_METADATA = [
     {
-        "@context": "https://schema.org",
-        "@type": "Blog",
-        "name": "OpenCMO Blog",
-        "description": (
-            "A public field guide to what OpenCMO is, who it is for, and how the system "
-            "should be used."
+        "slug": "ai-cmo-workspace",
+        "title": "Why we refused to build another marketing dashboard",
+        "summary": (
+            "OpenCMO started with a simple frustration: teams had data, but not continuity. "
+            "Every tool could show a slice of the truth, but almost none could carry that truth "
+            "into the next decision."
         ),
-        "url": "https://www.aidcmo.com/blog",
-        "publisher": {
-            "@type": "Organization",
-            "name": "OpenCMO",
-            "url": "https://www.aidcmo.com/",
-        },
-        "blogPost": [
-            {
-                "@type": "BlogPosting",
-                "headline": "Why we refused to build another marketing dashboard",
-                "url": "https://www.aidcmo.com/blog#ai-cmo-workspace",
-                "description": (
-                    "Why OpenCMO is designed as a visibility workspace instead of another "
-                    "collection of disconnected charts."
-                ),
-            },
-            {
-                "@type": "BlogPosting",
-                "headline": "Why SEO, GEO, SERP, and community signals belong in the same war room",
-                "url": "https://www.aidcmo.com/blog#visibility-operating-system",
-                "description": (
-                    "Why modern brand discovery has to be monitored across search, AI, "
-                    "SERP language, and public discussion at the same time."
-                ),
-            },
-            {
-                "@type": "BlogPosting",
-                "headline": "How to make one site readable to Google, AI agents, and humans",
-                "url": "https://www.aidcmo.com/blog#crawler-readable-brand-surface",
-                "description": (
-                    "How homepage copy, metadata, sitemap, and llms.txt work together to "
-                    "make a product easier to parse and recommend."
-                ),
-            },
-            {
-                "@type": "BlogPosting",
-                "headline": "Inside OpenCMO: what the workspace actually contains",
-                "url": "https://www.aidcmo.com/blog#inside-opencmo-workspace",
-                "description": (
-                    "A walkthrough of the monitoring, review, context, and execution "
-                    "surfaces inside the OpenCMO workspace."
-                ),
-            },
-            {
-                "@type": "BlogPosting",
-                "headline": "Who should use OpenCMO, and when it starts paying for itself",
-                "url": "https://www.aidcmo.com/blog#who-should-use-opencmo",
-                "description": (
-                    "A buyer-oriented note on when fragmented visibility work becomes large "
-                    "enough to justify a dedicated operating layer."
-                ),
-            },
-            {
-                "@type": "BlogPosting",
-                "headline": "Your first 30 days with OpenCMO: a practical rollout plan",
-                "url": "https://www.aidcmo.com/blog#first-30-days-with-opencmo",
-                "description": (
-                    "A practical onboarding sequence for the first scans, reviews, and "
-                    "execution loops inside OpenCMO."
-                ),
-            },
+        "thesis": (
+            "A real AI CMO layer should reduce context loss between monitoring, interpretation, "
+            "coordination, and execution."
+        ),
+        "takeaways": [
+            "Dashboards optimize display. Workspaces optimize shared judgment.",
+            "Most teams do not suffer from missing data. They suffer from broken context.",
+            "AI is most useful when it helps teams reach better decisions faster, not when it pretends to replace them.",
         ],
     },
-    separators=(",", ":"),
-)
+    {
+        "slug": "visibility-operating-system",
+        "title": "Why SEO, GEO, SERP, and community signals belong in the same war room",
+        "summary": (
+            "A modern prospect does not move through one neat funnel. They bounce between Google, "
+            "AI assistants, social proof, public threads, and your site. If those surfaces tell "
+            "different stories, trust erodes before conversion even begins."
+        ),
+        "thesis": (
+            "You cannot manage perception with one channel's metrics when the user's understanding "
+            "is formed across several channels at once."
+        ),
+        "takeaways": [
+            "A good SERP position does not guarantee a clear AI summary.",
+            "Community language often predicts the search language people will use next.",
+            "The best operating decisions come from seeing how the surfaces reinforce or contradict one another.",
+        ],
+    },
+    {
+        "slug": "crawler-readable-brand-surface",
+        "title": "How to make one site readable to Google, AI agents, and humans",
+        "summary": (
+            "A public site is no longer just a conversion page. It is also the place where "
+            "search engines and AI systems learn what the product is, which routes matter, "
+            "and how to retell the brand to someone else."
+        ),
+        "thesis": (
+            "Readable public surfaces require both strong copy and strong crawl signals; one "
+            "without the other leaves the system guessing."
+        ),
+        "takeaways": [
+            "A polished client-rendered app shell is not a sufficient public explanation layer.",
+            "Homepage, blog, sitemap, and llms.txt each play a different role in machine interpretation.",
+            "Separating the public narrative layer from the private workspace reduces confusion for both crawlers and users.",
+        ],
+    },
+    {
+        "slug": "inside-opencmo-workspace",
+        "title": "Inside OpenCMO: what the workspace actually contains",
+        "summary": (
+            "The philosophy matters, but operators still need to know what is in the product. "
+            "OpenCMO is built as a chain: collect signals, review them, preserve brand context, "
+            "and turn them into actions the team can ship."
+        ),
+        "thesis": (
+            "OpenCMO modules are valuable because they close loops together, not because any "
+            "single page is novel in isolation."
+        ),
+        "takeaways": [
+            "The monitoring pages capture different surfaces of visibility.",
+            "The reasoning and approval layers prevent insights from getting lost between tools.",
+            "Reports, brand context, and action surfaces exist to make execution reusable.",
+        ],
+    },
+    {
+        "slug": "who-should-use-opencmo",
+        "title": "Who should use OpenCMO, and when it starts paying for itself",
+        "summary": (
+            "OpenCMO is not for every website. It becomes valuable when visibility work is "
+            "already spread across search, AI answers, community discussion, and internal team handoffs."
+        ),
+        "thesis": (
+            "OpenCMO fits teams whose public narrative now changes across several surfaces faster "
+            "than the team can track and act on it manually."
+        ),
+        "takeaways": [
+            "Best for teams already juggling multiple visibility surfaces.",
+            "Less useful if you only need a one-time SEO checklist.",
+            "Value shows up as faster prioritization, cleaner narrative, and fewer dropped actions.",
+        ],
+    },
+    {
+        "slug": "first-30-days-with-opencmo",
+        "title": "Your first 30 days with OpenCMO: a practical rollout plan",
+        "summary": (
+            "The fastest way to get value is not to click every page. It is to establish a baseline, "
+            "identify one narrative gap, and ship one response loop the team will actually keep using."
+        ),
+        "thesis": (
+            "The right onboarding sequence is baseline, narrative review, prioritization, and execution; "
+            "everything else is secondary in month one."
+        ),
+        "takeaways": [
+            "Start by defining a baseline, not by chasing every alert.",
+            "Use the first scans to find one major narrative mismatch.",
+            "Turn the first report into a repeatable weekly operating rhythm.",
+        ],
+    },
+]
+
+for _article in _BLOG_ARTICLE_METADATA:
+    _article["url"] = f'https://www.aidcmo.com/blog/{_article["slug"]}'
+
+_BLOG_ARTICLE_METADATA_BY_SLUG = {article["slug"]: article for article in _BLOG_ARTICLE_METADATA}
+
+
+def _build_blog_json_ld() -> str:
+    return json.dumps(
+        {
+            "@context": "https://schema.org",
+            "@type": "Blog",
+            "name": "OpenCMO Blog",
+            "description": (
+                "A public field guide to what OpenCMO is, who it is for, and how the system "
+                "should be used."
+            ),
+            "url": "https://www.aidcmo.com/blog",
+            "publisher": {
+                "@type": "Organization",
+                "name": "OpenCMO",
+                "url": "https://www.aidcmo.com/",
+            },
+            "blogPost": [
+                {
+                    "@type": "BlogPosting",
+                    "headline": article["title"],
+                    "url": article["url"],
+                    "description": article["summary"],
+                }
+                for article in _BLOG_ARTICLE_METADATA
+            ],
+        },
+        separators=(",", ":"),
+    )
+
+
+def _build_blog_article_json_ld(article: dict[str, object]) -> str:
+    return json.dumps(
+        {
+            "@context": "https://schema.org",
+            "@type": "BlogPosting",
+            "headline": article["title"],
+            "description": article["summary"],
+            "url": article["url"],
+            "mainEntityOfPage": article["url"],
+            "publisher": {
+                "@type": "Organization",
+                "name": "OpenCMO",
+                "url": "https://www.aidcmo.com/",
+            },
+            "isPartOf": {
+                "@type": "Blog",
+                "name": "OpenCMO Blog",
+                "url": "https://www.aidcmo.com/blog",
+            },
+        },
+        separators=(",", ":"),
+    )
+
+
+def _render_blog_article_static_site_copy(article: dict[str, object]) -> str:
+    title = escape(str(article["title"]))
+    summary = escape(str(article["summary"]))
+    thesis = escape(str(article["thesis"]))
+    url = escape(str(article["url"]))
+    takeaways = "".join(
+        f"<li>{escape(str(item))}</li>"
+        for item in article["takeaways"]
+    )
+    return f"""
+<main id="static-site-copy">
+  <article>
+    <header>
+      <p>OpenCMO Blog</p>
+      <h1>{title}</h1>
+      <p>{summary}</p>
+    </header>
+    <section>
+      <h2>Core thesis</h2>
+      <p>{thesis}</p>
+    </section>
+    <section>
+      <h2>Key takeaways</h2>
+      <ul>{takeaways}</ul>
+    </section>
+    <section>
+      <h2>Canonical article URL</h2>
+      <p><a href="{url}">{url}</a></p>
+    </section>
+  </article>
+</main>
+""".strip()
+
+
+_BLOG_JSON_LD = _build_blog_json_ld()
 
 _SAMPLE_AUDIT_STATIC_SITE_COPY = """
 <main id="static-site-copy">
@@ -220,7 +351,7 @@ _CANONICAL_HOST_REDIRECTS = {
 
 def _replace_metadata(rendered: str, replacements: list[tuple[str, str]]) -> str:
     for pattern, replacement in replacements:
-        rendered = re.sub(pattern, replacement, rendered, count=1, flags=re.IGNORECASE)
+        rendered = re.sub(pattern, replacement, rendered, count=1, flags=re.IGNORECASE | re.DOTALL)
     return rendered
 
 
@@ -290,6 +421,62 @@ def _apply_public_route_metadata(html: str, full_path: str) -> str:
 
         rendered = _replace_metadata(html, replacements)
         return _replace_static_site_copy(rendered, _APP_STATIC_SITE_COPY)
+
+    if normalized.startswith("blog/"):
+        slug = normalized.split("/", 1)[1]
+        article = _BLOG_ARTICLE_METADATA_BY_SLUG.get(slug)
+        if not article:
+            return html
+
+        article_title = str(article["title"])
+        article_summary = str(article["summary"])
+        article_url = str(article["url"])
+        article_json_ld = _build_blog_article_json_ld(article)
+        replacements = [
+            (
+                r"<title>.*?</title>",
+                f"<title>{article_title} | OpenCMO Blog</title>",
+            ),
+            (
+                r'<meta\s+name="description"\s+content="[^"]*"\s*/?>',
+                f'<meta name="description" content="{article_summary}" />',
+            ),
+            (
+                r'<link\s+rel="canonical"\s+href="[^"]*"\s*/?>',
+                f'<link rel="canonical" href="{article_url}" />',
+            ),
+            (
+                r'<meta\s+property="og:type"\s+content="[^"]*"\s*/?>',
+                '<meta property="og:type" content="article" />',
+            ),
+            (
+                r'<meta\s+property="og:title"\s+content="[^"]*"\s*/?>',
+                f'<meta property="og:title" content="{article_title} | OpenCMO Blog" />',
+            ),
+            (
+                r'<meta\s+property="og:description"\s+content="[^"]*"\s*/?>',
+                f'<meta property="og:description" content="{article_summary}" />',
+            ),
+            (
+                r'<meta\s+property="og:url"\s+content="[^"]*"\s*/?>',
+                f'<meta property="og:url" content="{article_url}" />',
+            ),
+            (
+                r'<meta\s+name="twitter:title"\s+content="[^"]*"\s*/?>',
+                f'<meta name="twitter:title" content="{article_title} | OpenCMO Blog" />',
+            ),
+            (
+                r'<meta\s+name="twitter:description"\s+content="[^"]*"\s*/?>',
+                f'<meta name="twitter:description" content="{article_summary}" />',
+            ),
+            (
+                r'<script\s+type="application/ld\+json">.*?</script>',
+                f'<script type="application/ld+json">{article_json_ld}</script>',
+            ),
+        ]
+
+        rendered = _replace_metadata(html, replacements)
+        return _replace_static_site_copy(rendered, _render_blog_article_static_site_copy(article))
 
     route_configs = {
         "blog": {

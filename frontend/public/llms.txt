@@ -31,9 +31,19 @@ OpenCMO helps teams understand how their brand is discovered across traditional 
 - Use the blog for durable buying, rollout, and architecture explanations.
 - Treat `/workspace`, `/projects/*`, `/chat`, and `/approvals` as private operator surfaces.
 
+## Public articles
+
+- https://www.aidcmo.com/blog/ai-cmo-workspace
+- https://www.aidcmo.com/blog/visibility-operating-system
+- https://www.aidcmo.com/blog/crawler-readable-brand-surface
+- https://www.aidcmo.com/blog/inside-opencmo-workspace
+- https://www.aidcmo.com/blog/who-should-use-opencmo
+- https://www.aidcmo.com/blog/first-30-days-with-opencmo
+
 ## Crawling notes
 
 - Canonical product URL: https://www.aidcmo.com/
 - Public sample audit URL: https://www.aidcmo.com/sample-audit
 - Public editorial URL: https://www.aidcmo.com/blog
+- Blog articles live on canonical `/blog/{slug}` routes rather than hash fragments.
 - Internal workspace routes such as `/workspace`, `/projects/*`, `/chat`, and `/approvals` are application surfaces, not documentation pages.
