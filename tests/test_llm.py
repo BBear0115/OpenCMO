@@ -164,11 +164,11 @@ class TestGetOpenAIClient:
 class TestGetModel:
     @pytest.mark.asyncio
     async def test_default_model(self):
-        """Returns gpt-4o when nothing is configured."""
+        """Returns the product default model when nothing is configured."""
         with patch("opencmo.storage.get_setting", new_callable=AsyncMock, return_value=None):
             with patch.dict(os.environ, {}, clear=True):
                 model = await llm.get_model()
-                assert model == "gpt-4o"
+                assert model == "gpt-5.4-mini"
 
     @pytest.mark.asyncio
     async def test_custom_default_model(self):

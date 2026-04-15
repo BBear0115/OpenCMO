@@ -336,7 +336,7 @@ async def test_pipeline_fallback_on_error():
 
     assert result["kind"] == "strategic"
     assert result["human"]["meta"]["used_pipeline"] is False
-    assert result["human"]["meta"]["used_fallback"] is False  # single-call succeeded
+    assert result["human"]["meta"]["used_fallback"] is True  # deep pipeline fell back to single-call
     assert "Fallback Human" in result["human"]["content"]
     assert result["agent"]["meta"]["used_pipeline"] is False
 
