@@ -364,6 +364,7 @@ export const ko: Partial<Record<TranslationKey, string>> = {
   "chat.today": "오늘",
   "chat.yesterday": "어제",
   "chat.older": "이전",
+  "chat.history": "기록",
   "chat.noHistory": "대화 기록 없음",
   "chat.discussProject": "이 프로젝트 논의",
   "chat.currentProject": "현재 프로젝트",

@@ -279,10 +279,14 @@ async def api_v1_chat(request: Request):
                 output_text=result.final_output,
             )
             final_output = review_result["final_output"]
+            assistant_updated = False
             for item in reversed(updated_items):
                 if isinstance(item, dict) and item.get("role") == "assistant":
                     item["content"] = final_output
+                    assistant_updated = True
                     break
+            if final_output and not assistant_updated:
+                updated_items.append({"role": "assistant", "content": final_output})
             await chat_sessions.update_session(session_id, updated_items)
             yield f"data: {json.dumps({'type': 'done', 'agent_name': agent_name, 'final_output': final_output, 'review_applied': review_result['review_applied'], 'review_profile': review_result['profile'], 'review_weak_points': review_result['weak_points']})}\n\n"
         except Exception as e:

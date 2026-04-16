@@ -31,76 +31,106 @@ from opencmo.tools.graph_intel import get_competitive_landscape
 from opencmo.tools.research_brief import generate_research_brief
 from opencmo.tools.search import web_search
 
+
+def _multi_channel_tool(agent: Agent, *, tool_name: str, tool_description: str):
+    return agent.as_tool(
+        tool_name=tool_name,
+        tool_description=(
+            "Use ONLY for coordinated multi-channel orchestration when the user asked for content across multiple platforms "
+            "and the CMO needs to collect outputs without handing off. Never use this for a single-platform request. "
+            f"{tool_description}"
+        ),
+    )
+
+
 # as_tool wrappers — CMO calls these in multi-channel mode to retain control
-twitter_tool = twitter_expert.as_tool(
+twitter_tool = _multi_channel_tool(
+    twitter_expert,
     tool_name="generate_twitter_content",
     tool_description="Generate Twitter/X marketing content (tweets + thread). Returns formatted content.",
 )
-reddit_tool = reddit_expert.as_tool(
+reddit_tool = _multi_channel_tool(
+    reddit_expert,
     tool_name="generate_reddit_content",
     tool_description="Generate authentic Reddit posts for r/SideProject and niche subreddits.",
 )
-linkedin_tool = linkedin_expert.as_tool(
+linkedin_tool = _multi_channel_tool(
+    linkedin_expert,
     tool_name="generate_linkedin_content",
     tool_description="Generate professional LinkedIn posts. Returns long-form and short-form variants.",
 )
-producthunt_tool = producthunt_expert.as_tool(
+producthunt_tool = _multi_channel_tool(
+    producthunt_expert,
     tool_name="generate_producthunt_content",
     tool_description="Generate Product Hunt launch copy (tagline, description, maker comment).",
 )
-hackernews_tool = hackernews_expert.as_tool(
+hackernews_tool = _multi_channel_tool(
+    hackernews_expert,
     tool_name="generate_hackernews_content",
     tool_description="Generate Hacker News Show HN post (title + body).",
 )
-blog_tool = blog_expert.as_tool(
+blog_tool = _multi_channel_tool(
+    blog_expert,
     tool_name="generate_blog_content",
     tool_description="Generate blog/SEO article outlines, SEO recommendations, or full 2000+ word articles with research.",
 )
-ruanyifeng_tool = ruanyifeng_expert.as_tool(
+ruanyifeng_tool = _multi_channel_tool(
+    ruanyifeng_expert,
     tool_name="generate_ruanyifeng_content",
     tool_description="Generate 阮一峰科技爱好者周刊 submission (GitHub Issue format).",
 )
-zhihu_tool = zhihu_expert.as_tool(
+zhihu_tool = _multi_channel_tool(
+    zhihu_expert,
     tool_name="generate_zhihu_content",
     tool_description="Generate 知乎 articles and Q&A answers.",
 )
-xiaohongshu_tool = xiaohongshu_expert.as_tool(
+xiaohongshu_tool = _multi_channel_tool(
+    xiaohongshu_expert,
     tool_name="generate_xiaohongshu_content",
     tool_description="Generate 小红书 image-text notes (种草笔记).",
 )
-v2ex_tool = v2ex_expert.as_tool(
+v2ex_tool = _multi_channel_tool(
+    v2ex_expert,
     tool_name="generate_v2ex_content",
     tool_description="Generate V2EX community posts for /go/share or /go/create.",
 )
-juejin_tool = juejin_expert.as_tool(
+juejin_tool = _multi_channel_tool(
+    juejin_expert,
     tool_name="generate_juejin_content",
     tool_description="Generate 掘金 technical articles and tutorials.",
 )
-jike_tool = jike_expert.as_tool(
+jike_tool = _multi_channel_tool(
+    jike_expert,
     tool_name="generate_jike_content",
     tool_description="Generate 即刻 posts for indie dev / startup circles.",
 )
-wechat_tool = wechat_expert.as_tool(
+wechat_tool = _multi_channel_tool(
+    wechat_expert,
     tool_name="generate_wechat_content",
     tool_description="Generate 微信公众号 long-form articles.",
 )
-oschina_tool = oschina_expert.as_tool(
+oschina_tool = _multi_channel_tool(
+    oschina_expert,
     tool_name="generate_oschina_content",
     tool_description="Generate OSChina (开源中国) project listings and articles.",
 )
-gitcode_tool = gitcode_expert.as_tool(
+gitcode_tool = _multi_channel_tool(
+    gitcode_expert,
     tool_name="generate_gitcode_content",
     tool_description="Generate GitCode repository setup and CSDN companion articles.",
 )
-sspai_tool = sspai_expert.as_tool(
+sspai_tool = _multi_channel_tool(
+    sspai_expert,
     tool_name="generate_sspai_content",
     tool_description="Generate 少数派 tool review and productivity articles.",
 )
-infoq_tool = infoq_expert.as_tool(
+infoq_tool = _multi_channel_tool(
+    infoq_expert,
     tool_name="generate_infoq_content",
     tool_description="Generate InfoQ deep-dive architecture and technical articles.",
 )
-devto_tool = devto_expert.as_tool(
+devto_tool = _multi_channel_tool(
+    devto_expert,
     tool_name="generate_devto_content",
     tool_description="Generate Dev.to developer blog articles and tutorials.",
 )
@@ -159,7 +189,7 @@ Your job is to think like a real marketing leader, not a generic assistant. Conv
    - Dev.to article → Dev.to Expert
 
 3. **Routing rules**:
-   - **Single platform request** → use handoff to transfer to that expert for deep interaction
+   - **Single platform request** → use handoff to transfer to that expert for deep interaction. Do not call the generate_* tool wrappers for single-platform requests.
    - **Multi-channel / full-platform / comprehensive plan** → ALWAYS use `generate_research_brief` FIRST to create a shared context document, then pass that brief to each channel expert via the generate_* tools. This ensures all channel content is consistent.
    - This is critical: for multi-channel, do NOT handoff — use the tool versions so you can collect all outputs and present a cohesive summary
    - The research brief creates a Campaign Run that tracks all generated content as artifacts
@@ -181,7 +211,8 @@ When the user asks for "全平台" or "comprehensive" distribution, prioritize i
 
 ## Important Rules
 - Crawl the website first if a URL is provided (unless already crawled in the conversation). If the user gives enough product context without a URL, proceed directly.
-- After crawling, briefly share your product analysis (one-liner, selling points, target audience) with the user before routing to experts.
+- After crawling, briefly share your product analysis (one-liner, selling points, target audience) only when it materially helps the user understand the recommendation. For direct content requests, skip the visible analysis and go straight to the draft.
+- For single-platform content requests, do not draft, summarize, or editorialize before the handoff. Hand off immediately once you have enough context.
 - In that product analysis, always include:
   - Audience
   - Pain
@@ -196,7 +227,9 @@ When the user asks for "全平台" or "comprehensive" distribution, prioritize i
 - Judgment first: start with the clearest business or messaging judgment before expanding into options
 - When evidence is incomplete, say exactly what is known, what is inferred, and what still needs validation
 - If the user asks for strategy, default to: diagnosis, reasoning, priority, next move
-- If the user asks for content, ground the brief in audience, pain, promise, and proof before routing or drafting
+- If the user asks for content, ground the brief in audience, pain, promise, and proof internally before routing or drafting
+- For direct platform content requests, do not narrate routing, handoffs, internal checklists, or internal briefing labels to the user; use them internally and then let the platform expert answer
+- For single-platform requests, never wrap or rewrite the platform expert's content pack yourself
 """,
     ),
     tools=[

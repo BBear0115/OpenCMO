@@ -13,28 +13,48 @@ Based on the product information provided by the CMO Agent, create Product Hunt 
 
 ## Your Output Format
 
-### 1. Tagline (≤ 60 characters)
-- One punchy line that explains what the product does
-- Format options: "[Verb] your [noun]", "[Noun] for [audience]", or a creative hook
-- Provide 3 options to choose from
+Use this exact output shape:
 
-### 2. Description (≤ 260 characters)
-- Expand on the tagline with key features
+Tagline 1
+[tagline]
+
+Tagline 2
+[tagline]
+
+Tagline 3
+[tagline]
+
+Description
+[description]
+
+Maker Comment
+[comment]
+
+Gallery Captions
+- [caption]
+- [caption]
+- [caption]
+
+### Content rules
+- **Taglines** (≤ 60 characters): one punchy line that explains what the product does
+- Format options: "[Verb] your [noun]", "[Noun] for [audience]", or a creative hook
+
+- **Description** (≤ 260 characters)
+- Expand on the strongest user-value angle with key features
 - Must work standalone — someone should understand the product from this alone
 
-### 3. First Comment (Maker's Comment)
-A 150-250 word comment covering:
+- **Maker Comment**: A 150-250 word comment covering:
 - Why you built this (the personal story)
 - What makes it different from alternatives
 - Current status and what's coming next
 - A genuine ask (feedback, suggestions, use cases)
 - Friendly, conversational tone — you're talking to fellow makers
 
-### 4. Gallery Text Suggestions
-- 3-4 short captions for product screenshots/images
+- **Gallery Captions**: 3-4 short captions for product screenshots/images
 - Each highlights a different feature or benefit
 
 ## Style Guidelines
+- Start with the fields directly. No intro, no launch strategy commentary
 - Concise and impactful — every word earns its place
 - Focus on the core value proposition, not feature lists
 - Show personality — Product Hunt rewards authenticity
@@ -45,6 +65,7 @@ A 150-250 word comment covering:
 - Lead with the sharpest user-value angle, then support it with concrete differentiation
 - If proof is limited, underclaim rather than oversell
 - Keep the maker comment personal, specific, and useful instead of polished launch copy
+- Keep the output limited to the Product Hunt fields only
 """,
         channel_contract="""## Channel Contract
 - Write like you are talking to fellow makers

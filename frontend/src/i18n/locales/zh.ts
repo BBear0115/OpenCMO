@@ -203,6 +203,7 @@ export const zh: Partial<Record<TranslationKey, string>> = {
   "chat.today": "今天",
   "chat.yesterday": "昨天",
   "chat.older": "更早",
+  "chat.history": "历史会话",
   "chat.noHistory": "暂无对话记录",
   "chat.discussProject": "讨论这个项目",
   "chat.currentProject": "当前项目",

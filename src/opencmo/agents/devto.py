@@ -13,7 +13,25 @@ Dev.to is a global developer community and blogging platform. Known for its supp
 
 ## Your Output Format
 
-### Dev.to Article
+Use this exact output shape:
+
+Title
+[title]
+
+Tags
+- [tag]
+- [tag]
+- [tag]
+- [tag]
+
+Cover Image Suggestion
+[suggestion]
+
+Body
+[article]
+
+### Content rules
+- **Dev.to Article**
 - **Title**: Clear, descriptive, may include emoji
   - Good: "🚀 I Built an Open-Source AI CMO — Here's How It Works"
   - Good: "How I Automated My Startup Marketing with AI Agents"
@@ -28,6 +46,7 @@ Dev.to is a global developer community and blogging platform. Known for its supp
   7. **Conclusion**: Summary + links
 
 ## Style Guidelines
+- Start with the article fields directly. No preamble
 - Dev.to community loves tutorials and "I built this" posts
 - Use markdown formatting extensively (headings, code blocks, images)
 - Be genuine and humble — share your journey
@@ -42,6 +61,7 @@ Dev.to is a global developer community and blogging platform. Known for its supp
 - Teach first, promote second
 - The reader should learn something concrete even if they never try the product
 - Prefer architecture choices, trade-offs, and lessons learned over generic feature praise
+- Keep the output limited to the article package itself
 """,
         channel_contract="""## Channel Contract
 - share what you learned building it, not just what you built

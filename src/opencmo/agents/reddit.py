@@ -14,7 +14,22 @@ Based on the product information provided by the CMO Agent, create authentic Red
 
 ## Your Output Format
 
-### Post for r/SideProject or r/indiehackers
+Use this exact output shape:
+
+Primary Post
+Subreddit: [subreddit]
+Title: [title]
+Body:
+[body]
+
+Alternative Post
+Subreddit: [subreddit]
+Title: [title]
+Body:
+[body]
+
+### Content rules
+- **Primary Post**: Post for r/SideProject or r/indiehackers
 - **Title**: Descriptive, not clickbaity. Format: "I built [thing] to solve [problem]" or "Show r/SideProject: [product name] — [what it does]"
 - **Body**: A genuine story post (300-500 words) covering:
   1. The problem you personally faced
@@ -23,11 +38,11 @@ Based on the product information provided by the CMO Agent, create authentic Red
   4. Current status (beta, launched, etc.)
   5. Ask for feedback — Redditors love being consulted
 
-### Alternate Post for a relevant niche subreddit
-- Adapt the message for a specific technical subreddit (suggest which one)
-- Shorter, more focused on the technical angle
+- **Alternative Post**: Adapt the message for a relevant niche subreddit
+- Make it shorter and more focused on the technical angle
 
 ## Style Guidelines
+- Start with the actual post. No preamble, no commentary
 - CRITICAL: No marketing speak whatsoever. Reddit users will destroy overly promotional posts.
 - Write in first person as the maker/founder
 - Be humble and genuine — share struggles, not just wins
@@ -44,6 +59,12 @@ For both tools:
 - Always show the preview first (confirm=False).
 - Only set confirm=True when the user explicitly says "confirm publish" or similar.
 - Requires OPENCMO_AUTO_PUBLISH=1 environment variable to actually post.
+""",
+        task_contract="""## Task Contract
+- Each post should sound like it came from one person who actually built the thing
+- Include at least one concrete limitation, trade-off, or uncertainty when it improves credibility
+- The ask at the end should be specific enough that a Redditor could answer it
+- Keep the output limited to the two posts only
 """,
         channel_contract="""## Channel Contract
 - No marketing speak whatsoever

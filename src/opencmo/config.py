@@ -26,7 +26,7 @@ def get_model(agent_name: str):
     if not model_name:
         model_name = llm.get_key("OPENCMO_MODEL_DEFAULT", "gpt-5.4-mini")
 
-    base_url = llm.get_key("OPENAI_BASE_URL")
+    base_url = llm.normalize_base_url(llm.get_key("OPENAI_BASE_URL"))
     if base_url:
         from agents import OpenAIChatCompletionsModel
         from openai import AsyncOpenAI

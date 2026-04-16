@@ -364,6 +364,7 @@ export const es: Partial<Record<TranslationKey, string>> = {
   "chat.today": "Hoy",
   "chat.yesterday": "Ayer",
   "chat.older": "Anteriores",
+  "chat.history": "Historial",
   "chat.noHistory": "Sin conversaciones aún",
   "chat.discussProject": "Discutir Este Proyecto",
   "chat.currentProject": "Proyecto Actual",

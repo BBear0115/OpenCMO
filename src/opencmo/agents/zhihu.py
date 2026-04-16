@@ -13,7 +13,23 @@ zhihu_expert = Agent(
 
 ## Your Output Format
 
-### 1. 知乎文章 (Zhihu Article)
+Use this exact output shape:
+
+知乎文章
+标题: [title]
+正文:
+[article]
+
+知乎回答
+适合的问题方向:
+- [question angle]
+- [question angle]
+- [question angle]
+回答:
+[answer]
+
+### Content rules
+- **知乎文章**
 - **标题**: 引人思考的问题式标题 或 "干货" 分享式标题
   - 好的例子："如何用 AI 自动化你的营销流程？我做了一个开源工具"
   - 避免："震惊！这个工具改变了..." （标题党）
@@ -24,12 +40,13 @@ zhihu_expert = Agent(
   4. 使用教程/案例：实际操作步骤
   5. 总结与展望
 
-### 2. 知乎回答 (Zhihu Answer)
+- **知乎回答**
 - 针对相关问题的回答模板
 - 建议 3-5 个适合回答的问题方向
 - 回答中自然地引入产品
 
 ## Style Guidelines
+- 直接给文章或回答，不要先给运营建议
 - 语言：中文为主，技术术语可保留英文
 - 知乎用户反感硬广，必须提供真正的干货价值
 - 用第一人称，分享真实经历和心得
@@ -46,6 +63,7 @@ zhihu_expert = Agent(
 - 先提供判断，再提供展开解释
 - 优先分享经验、方法、踩坑与取舍，而不是先做产品宣传
 - 如果结论依赖未验证信息，要明确标注为推测或判断，不要写成既定事实
+- 如果写回答，先把问题答明白，再自然引出产品或案例
 """,
         channel_contract="""## Channel Contract
 - 优先分享经验、方法、踩坑与取舍

@@ -35,6 +35,14 @@ def test_cmo_has_as_tool_wrappers():
     assert "generate_linkedin_content" in tool_names
 
 
+def test_cmo_generate_tools_are_marked_multi_channel_only():
+    from opencmo.agents.cmo import linkedin_tool, reddit_tool, twitter_tool
+
+    for tool in [twitter_tool, reddit_tool, linkedin_tool]:
+        assert "Use ONLY for coordinated multi-channel orchestration" in tool.description
+        assert "Never use this for a single-platform request" in tool.description
+
+
 def test_cmo_handoffs_have_descriptions():
     """Each handoff should have a tool_description_override."""
     from opencmo.agents import cmo_agent
@@ -70,6 +78,33 @@ def test_all_experts_have_instructions():
     ]:
         assert agent.instructions, f"{agent.name} missing instructions"
         assert len(agent.instructions) > 50, f"{agent.name} instructions too short"
+
+
+def test_platform_experts_keep_explicit_deliverable_labels():
+    from opencmo.agents import (
+        hackernews_expert,
+        jike_expert,
+        linkedin_expert,
+        producthunt_expert,
+        reddit_expert,
+        twitter_expert,
+    )
+
+    assert "Tweet 1" in twitter_expert.instructions
+    assert "Post 1" in linkedin_expert.instructions
+    assert "Primary Post" in reddit_expert.instructions
+    assert "Maker Comment" in producthunt_expert.instructions
+    assert "Show HN Body" in hackernews_expert.instructions
+    assert "动态文案" in jike_expert.instructions
+
+
+def test_platform_prompt_examples_do_not_contain_hypey_fake_metrics():
+    from opencmo.agents import ruanyifeng_expert, sspai_expert, wechat_expert, xiaohongshu_expert
+
+    assert "10倍" not in xiaohongshu_expert.instructions
+    assert "80%" not in sspai_expert.instructions
+    assert "上万元推广费" not in wechat_expert.instructions
+    assert "100K+" not in ruanyifeng_expert.instructions
 
 
 def test_seo_agent_has_tools():

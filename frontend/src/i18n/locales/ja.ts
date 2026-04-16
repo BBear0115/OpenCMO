@@ -402,6 +402,7 @@ export const ja: Partial<Record<TranslationKey, string>> = {
   "chat.today": "今日",
   "chat.yesterday": "昨日",
   "chat.older": "過去",
+  "chat.history": "履歴",
   "chat.noHistory": "会話履歴なし",
   "chat.discussProject": "このプロジェクトについて議論",
   "chat.currentProject": "現在のプロジェクト",

@@ -39,35 +39,41 @@ _PROFILE_MAP = {
     "Trend Research": "trend_strategy",
     "Blog SEO Expert": "longform_content",
     "AI Visibility Expert": "positioning_strategy",
-    "Twitter Expert": "community_social",
+    "Twitter Expert": "timeline_native",
     "Reddit Expert": "community_social",
     "LinkedIn Expert": "professional_social",
     "Product Hunt Expert": "launch_positioning",
     "Hacker News Expert": "technical_launch",
-    "Devto Expert": "longform_content",
-    "Zhihu Expert": "longform_content",
-    "Xiaohongshu Expert": "community_social",
-    "V2EX Expert": "community_social",
-    "Juejin Expert": "longform_content",
-    "Jike Expert": "community_social",
-    "WeChat Expert": "longform_content",
-    "OSChina Expert": "technical_launch",
-    "GitCode Expert": "technical_launch",
+    "Devto Expert": "hands_on_longform",
+    "Zhihu Expert": "hands_on_longform",
+    "Xiaohongshu Expert": "experience_note",
+    "V2EX Expert": "developer_forum",
+    "Juejin Expert": "hands_on_longform",
+    "Jike Expert": "maker_feed",
+    "WeChat Expert": "hands_on_longform",
+    "OSChina Expert": "developer_forum",
+    "GitCode Expert": "developer_forum",
     "Sspai Expert": "longform_content",
     "InfoQ Expert": "technical_launch",
-    "Ruanyifeng Weekly Expert": "technical_launch",
+    "Ruanyifeng Weekly Expert": "submission_ready",
 }
 
 _PROFILE_GUIDANCE = {
     "strategic_marketing": "Strengthen strategic framing, differentiation, prioritization, and business trade-offs.",
-    "community_social": "Reduce marketing tone, make the voice more human, useful, and natively community-friendly.",
-    "professional_social": "Increase clarity, proof, and executive relevance while keeping the tone concise and professional.",
+    "community_social": "Reduce marketing tone, cut setup lines, keep one concrete angle per post, and make the voice feel human, useful, and natively community-friendly.",
+    "developer_forum": "Make it read like a peer developer posting to a forum or OSS community: direct, practical, technically concrete, and free of promo wrapper text.",
+    "maker_feed": "Make it feel like a builder sharing a real update or observation on a feed: casual, specific, lightly personal, and centered on one strong point.",
+    "experience_note": "Make it feel like a real hands-on note: scenario first, concrete usage details, believable reactions, and no exaggerated outcome claims.",
+    "timeline_native": "Make the copy feel native to an active X timeline: sharper hooks, less setup, fewer hashtags, one strong angle per post, and no intro before the deliverable.",
+    "professional_social": "Increase clarity, proof, and executive relevance while keeping the tone concise, insight-led, and professional without generic thought-leadership filler.",
     "seo_growth": "Tie technical findings to demand capture, rankings, and practical growth outcomes.",
     "trend_strategy": "Separate noise from signal, clarify why the trend matters now, and turn insight into content or channel actions.",
-    "longform_content": "Make the writing more vivid, specific, and naturally persuasive while preserving structure and utility.",
+    "longform_content": "Make the writing more vivid, specific, and naturally persuasive while preserving structure and utility; tighten intros and remove generic summary filler.",
+    "hands_on_longform": "Keep the article practical and example-heavy: scene first, method second, product third. Cut broad claims that are not grounded in concrete usage or implementation detail.",
     "positioning_strategy": "Sharpen market positioning, recommendation potential, and why the brand should be cited or remembered.",
-    "launch_positioning": "Make the launch framing clearer, more differentiated, and more grounded in user value.",
-    "technical_launch": "Keep credibility high, avoid hype, and make the technical and practical value easier to grasp.",
+    "launch_positioning": "Make the launch framing clearer, more differentiated, more grounded in user value, and ready to paste into launch fields without extra commentary.",
+    "submission_ready": "Make the copy concise, objective, and immediately submit-ready; preserve field structure and remove any explanatory wrapper.",
+    "technical_launch": "Keep credibility high, avoid hype, and make the technical and practical value easier to grasp without flattening everything into generic engineering prose.",
 }
 
 _REVIEW_SYSTEM = """You are a senior product-marketing editor reviewing outputs from specialized marketing agents.
@@ -88,6 +94,10 @@ Hard constraints:
 - Do not materially restructure the draft unless clarity is broken
 - Do not add fabricated metrics, testimonials, customers, or competitive claims
 - Do not mention that you are reviewing or editing the draft
+- Do not add setup lines, framing sentences, or process commentary such as "Below is", "Here are", "Based on the context", or "I wrote"
+- For platform-content drafts, do not append analysis, explanation, or extra advice unless the user explicitly asked for it
+- When multiple variants are present, preserve real angle separation and cut repetitive phrasing aggressively
+- Preserve explicit section labels for multi-part deliverables; do not collapse them into unlabeled fragments or decorative separators
 - If the draft is already strong, make only light edits
 
 Return valid JSON with this shape only:

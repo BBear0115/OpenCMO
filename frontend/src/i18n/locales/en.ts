@@ -225,6 +225,7 @@ export const en = {
   "chat.today": "Today",
   "chat.yesterday": "Yesterday",
   "chat.older": "Older",
+  "chat.history": "History",
   "chat.noHistory": "No conversations yet",
   "chat.discussProject": "Discuss This Project",
   "chat.currentProject": "Current Project",

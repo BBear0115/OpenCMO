@@ -92,6 +92,62 @@ async def test_serp_provider_success_not_found():
     assert result.error is None
 
 
+@pytest.mark.asyncio
+async def test_check_ranking_falls_back_to_crawl_on_provider_error(monkeypatch):
+    """A Tavily quota/rate error should not be persisted if crawl fallback succeeds."""
+    from opencmo.tools import serp_tracker
+    from opencmo.tools.serp_tracker import SerpResult
+
+    calls: list[str] = []
+
+    class FakeTavilyProvider:
+        name = "tavily"
+
+        @property
+        def is_enabled(self):
+            return True
+
+        async def check_ranking(self, keyword, target_domain, num_results=20):
+            calls.append(self.name)
+            return SerpResult(
+                position=None,
+                url_found=None,
+                total_results=0,
+                provider=self.name,
+                error="This request exceeds your plan's set usage limit.",
+            )
+
+    class FakeCrawlProvider:
+        name = "crawl"
+
+        @property
+        def is_enabled(self):
+            return True
+
+        async def check_ranking(self, keyword, target_domain, num_results=20):
+            calls.append(self.name)
+            return SerpResult(
+                position=3,
+                url_found="https://example.com/page",
+                total_results=10,
+                provider=self.name,
+                error=None,
+            )
+
+    monkeypatch.setattr(
+        serp_tracker,
+        "SERP_PROVIDER_REGISTRY",
+        [FakeTavilyProvider(), FakeCrawlProvider()],
+    )
+
+    result = await serp_tracker._check_ranking("test keyword", "example.com")
+
+    assert calls == ["tavily", "crawl"]
+    assert result.provider == "crawl"
+    assert result.position == 3
+    assert result.error is None
+
+
 # ---------------------------------------------------------------------------
 # Storage tests (tracked_keywords + serp_snapshots)
 # ---------------------------------------------------------------------------

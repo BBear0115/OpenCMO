@@ -234,6 +234,14 @@ def _get_active_provider() -> SerpProvider:
     return CrawlSerpProvider()
 
 
+def _get_crawl_provider() -> SerpProvider:
+    """Return the configured crawl provider, or a fresh fallback instance."""
+    for provider in SERP_PROVIDER_REGISTRY:
+        if provider.name == "crawl":
+            return provider
+    return CrawlSerpProvider()
+
+
 # ---------------------------------------------------------------------------
 # Core implementation
 # ---------------------------------------------------------------------------
@@ -244,7 +252,28 @@ async def _check_ranking(keyword: str, target_domain: str) -> SerpResult:
     from opencmo.scrape_config import get_scrape_profile
     profile = get_scrape_profile()
     provider = _get_active_provider()
-    return await provider.check_ranking(keyword, target_domain, num_results=profile.serp_num_results)
+    result = await provider.check_ranking(keyword, target_domain, num_results=profile.serp_num_results)
+    if not result.error or provider.name == "crawl":
+        return result
+
+    fallback = _get_crawl_provider()
+    fallback_result = await fallback.check_ranking(keyword, target_domain, num_results=profile.serp_num_results)
+    if not fallback_result.error:
+        logger.warning(
+            "SERP provider %s failed for %r; used crawl fallback instead: %s",
+            provider.name,
+            keyword,
+            result.error,
+        )
+        return fallback_result
+
+    return SerpResult(
+        position=None,
+        url_found=None,
+        total_results=0,
+        provider=fallback_result.provider,
+        error=f"{provider.name} failed: {result.error}; crawl fallback failed: {fallback_result.error}",
+    )
 
 
 async def track_project_keywords(project_id: int) -> str:

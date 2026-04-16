@@ -39,7 +39,13 @@ def test_marketing_review_profile_selection():
     from opencmo.marketing_review import get_marketing_review_profile
 
     assert get_marketing_review_profile("Reddit Expert") == "community_social"
+    assert get_marketing_review_profile("Twitter Expert") == "timeline_native"
     assert get_marketing_review_profile("LinkedIn Expert") == "professional_social"
+    assert get_marketing_review_profile("V2EX Expert") == "developer_forum"
+    assert get_marketing_review_profile("Jike Expert") == "maker_feed"
+    assert get_marketing_review_profile("Xiaohongshu Expert") == "experience_note"
+    assert get_marketing_review_profile("Devto Expert") == "hands_on_longform"
+    assert get_marketing_review_profile("Ruanyifeng Weekly Expert") == "submission_ready"
     assert get_marketing_review_profile("SEO Audit Expert") == "seo_growth"
     assert get_marketing_review_profile("CMO Agent") == "strategic_marketing"
 

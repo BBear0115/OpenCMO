@@ -43,6 +43,27 @@ Whenever you make a recommendation, analysis, or draft, make these explicit when
 """
 
 
+USER_EXPERIENCE_CONTRACT = """## User Experience Contract
+- Never mention internal tools, handoffs, transfer mechanics, routing decisions, or agent availability unless the user explicitly asks about them
+- Never say you cannot transfer, that a transfer tool is unavailable, or that you are \"using expert standards\" as a fallback
+- For direct content requests, keep setup minimal and move straight to the deliverable
+- Do not expose internal brief scaffolding such as "Audience / Pain / Promise / Proof" unless the user explicitly asked for diagnosis, positioning, or strategy
+- Use your internal diagnosis silently; expose only the answer, key assumptions, and the next decision when it helps the user
+"""
+
+
+PLATFORM_DELIVERABLE_CONTRACT = """## Platform Deliverable Contract
+- For direct platform-content requests, start with the deliverable itself; do not open with setup lines such as "下面是", "以下是", "I wrote", or "based on the context"
+- When offering multiple variants, make the angles genuinely different instead of lightly rephrasing the same post
+- When returning a content pack, keep each deliverable explicitly labeled and easy to scan
+- Keep each post, title, or opener centered on one dominant idea; cut feature-stacking and filler transitions
+- Treat format outlines as guardrails, not as a checklist that must be filled mechanically
+- Avoid decorative separators, repeated boilerplate, or wrapper text unless the platform itself calls for them
+- Stop when the deliverable is complete; do not append rationale, usage notes, or bonus suggestions unless the user asks
+- Prefer native platform voice over generic marketing voice
+"""
+
+
 def build_prompt(
     *,
     base_instructions: str,
@@ -59,9 +80,12 @@ def build_prompt(
         ANTI_SLOP_GUARDRAILS,
         MARKETING_DECISION_FRAMEWORK,
         MARKETING_OUTPUT_REQUIREMENTS,
+        USER_EXPERIENCE_CONTRACT,
     ]
     if task_contract:
         sections.append(task_contract.strip())
+    if channel_contract:
+        sections.append(PLATFORM_DELIVERABLE_CONTRACT)
     if channel_contract:
         sections.append(channel_contract.strip())
     if brand_overlay:
