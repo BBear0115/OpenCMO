@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from opencmo import storage
-from opencmo.monitoring import run_monitoring_workflow
+from opencmo.monitoring import _collect_signals, run_monitoring_workflow
 
 
 @pytest.fixture(autouse=True)
@@ -74,3 +74,28 @@ def test_run_monitoring_workflow_persists_artifacts():
     assert findings[0]["metadata"]["status"] in {"confirmed", "likely", "hypothesis", "environment_limitation"}
     assert "dedupe_key" in findings[0]["metadata"]
     assert isinstance(recommendations[0]["metadata"], dict)
+
+
+@pytest.mark.asyncio
+async def test_collect_signals_surfaces_github_rate_limit_as_warning():
+    project_id = await storage.ensure_project("Coze", "https://www.coze.com/", "ai")
+
+    captured: list[dict] = []
+
+    async def capture(_run_id: int, _callback, event: dict) -> None:
+        captured.append(event)
+
+    with patch("opencmo.monitoring._emit", side_effect=capture), \
+         patch(
+             "opencmo.services.github_service.auto_discover_from_product",
+             new=AsyncMock(return_value={
+                 "discovered": 0,
+                 "contactable": 0,
+                 "warnings": ["GitHub API rate limit exceeded during repository discovery. Results may be incomplete."],
+             }),
+         ):
+        await _collect_signals(1, project_id, "github", 1, None)
+
+    summaries = [event["summary"] for event in captured if event["stage"] == "signal_collect"]
+    assert any("rate limit exceeded" in summary for summary in summaries)
+    assert not any("0 found, 0 contactable" in summary for summary in summaries)

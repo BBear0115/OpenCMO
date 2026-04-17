@@ -446,12 +446,22 @@ async def _collect_signals(
             result = await auto_discover_from_product(project_id)
             discovered = result.get("discovered", 0)
             contactable = result.get("contactable", 0)
-            await _emit(run_id, on_progress, _event(
-                "signal_collect",
-                "running",
-                f"GitHub discovery finished: {discovered} found, {contactable} contactable.",
-                agent="Signal Collector",
-            ))
+            discovery_warnings = [str(item).strip() for item in result.get("warnings", []) if str(item).strip()]
+            for message in discovery_warnings:
+                warnings.append(message)
+                await _emit(run_id, on_progress, _event(
+                    "signal_collect",
+                    "warning",
+                    message,
+                    agent="Signal Collector",
+                ))
+            if discovered or contactable or not discovery_warnings:
+                await _emit(run_id, on_progress, _event(
+                    "signal_collect",
+                    "running",
+                    f"GitHub discovery finished: {discovered} found, {contactable} contactable.",
+                    agent="Signal Collector",
+                ))
         except Exception as exc:
             warnings.append(f"GitHub discovery failed: {exc}")
             await _emit(run_id, on_progress, _event(

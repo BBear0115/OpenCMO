@@ -1,4 +1,6 @@
 import asyncio
+import html
+import re
 
 from agents import function_tool
 from crawl4ai import AsyncWebCrawler
@@ -18,6 +20,35 @@ def _extract_markdown(result) -> str:
     if hasattr(md, "raw_markdown"):
         return md.raw_markdown or ""
     return str(md)
+
+
+def _extract_html_metadata(raw_html: str) -> str:
+    """Extract a small, structured fallback context from HTML metadata."""
+    if not raw_html:
+        return ""
+
+    patterns = (
+        ("Page title", r"<title[^>]*>(.*?)</title>"),
+        ("Meta description", r'<meta[^>]+name=["\']description["\'][^>]+content=["\'](.*?)["\']'),
+        ("Open Graph title", r'<meta[^>]+property=["\']og:title["\'][^>]+content=["\'](.*?)["\']'),
+        ("Open Graph description", r'<meta[^>]+property=["\']og:description["\'][^>]+content=["\'](.*?)["\']'),
+        ("Twitter title", r'<meta[^>]+name=["\']twitter:title["\'][^>]+content=["\'](.*?)["\']'),
+        ("Twitter description", r'<meta[^>]+name=["\']twitter:description["\'][^>]+content=["\'](.*?)["\']'),
+    )
+
+    lines: list[str] = []
+    seen_values: set[str] = set()
+    for label, pattern in patterns:
+        match = re.search(pattern, raw_html, re.IGNORECASE | re.DOTALL)
+        if not match:
+            continue
+        value = html.unescape(" ".join(match.group(1).split())).strip()
+        if not value or value in seen_values:
+            continue
+        lines.append(f"{label}: {value}")
+        seen_values.add(value)
+
+    return "\n".join(lines)
 
 
 async def fetch_url_content(
@@ -44,6 +75,10 @@ async def fetch_url_content(
         result = await asyncio.wait_for(_crawl(), timeout=90)
         content = _extract_markdown(result)
         source = "crawl4ai"
+        if not content.strip():
+            content = _extract_html_metadata(getattr(result, "html", "") or "")
+            if content.strip():
+                source = "html_meta"
 
     if max_chars is not None and len(content) > max_chars:
         content = content[:max_chars]

@@ -75,7 +75,7 @@ async def analyze_url_with_ai(url: str, on_progress=None, locale: str = "en") ->
 
     Returns {"brand_name": str, "category": str, "keywords": list[str]}.
     """
-    fallback = {"brand_name": "", "category": "", "keywords": []}
+    fallback = {"brand_name": "", "category": "", "keywords": [], "competitors": []}
     emit = on_progress or (lambda *a: None)
 
     locale_profile = _get_locale_profile(locale)
@@ -97,8 +97,12 @@ async def analyze_url_with_ai(url: str, on_progress=None, locale: str = "en") ->
             logger.warning("Empty crawl result for %s", url)
             emit("system", "No content found on page.", 0)
             return fallback
-        verb = "Extracted" if source == "tavily" else "Crawled"
-        emit("system", f"{verb} {len(raw_content)} chars. Filtering noise...", 0)
+        if source == "tavily":
+            emit("system", f"Extracted {len(raw_content)} chars. Filtering noise...", 0)
+        elif source == "html_meta":
+            emit("system", f"Recovered {len(raw_content)} chars from page metadata. Starting discussion...", 0)
+        else:
+            emit("system", f"Crawled {len(raw_content)} chars. Filtering noise...", 0)
     except Exception:
         logger.exception("Failed to crawl %s", url)
         emit("system", "Failed to crawl the page.", 0)
@@ -110,34 +114,37 @@ async def analyze_url_with_ai(url: str, on_progress=None, locale: str = "en") ->
 
         client = await llm.get_openai_client()
         model = await llm.get_model()
-
-        filter_resp = await _llm_call(client, model, [
-            {
-                "role": "system",
-                "content": (
-                    "You are a content filter for product intelligence. Your job is to extract "
-                    "ONLY the useful product/project information from a crawled webpage.\n\n"
-                    "REMOVE: navigation menus, headers, footers, sidebars, cookie notices, "
-                    "sign-up prompts, GitHub UI chrome (star counts, fork buttons, file listings, "
-                    "contributor avatars, issue counts), ads, testimonials, and other boilerplate.\n\n"
-                    "KEEP and structure:\n"
-                    "- Product/project name and tagline\n"
-                    "- What it does (core value proposition)\n"
-                    "- Key features and capabilities\n"
-                    "- Tech stack and implementation details\n"
-                    "- Target users and use cases\n"
-                    "- Pricing model (free/freemium/paid/open-source)\n"
-                    "- Any mentioned integrations or ecosystem\n"
-                    "- README content if from a code repository\n\n"
-                    "Return the cleaned content as plain text, preserving the original language. "
-                    "If the page is a GitHub/GitLab repo, prioritize the README content over UI elements."
-                ),
-            },
-            {"role": "user", "content": f"URL: {url}\n\nRaw crawled content:\n{raw_content}"},
-        ])
-        content = filter_resp.strip()
-        emit("system", f"Filtered to {len(content)} chars of useful content. Starting discussion...", 0)
-        logger.info("Content filtered: %d → %d chars", len(raw_content), len(content))
+        if source == "html_meta":
+            content = raw_content.strip()
+            logger.info("Using HTML metadata fallback for %s (%d chars)", url, len(content))
+        else:
+            filter_resp = await _llm_call(client, model, [
+                {
+                    "role": "system",
+                    "content": (
+                        "You are a content filter for product intelligence. Your job is to extract "
+                        "ONLY the useful product/project information from a crawled webpage.\n\n"
+                        "REMOVE: navigation menus, headers, footers, sidebars, cookie notices, "
+                        "sign-up prompts, GitHub UI chrome (star counts, fork buttons, file listings, "
+                        "contributor avatars, issue counts), ads, testimonials, and other boilerplate.\n\n"
+                        "KEEP and structure:\n"
+                        "- Product/project name and tagline\n"
+                        "- What it does (core value proposition)\n"
+                        "- Key features and capabilities\n"
+                        "- Tech stack and implementation details\n"
+                        "- Target users and use cases\n"
+                        "- Pricing model (free/freemium/paid/open-source)\n"
+                        "- Any mentioned integrations or ecosystem\n"
+                        "- README content if from a code repository\n\n"
+                        "Return the cleaned content as plain text, preserving the original language. "
+                        "If the page is a GitHub/GitLab repo, prioritize the README content over UI elements."
+                    ),
+                },
+                {"role": "user", "content": f"URL: {url}\n\nRaw crawled content:\n{raw_content}"},
+            ])
+            content = filter_resp.strip() or raw_content.strip()
+            emit("system", f"Filtered to {len(content)} chars of useful content. Starting discussion...", 0)
+            logger.info("Content filtered: %d → %d chars", len(raw_content), len(content))
 
         briefing = (
             f"We are analyzing a product/project to create a brand monitoring strategy.\n"
