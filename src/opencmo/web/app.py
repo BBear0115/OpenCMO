@@ -588,9 +588,11 @@ async def _startup_fix_stale_expansions():
         pass  # table may not exist yet on first run
 
     # Load DB-stored API settings into os.environ so background workers can read them.
-    from opencmo.config import apply_runtime_settings
+    from opencmo.config import apply_runtime_settings, configure_agent_tracing
     await apply_runtime_settings()
     logger.info("Runtime settings loaded from DB into environment")
+    tracing_disabled = configure_agent_tracing()
+    logger.info("Agents tracing %s", "disabled for custom provider" if tracing_disabled else "enabled")
 
 
 @app.on_event("startup")

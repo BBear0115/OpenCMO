@@ -49,6 +49,25 @@ def is_custom_provider() -> bool:
     return bool(llm.get_key("OPENAI_BASE_URL"))
 
 
+def configure_agent_tracing() -> bool:
+    """Disable agents tracing when using a custom OpenAI-compatible provider.
+
+    The agents SDK exports traces to OpenAI's backend by default. When the runtime
+    API key belongs to a third-party OpenAI-compatible gateway (OpenRouter,
+    DeepSeek, NVIDIA, etc.), that export path emits noisy 401 errors. We disable
+    tracing globally in those cases because the trace exporter is not used by the
+    product at runtime.
+
+    Returns:
+        True when tracing was disabled, False otherwise.
+    """
+    custom_provider = is_custom_provider()
+    from agents import set_tracing_disabled
+
+    set_tracing_disabled(custom_provider)
+    return custom_provider
+
+
 async def apply_runtime_settings():
     """Load API settings from DB and apply to os.environ.
 

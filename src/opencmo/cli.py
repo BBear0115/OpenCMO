@@ -321,10 +321,8 @@ def main():
     load_dotenv()
 
     # Disable tracing for non-OpenAI providers (avoids 401 noise)
-    from opencmo.config import is_custom_provider
-    if is_custom_provider():
-        from agents import set_tracing_disabled
-        set_tracing_disabled(True)
+    from opencmo.config import configure_agent_tracing
+    configure_agent_tracing()
 
     asyncio.run(run_cli())
 
