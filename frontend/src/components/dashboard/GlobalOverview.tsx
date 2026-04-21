@@ -1,9 +1,8 @@
+import { Link } from "react-router";
 import { useQuery } from "@tanstack/react-query";
+import { Bot, CheckSquare, GitBranch, Globe, Search, Users } from "lucide-react";
 import { apiJson } from "../../api/client";
 import { useI18n } from "../../i18n";
-import {
-  Search, Globe, Users, Hash, GitBranch, Rocket,
-} from "lucide-react";
 
 interface OverviewData {
   project_count: number;
@@ -12,6 +11,10 @@ interface OverviewData {
   total_community_hits: number;
   total_keywords: number;
   total_competitors: number;
+  projects_updated_today: number;
+  urgent_findings: number;
+  ready_actions: number;
+  pending_approvals: number;
   recent_campaigns: Array<{
     id: number;
     goal: string;
@@ -30,49 +33,65 @@ function useOverview() {
   });
 }
 
+function SummaryCard({
+  label,
+  value,
+  body,
+  actionLabel,
+  actionTo,
+}: {
+  label: string;
+  value: string | number;
+  body: string;
+  actionLabel: string;
+  actionTo: string;
+}) {
+  return (
+    <article className="rounded-2xl border border-slate-200/80 bg-white/90 p-5 shadow-sm">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">
+        {label}
+      </p>
+      <p className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">{value}</p>
+      <p className="mt-2 text-sm leading-6 text-slate-600">{body}</p>
+      {actionTo.startsWith("#") ? (
+        <a
+          href={actionTo}
+          className="mt-4 inline-flex items-center rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-slate-800"
+        >
+          {actionLabel}
+        </a>
+      ) : (
+        <Link
+          to={actionTo}
+          className="mt-4 inline-flex items-center rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-slate-800"
+        >
+          {actionLabel}
+        </Link>
+      )}
+    </article>
+  );
+}
+
 function MetricCard({
   icon: Icon,
   label,
   value,
-  color,
 }: {
   icon: React.ElementType;
   label: string;
   value: string | number | null;
-  color: string;
 }) {
   return (
-    <div className="flex items-center gap-3 rounded-xl border border-zinc-100 bg-white p-4 shadow-sm transition hover:shadow-md">
-      <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${color}`}>
-        <Icon className="h-5 w-5" />
+    <div className="flex items-center gap-3 rounded-2xl border border-slate-200/80 bg-white/90 p-4 shadow-sm">
+      <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-100 text-slate-700">
+        <Icon size={18} />
       </div>
       <div>
-        <div className="text-2xl font-bold text-zinc-800">
-          {value ?? "—"}
-        </div>
-        <div className="text-xs text-zinc-500">{label}</div>
+        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">{label}</p>
+        <p className="mt-1 text-lg font-semibold text-slate-950">{value ?? "—"}</p>
       </div>
     </div>
   );
-}
-
-function seoColor(score: number | null): string {
-  if (score == null) return "bg-slate-50 text-slate-400";
-  if (score >= 90) return "bg-emerald-50 text-emerald-600";
-  if (score >= 50) return "bg-amber-50 text-amber-600";
-  return "bg-rose-50 text-rose-600";
-}
-
-function geoColor(score: number | null): string {
-  if (score == null) return "bg-slate-50 text-slate-400";
-  if (score >= 60) return "bg-emerald-50 text-emerald-600";
-  if (score >= 30) return "bg-amber-50 text-amber-600";
-  return "bg-rose-50 text-rose-600";
-}
-
-function communityColor(hits: number): string {
-  if (hits > 0) return "bg-brand-50 text-brand-600";
-  return "bg-slate-50 text-slate-400";
 }
 
 export function GlobalOverview() {
@@ -82,45 +101,80 @@ export function GlobalOverview() {
   if (!data || data.project_count === 0) return null;
 
   return (
-    <div className="mb-8">
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
+    <section className="mb-8 space-y-5">
+      <div className="rounded-3xl border border-slate-200/80 bg-[radial-gradient(circle_at_top,_rgba(99,102,241,0.08),_transparent_40%),linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] p-6 shadow-sm">
+        <div className="flex items-start gap-3">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-900 text-white">
+            <Bot size={18} />
+          </div>
+          <div className="max-w-3xl">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">
+              {t("dashboard.summaryTitle")}
+            </p>
+            <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
+              {t("dashboard.summarySubtitle")}
+            </h2>
+          </div>
+        </div>
+
+        <div className="mt-5 grid gap-4 lg:grid-cols-3">
+          <SummaryCard
+            label={t("command.changedToday")}
+            value={data.projects_updated_today}
+            body={t("dashboard.updatedProjects", { count: data.projects_updated_today, total: data.project_count })}
+            actionLabel={t("command.reviewProjects")}
+            actionTo="#project-grid"
+          />
+          <SummaryCard
+            label={t("command.whatMattersNow")}
+            value={data.urgent_findings}
+            body={t("dashboard.findingsReady", {
+              count: data.urgent_findings,
+              approvals: data.pending_approvals,
+            })}
+            actionLabel={t("command.openOpportunities")}
+            actionTo="#project-grid"
+          />
+          <SummaryCard
+            label={t("command.readyToShip")}
+            value={data.ready_actions}
+            body={t("dashboard.actionsReady", {
+              count: data.ready_actions,
+              approvals: data.pending_approvals,
+            })}
+            actionLabel={t("command.reviewDraft")}
+            actionTo="/approvals"
+          />
+        </div>
+      </div>
+
+      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
         <MetricCard
           icon={Search}
           label={t("overview.avgSeo")}
           value={data.avg_seo_score != null ? `${data.avg_seo_score}%` : null}
-          color={seoColor(data.avg_seo_score)}
         />
         <MetricCard
           icon={Globe}
           label={t("overview.avgGeo")}
           value={data.avg_geo_score != null ? `${data.avg_geo_score}/100` : null}
-          color={geoColor(data.avg_geo_score)}
         />
         <MetricCard
           icon={Users}
           label={t("overview.communityHits")}
           value={data.total_community_hits}
-          color={communityColor(data.total_community_hits)}
-        />
-        <MetricCard
-          icon={Hash}
-          label={t("overview.keywords")}
-          value={data.total_keywords}
-          color="bg-indigo-50 text-indigo-600"
         />
         <MetricCard
           icon={GitBranch}
           label={t("overview.competitors")}
           value={data.total_competitors}
-          color="bg-rose-50 text-rose-600"
         />
         <MetricCard
-          icon={Rocket}
-          label={t("overview.recentCampaigns")}
-          value={data.recent_campaigns.length}
-          color="bg-brand-50 text-brand-600"
+          icon={CheckSquare}
+          label={t("dashboard.pendingReviews")}
+          value={data.pending_approvals}
         />
       </div>
-    </div>
+    </section>
   );
 }

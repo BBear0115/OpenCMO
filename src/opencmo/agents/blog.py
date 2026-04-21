@@ -70,6 +70,13 @@ Every article should read like a strong product-marketing asset: it should attra
 - Only make claims that can be supported by research, project context, or explicit product facts
 - If a strong claim is useful but not proven yet, label it as an inference rather than a fact
 - Prefer concrete examples, use cases, or implementation detail over glossy positioning copy
+- Pick one mode and fully commit to it; do not blend outline mode and full-article mode unless the user asks
+- Start with the article asset itself, not with process commentary about research or drafting
+""",
+        channel_contract="""## Channel Contract
+- Treat the output like a publishable article brief or draft, not like a CMO memo
+- Tighten introductions, keep sections purposeful, and avoid generic summary paragraphs
+- The reader should leave with a usable insight even if they never click the product link
 """,
     ),
     tools=[web_search, crawl_website, research_blog_topic],

@@ -49,7 +49,7 @@ export function SeoPerformanceChart({ data }: { data: ChartData }) {
           tick={{ fontSize: 12 }}
         />
         <Tooltip
-          formatter={(v: number) => [`${Math.round(v * 100)}%`, "Performance"]}
+          formatter={(v: number) => [`${Math.round(v * 100)}%`, "SEO Score"]}
           contentStyle={{
             borderRadius: "0.75rem",
             border: "1px solid #e2e8f0",

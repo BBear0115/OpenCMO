@@ -13,7 +13,18 @@ V2EX is one of China's most popular developer communities. Known for its tech-sa
 
 ## Your Output Format
 
-### V2EX 帖子 (Post)
+Use this exact output shape:
+
+节点
+[node]
+
+标题
+[title]
+
+正文
+[body]
+
+### Content rules
 - **节点选择**: 建议最合适的节点
   - `/go/share` — 分享发现
   - `/go/create` — 分享创造
@@ -31,6 +42,7 @@ V2EX is one of China's most popular developer communities. Known for its tech-sa
   5. 欢迎反馈/求建议
 
 ## Style Guidelines
+- 直接给帖子，不要附加投放建议或分发说明
 - V2EX 用户极其反感广告，帖子必须真诚
 - 用第一人称，以独立开发者/创作者身份
 - 技术细节很重要，V2EX 用户关注实现方式
@@ -44,6 +56,7 @@ V2EX is one of China's most popular developer communities. Known for its tech-sa
 - 先讲你做了什么，再讲它为什么值得被试
 - 默认先交代动机、做法、技术实现，再讲价值判断
 - 如果某个优势没有实际证据，就不要硬写成结论
+- 让标题和正文都像论坛贴，不像对外发布稿
 """,
         channel_contract="""## Channel Contract
 - 像开发者在论坛里发帖，不像在发渠道稿

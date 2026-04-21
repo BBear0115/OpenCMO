@@ -6,6 +6,8 @@ import asyncio
 import json
 import logging
 
+import httpx
+
 from opencmo import llm, storage
 
 logger = logging.getLogger(__name__)
@@ -25,6 +27,15 @@ _CATEGORY_LANGUAGES: dict[str, list[str]] = {
     "education": ["Python", "JavaScript", "TypeScript"],
     "design": ["TypeScript", "JavaScript", "Swift"],
 }
+
+
+def _is_rate_limit_error(exc: Exception) -> bool:
+    message = str(exc).lower()
+    if "rate limit" in message:
+        return True
+    if isinstance(exc, httpx.HTTPStatusError):
+        return exc.response.status_code in {403, 429}
+    return False
 
 
 def compute_outreach_score(
@@ -171,6 +182,11 @@ async def auto_discover_from_product(
     # --- Phase 1: Collect candidate logins ---
     seen: set[str] = set()
     candidates: list[dict] = []
+    warnings: list[str] = []
+
+    def note_warning(message: str) -> None:
+        if message not in warnings:
+            warnings.append(message)
 
     # 1a. Search repos and collect owners + top stargazers
     for query in queries[:5]:
@@ -201,6 +217,8 @@ async def auto_discover_from_product(
                             pass
         except Exception as exc:
             logger.warning("Repo search failed for %r: %s", query, exc)
+            if _is_rate_limit_error(exc):
+                note_warning("GitHub API rate limit exceeded during repository discovery. Results may be incomplete.")
 
     # 1b. Search users directly with keyword queries
     for query in queries[:3]:
@@ -215,9 +233,11 @@ async def auto_discover_from_product(
                     candidates.append({"login": login, "source": "user_search", "seed_username": query})
         except Exception as exc:
             logger.warning("User search failed for %r: %s", query, exc)
+            if _is_rate_limit_error(exc):
+                note_warning("GitHub API rate limit exceeded during user discovery. Results may be incomplete.")
 
     if not candidates:
-        return {"discovered": 0, "enriched": 0, "contactable": 0}
+        return {"discovered": 0, "enriched": 0, "contactable": 0, "warnings": warnings}
 
     # Store raw leads
     for c in candidates:
@@ -269,6 +289,7 @@ async def auto_discover_from_product(
         "discovered": len(candidates),
         "enriched": enriched_count,
         "contactable": contactable,
+        "warnings": warnings,
     }
 
 

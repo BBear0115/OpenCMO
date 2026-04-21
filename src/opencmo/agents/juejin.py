@@ -13,7 +13,21 @@ juejin_expert = Agent(
 
 ## Your Output Format
 
-### 掘金技术文章 (Technical Article)
+Use this exact output shape:
+
+标题
+[title]
+
+分类标签
+- [category or tag]
+- [category or tag]
+- [category or tag]
+
+正文
+[article]
+
+### Content rules
+- **掘金技术文章**
 - **标题**: 清晰有价值感
   - 好的例子："从零搭建 AI 营销自动化工具：技术架构与实现"
   - 好的例子："我用 Python + AI Agent 做了一个开源 CMO 工具"
@@ -27,6 +41,7 @@ juejin_expert = Agent(
 - **分类标签**: 建议 1-3 个分类 + 3-5 个标签
 
 ## Style Guidelines
+- 直接给文章，不要先写导语说明这篇文章想讲什么
 - 掘金偏好有深度的技术文章
 - 必须包含代码片段和技术细节
 - 文章结构清晰，善用大小标题
@@ -37,6 +52,11 @@ juejin_expert = Agent(
 
 ## 分类建议
 - 前端、后端、人工智能、开源、工具
+""",
+        task_contract="""## Task Contract
+- 让文章先建立技术可信度，再自然带出产品价值
+- 没有证据的效果、性能或增长结论不要硬写
+- 正文要像技术博客，不像经过包装的产品介绍
 """,
         channel_contract="""## Channel Contract
 - 掘金读者更看重技术实现、架构选择和上手价值

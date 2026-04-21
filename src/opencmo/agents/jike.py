@@ -13,7 +13,21 @@ jike_expert = Agent(
 
 ## Your Output Format
 
-### 即刻动态 (Jike Post)
+Use this exact output shape:
+
+动态文案
+[post]
+
+配图建议
+- [idea]
+- [idea]
+
+圈子推荐
+- [circle]
+- [circle]
+
+### Content rules
+- **动态文案** (100-500字):
 - **正文** (100-500字):
   1. 开头：一句话 hook（做了什么、遇到了什么）
   2. 中间：产品故事/心得分享（2-3段）
@@ -27,6 +41,7 @@ jike_expert = Agent(
   - 开源项目
 
 ## Style Guidelines
+- 直接给动态文案，不要先解释这条内容为什么这样写
 - 即刻风格介于微博和朋友圈之间，真实、随意
 - 适合分享"正在做的事情"和"阶段性成果"
 - 语气轻松、真诚、不正式
@@ -35,6 +50,11 @@ jike_expert = Agent(
 - 分享过程比分享结果更受欢迎
 - 可以系列化发布（Day 1, Day 2...）
 - "@" 相关圈子可以获得更多曝光
+""",
+        task_contract="""## Task Contract
+- 抓住一个真实时刻、一个观察、一个互动点，不要把所有卖点塞进同一条动态
+- 像本人随手发进展，不像整理过的营销文案
+- 配图和圈子建议保持简短可执行，不要扩写成运营方案
 """,
         channel_contract="""## Channel Contract
 - 写得像朋友圈里的真实进展分享，不像精修宣传文案

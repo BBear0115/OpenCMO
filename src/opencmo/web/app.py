@@ -12,11 +12,12 @@ import logging
 import os
 import re
 import uuid
+from html import escape
 from pathlib import Path
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.responses import StreamingResponse
 
@@ -43,10 +44,10 @@ _BLOG_STATIC_SITE_COPY = """
   <section>
     <h2>Start with these notes</h2>
     <ul>
-      <li>Who should use OpenCMO, and when it starts paying for itself</li>
-      <li>Your first 30 days with OpenCMO: a practical rollout plan</li>
-      <li>Why we refused to build another marketing dashboard</li>
-      <li>How to make your site readable to Google and AI agents</li>
+      <li><a href="https://www.aidcmo.com/blog/who-should-use-opencmo">Who should use OpenCMO, and when it starts paying for itself</a></li>
+      <li><a href="https://www.aidcmo.com/blog/first-30-days-with-opencmo">Your first 30 days with OpenCMO: a practical rollout plan</a></li>
+      <li><a href="https://www.aidcmo.com/blog/ai-cmo-workspace">Why we refused to build another marketing dashboard</a></li>
+      <li><a href="https://www.aidcmo.com/blog/crawler-readable-brand-surface">How to make your site readable to Google and AI agents</a></li>
     </ul>
   </section>
   <section>
@@ -60,137 +61,514 @@ _BLOG_STATIC_SITE_COPY = """
 </main>
 """.strip()
 
-_BLOG_JSON_LD = json.dumps(
+_BLOG_ARTICLE_METADATA = [
+    {
+        "slug": "ai-cmo-workspace",
+        "title": "Why we refused to build another marketing dashboard",
+        "summary": (
+            "OpenCMO started with a simple frustration: teams had data, but not continuity. "
+            "Every tool could show a slice of the truth, but almost none could carry that truth "
+            "into the next decision."
+        ),
+        "thesis": (
+            "A real AI CMO layer should reduce context loss between monitoring, interpretation, "
+            "coordination, and execution."
+        ),
+        "takeaways": [
+            "Dashboards optimize display. Workspaces optimize shared judgment.",
+            "Most teams do not suffer from missing data. They suffer from broken context.",
+            "AI is most useful when it helps teams reach better decisions faster, not when it pretends to replace them.",
+        ],
+    },
+    {
+        "slug": "visibility-operating-system",
+        "title": "Why SEO, GEO, SERP, and community signals belong in the same war room",
+        "summary": (
+            "A modern prospect does not move through one neat funnel. They bounce between Google, "
+            "AI assistants, social proof, public threads, and your site. If those surfaces tell "
+            "different stories, trust erodes before conversion even begins."
+        ),
+        "thesis": (
+            "You cannot manage perception with one channel's metrics when the user's understanding "
+            "is formed across several channels at once."
+        ),
+        "takeaways": [
+            "A good SERP position does not guarantee a clear AI summary.",
+            "Community language often predicts the search language people will use next.",
+            "The best operating decisions come from seeing how the surfaces reinforce or contradict one another.",
+        ],
+    },
+    {
+        "slug": "crawler-readable-brand-surface",
+        "title": "How to make one site readable to Google, AI agents, and humans",
+        "summary": (
+            "A public site is no longer just a conversion page. It is also the place where "
+            "search engines and AI systems learn what the product is, which routes matter, "
+            "and how to retell the brand to someone else."
+        ),
+        "thesis": (
+            "Readable public surfaces require both strong copy and strong crawl signals; one "
+            "without the other leaves the system guessing."
+        ),
+        "takeaways": [
+            "A polished client-rendered app shell is not a sufficient public explanation layer.",
+            "Homepage, blog, sitemap, and llms.txt each play a different role in machine interpretation.",
+            "Separating the public narrative layer from the private workspace reduces confusion for both crawlers and users.",
+        ],
+    },
+    {
+        "slug": "inside-opencmo-workspace",
+        "title": "Inside OpenCMO: what the workspace actually contains",
+        "summary": (
+            "The philosophy matters, but operators still need to know what is in the product. "
+            "OpenCMO is built as a chain: collect signals, review them, preserve brand context, "
+            "and turn them into actions the team can ship."
+        ),
+        "thesis": (
+            "OpenCMO modules are valuable because they close loops together, not because any "
+            "single page is novel in isolation."
+        ),
+        "takeaways": [
+            "The monitoring pages capture different surfaces of visibility.",
+            "The reasoning and approval layers prevent insights from getting lost between tools.",
+            "Reports, brand context, and action surfaces exist to make execution reusable.",
+        ],
+    },
+    {
+        "slug": "who-should-use-opencmo",
+        "title": "Who should use OpenCMO, and when it starts paying for itself",
+        "summary": (
+            "OpenCMO is not for every website. It becomes valuable when visibility work is "
+            "already spread across search, AI answers, community discussion, and internal team handoffs."
+        ),
+        "thesis": (
+            "OpenCMO fits teams whose public narrative now changes across several surfaces faster "
+            "than the team can track and act on it manually."
+        ),
+        "takeaways": [
+            "Best for teams already juggling multiple visibility surfaces.",
+            "Less useful if you only need a one-time SEO checklist.",
+            "Value shows up as faster prioritization, cleaner narrative, and fewer dropped actions.",
+        ],
+    },
+    {
+        "slug": "first-30-days-with-opencmo",
+        "title": "Your first 30 days with OpenCMO: a practical rollout plan",
+        "summary": (
+            "The fastest way to get value is not to click every page. It is to establish a baseline, "
+            "identify one narrative gap, and ship one response loop the team will actually keep using."
+        ),
+        "thesis": (
+            "The right onboarding sequence is baseline, narrative review, prioritization, and execution; "
+            "everything else is secondary in month one."
+        ),
+        "takeaways": [
+            "Start by defining a baseline, not by chasing every alert.",
+            "Use the first scans to find one major narrative mismatch.",
+            "Turn the first report into a repeatable weekly operating rhythm.",
+        ],
+    },
+]
+
+for _article in _BLOG_ARTICLE_METADATA:
+    _article["url"] = f'https://www.aidcmo.com/blog/{_article["slug"]}'
+
+_BLOG_ARTICLE_METADATA_BY_SLUG = {article["slug"]: article for article in _BLOG_ARTICLE_METADATA}
+
+
+def _build_blog_json_ld() -> str:
+    return json.dumps(
+        {
+            "@context": "https://schema.org",
+            "@type": "Blog",
+            "name": "OpenCMO Blog",
+            "description": (
+                "A public field guide to what OpenCMO is, who it is for, and how the system "
+                "should be used."
+            ),
+            "url": "https://www.aidcmo.com/blog",
+            "publisher": {
+                "@type": "Organization",
+                "name": "OpenCMO",
+                "url": "https://www.aidcmo.com/",
+            },
+            "blogPost": [
+                {
+                    "@type": "BlogPosting",
+                    "headline": article["title"],
+                    "url": article["url"],
+                    "description": article["summary"],
+                }
+                for article in _BLOG_ARTICLE_METADATA
+            ],
+        },
+        separators=(",", ":"),
+    )
+
+
+def _build_blog_article_json_ld(article: dict[str, object]) -> str:
+    return json.dumps(
+        {
+            "@context": "https://schema.org",
+            "@type": "BlogPosting",
+            "headline": article["title"],
+            "description": article["summary"],
+            "url": article["url"],
+            "mainEntityOfPage": article["url"],
+            "publisher": {
+                "@type": "Organization",
+                "name": "OpenCMO",
+                "url": "https://www.aidcmo.com/",
+            },
+            "isPartOf": {
+                "@type": "Blog",
+                "name": "OpenCMO Blog",
+                "url": "https://www.aidcmo.com/blog",
+            },
+        },
+        separators=(",", ":"),
+    )
+
+
+def _render_blog_article_static_site_copy(article: dict[str, object]) -> str:
+    title = escape(str(article["title"]))
+    summary = escape(str(article["summary"]))
+    thesis = escape(str(article["thesis"]))
+    url = escape(str(article["url"]))
+    takeaways = "".join(
+        f"<li>{escape(str(item))}</li>"
+        for item in article["takeaways"]
+    )
+    return f"""
+<main id="static-site-copy">
+  <article>
+    <header>
+      <p>OpenCMO Blog</p>
+      <h1>{title}</h1>
+      <p>{summary}</p>
+    </header>
+    <section>
+      <h2>Core thesis</h2>
+      <p>{thesis}</p>
+    </section>
+    <section>
+      <h2>Key takeaways</h2>
+      <ul>{takeaways}</ul>
+    </section>
+    <section>
+      <h2>Canonical article URL</h2>
+      <p><a href="{url}">{url}</a></p>
+    </section>
+  </article>
+</main>
+""".strip()
+
+
+_BLOG_JSON_LD = _build_blog_json_ld()
+
+_SAMPLE_AUDIT_STATIC_SITE_COPY = """
+<main id="static-site-copy">
+  <header>
+    <p>OpenCMO Sample Audit</p>
+    <h1>A public walkthrough of how OpenCMO turns visibility signals into next actions</h1>
+    <p>
+      This sample audit shows the shape of an OpenCMO review: what changed across SEO,
+      AI search, community discussion, competitors, and which actions are ready to ship.
+    </p>
+  </header>
+  <section>
+    <h2>What this public page includes</h2>
+    <ul>
+      <li>SEO findings that explain crawl, metadata, and site-health gaps</li>
+      <li>AI visibility notes that show how assistants currently frame the brand</li>
+      <li>Community and competitor signals that influence the public narrative</li>
+      <li>Prioritized next actions that operators can actually ship</li>
+    </ul>
+  </section>
+  <section>
+    <h2>Why this page is public</h2>
+    <p>
+      It gives search engines, buyers, and AI agents a concrete example of the
+      product output without exposing the private workspace routes.
+    </p>
+  </section>
+</main>
+""".strip()
+
+_SAMPLE_AUDIT_JSON_LD = json.dumps(
     {
         "@context": "https://schema.org",
-        "@type": "Blog",
-        "name": "OpenCMO Blog",
+        "@type": "WebPage",
+        "name": "OpenCMO Sample Audit",
         "description": (
-            "A public field guide to what OpenCMO is, who it is for, and how the system "
-            "should be used."
+            "A public walkthrough of a sample OpenCMO visibility audit covering SEO, "
+            "AI search, community signal review, competitors, and next actions."
         ),
-        "url": "https://www.aidcmo.com/blog",
-        "publisher": {
-            "@type": "Organization",
+        "url": "https://www.aidcmo.com/sample-audit",
+        "isPartOf": {
+            "@type": "WebSite",
             "name": "OpenCMO",
             "url": "https://www.aidcmo.com/",
         },
-        "blogPost": [
-            {
-                "@type": "BlogPosting",
-                "headline": "Why we refused to build another marketing dashboard",
-                "url": "https://www.aidcmo.com/blog#ai-cmo-workspace",
-                "description": (
-                    "Why OpenCMO is designed as a visibility workspace instead of another "
-                    "collection of disconnected charts."
-                ),
-            },
-            {
-                "@type": "BlogPosting",
-                "headline": "Why SEO, GEO, SERP, and community signals belong in the same war room",
-                "url": "https://www.aidcmo.com/blog#visibility-operating-system",
-                "description": (
-                    "Why modern brand discovery has to be monitored across search, AI, "
-                    "SERP language, and public discussion at the same time."
-                ),
-            },
-            {
-                "@type": "BlogPosting",
-                "headline": "How to make one site readable to Google, AI agents, and humans",
-                "url": "https://www.aidcmo.com/blog#crawler-readable-brand-surface",
-                "description": (
-                    "How homepage copy, metadata, sitemap, and llms.txt work together to "
-                    "make a product easier to parse and recommend."
-                ),
-            },
-            {
-                "@type": "BlogPosting",
-                "headline": "Inside OpenCMO: what the workspace actually contains",
-                "url": "https://www.aidcmo.com/blog#inside-opencmo-workspace",
-                "description": (
-                    "A walkthrough of the monitoring, review, context, and execution "
-                    "surfaces inside the OpenCMO workspace."
-                ),
-            },
-            {
-                "@type": "BlogPosting",
-                "headline": "Who should use OpenCMO, and when it starts paying for itself",
-                "url": "https://www.aidcmo.com/blog#who-should-use-opencmo",
-                "description": (
-                    "A buyer-oriented note on when fragmented visibility work becomes large "
-                    "enough to justify a dedicated operating layer."
-                ),
-            },
-            {
-                "@type": "BlogPosting",
-                "headline": "Your first 30 days with OpenCMO: a practical rollout plan",
-                "url": "https://www.aidcmo.com/blog#first-30-days-with-opencmo",
-                "description": (
-                    "A practical onboarding sequence for the first scans, reviews, and "
-                    "execution loops inside OpenCMO."
-                ),
-            },
-        ],
+        "about": {
+            "@type": "SoftwareApplication",
+            "name": "OpenCMO",
+            "url": "https://www.aidcmo.com/",
+            "applicationCategory": "BusinessApplication",
+            "operatingSystem": "Web",
+        },
     },
     separators=(",", ":"),
 )
 
+_APP_STATIC_SITE_COPY = """
+<main id="static-site-copy">
+  <header>
+    <p>OpenCMO Workspace</p>
+    <h1>Private application surface</h1>
+    <p>
+      This route belongs to the operator workspace for projects, approvals,
+      reports, and AI-assisted review. Use the public homepage and blog for
+      product overview and machine-readable discovery.
+    </p>
+  </header>
+  <section>
+    <h2>Public product resources</h2>
+    <ul>
+      <li>Homepage: https://www.aidcmo.com/</li>
+      <li>Blog: https://www.aidcmo.com/blog</li>
+      <li>Machine-readable summary: https://www.aidcmo.com/llms.txt</li>
+    </ul>
+  </section>
+</main>
+""".strip()
 
-def _apply_public_route_metadata(html: str, full_path: str) -> str:
-    normalized = full_path.strip("/")
-    if normalized != "blog":
-        return html
 
-    replacements = [
-        (
-            r"<title>.*?</title>",
-            "<title>OpenCMO Blog | Field Guide to Visibility Operations and OpenCMO</title>",
-        ),
-        (
-            r'<meta\s+name="description"\s+content="[^"]*"\s*/?>',
-            '<meta name="description" content="Read the public OpenCMO field guide covering adoption fit, first-30-day rollout, crawler-readable surfaces, and visibility operations." />',
-        ),
-        (
-            r'<link\s+rel="canonical"\s+href="[^"]*"\s*/?>',
-            '<link rel="canonical" href="https://www.aidcmo.com/blog" />',
-        ),
-        (
-            r'<meta\s+property="og:title"\s+content="[^"]*"\s*/?>',
-            '<meta property="og:title" content="OpenCMO Blog | Field Guide to Visibility Operations and OpenCMO" />',
-        ),
-        (
-            r'<meta\s+property="og:description"\s+content="[^"]*"\s*/?>',
-            '<meta property="og:description" content="Read the public OpenCMO field guide covering adoption fit, rollout, crawler-readable surfaces, and visibility operations." />',
-        ),
-        (
-            r'<meta\s+property="og:url"\s+content="[^"]*"\s*/?>',
-            '<meta property="og:url" content="https://www.aidcmo.com/blog" />',
-        ),
-        (
-            r'<meta\s+name="twitter:title"\s+content="[^"]*"\s*/?>',
-            '<meta name="twitter:title" content="OpenCMO Blog | Field Guide to Visibility Operations and OpenCMO" />',
-        ),
-        (
-            r'<meta\s+name="twitter:description"\s+content="[^"]*"\s*/?>',
-            '<meta name="twitter:description" content="Read the public OpenCMO field guide covering adoption fit, rollout, crawler-readable surfaces, and visibility operations." />',
-        ),
-        (
-            r'<script\s+type="application/ld\+json">.*?</script>',
-            f'<script type="application/ld+json">{_BLOG_JSON_LD}</script>',
-        ),
-    ]
+_CANONICAL_HOST_REDIRECTS = {
+    "aidcmo.com": "www.aidcmo.com",
+}
 
-    rendered = html
+
+def _replace_metadata(rendered: str, replacements: list[tuple[str, str]]) -> str:
     for pattern, replacement in replacements:
-        rendered = re.sub(pattern, replacement, rendered, count=1, flags=re.IGNORECASE)
+        rendered = re.sub(pattern, replacement, rendered, count=1, flags=re.IGNORECASE | re.DOTALL)
+    return rendered
 
+
+def _replace_static_site_copy(rendered: str, static_copy: str) -> str:
     return re.sub(
         r'<main id="static-site-copy">.*?</main>',
-        _BLOG_STATIC_SITE_COPY,
+        static_copy,
         rendered,
         count=1,
         flags=re.DOTALL,
     )
+
+
+def _is_app_surface(full_path: str) -> bool:
+    normalized = full_path.strip("/")
+    if not normalized:
+        return False
+    return (
+        normalized in {"workspace", "approvals", "chat"}
+        or normalized.startswith("projects/")
+        or normalized == "projects"
+    )
+
+
+def _apply_public_route_metadata(html: str, full_path: str) -> str:
+    normalized = full_path.strip("/")
+    if _is_app_surface(normalized):
+        canonical_url = f"https://www.aidcmo.com/{normalized}" if normalized else "https://www.aidcmo.com/"
+        replacements = [
+            (
+                r"<title>.*?</title>",
+                "<title>OpenCMO Workspace | Private application surface</title>",
+            ),
+            (
+                r'<meta\s+name="description"\s+content="[^"]*"\s*/?>',
+                '<meta name="description" content="Private OpenCMO workspace route for operators. Use the homepage and blog for the public product overview." />',
+            ),
+            (
+                r'<meta\s+name="robots"\s+content="[^"]*"\s*/?>',
+                '<meta name="robots" content="noindex,nofollow,noarchive,nosnippet" />',
+            ),
+            (
+                r'<link\s+rel="canonical"\s+href="[^"]*"\s*/?>',
+                f'<link rel="canonical" href="{canonical_url}" />',
+            ),
+            (
+                r'<meta\s+property="og:title"\s+content="[^"]*"\s*/?>',
+                '<meta property="og:title" content="OpenCMO Workspace | Private application surface" />',
+            ),
+            (
+                r'<meta\s+property="og:description"\s+content="[^"]*"\s*/?>',
+                '<meta property="og:description" content="Private OpenCMO workspace route for projects, approvals, reports, and operator workflows." />',
+            ),
+            (
+                r'<meta\s+property="og:url"\s+content="[^"]*"\s*/?>',
+                f'<meta property="og:url" content="{canonical_url}" />',
+            ),
+            (
+                r'<meta\s+name="twitter:title"\s+content="[^"]*"\s*/?>',
+                '<meta name="twitter:title" content="OpenCMO Workspace | Private application surface" />',
+            ),
+            (
+                r'<meta\s+name="twitter:description"\s+content="[^"]*"\s*/?>',
+                '<meta name="twitter:description" content="Private OpenCMO workspace route for projects, approvals, reports, and operator workflows." />',
+            ),
+        ]
+
+        rendered = _replace_metadata(html, replacements)
+        return _replace_static_site_copy(rendered, _APP_STATIC_SITE_COPY)
+
+    if normalized.startswith("blog/"):
+        slug = normalized.split("/", 1)[1]
+        article = _BLOG_ARTICLE_METADATA_BY_SLUG.get(slug)
+        if not article:
+            return html
+
+        article_title = str(article["title"])
+        article_summary = str(article["summary"])
+        article_url = str(article["url"])
+        article_json_ld = _build_blog_article_json_ld(article)
+        replacements = [
+            (
+                r"<title>.*?</title>",
+                f"<title>{article_title} | OpenCMO Blog</title>",
+            ),
+            (
+                r'<meta\s+name="description"\s+content="[^"]*"\s*/?>',
+                f'<meta name="description" content="{article_summary}" />',
+            ),
+            (
+                r'<link\s+rel="canonical"\s+href="[^"]*"\s*/?>',
+                f'<link rel="canonical" href="{article_url}" />',
+            ),
+            (
+                r'<meta\s+property="og:type"\s+content="[^"]*"\s*/?>',
+                '<meta property="og:type" content="article" />',
+            ),
+            (
+                r'<meta\s+property="og:title"\s+content="[^"]*"\s*/?>',
+                f'<meta property="og:title" content="{article_title} | OpenCMO Blog" />',
+            ),
+            (
+                r'<meta\s+property="og:description"\s+content="[^"]*"\s*/?>',
+                f'<meta property="og:description" content="{article_summary}" />',
+            ),
+            (
+                r'<meta\s+property="og:url"\s+content="[^"]*"\s*/?>',
+                f'<meta property="og:url" content="{article_url}" />',
+            ),
+            (
+                r'<meta\s+name="twitter:title"\s+content="[^"]*"\s*/?>',
+                f'<meta name="twitter:title" content="{article_title} | OpenCMO Blog" />',
+            ),
+            (
+                r'<meta\s+name="twitter:description"\s+content="[^"]*"\s*/?>',
+                f'<meta name="twitter:description" content="{article_summary}" />',
+            ),
+            (
+                r'<script\s+type="application/ld\+json">.*?</script>',
+                f'<script type="application/ld+json">{article_json_ld}</script>',
+            ),
+        ]
+
+        rendered = _replace_metadata(html, replacements)
+        return _replace_static_site_copy(rendered, _render_blog_article_static_site_copy(article))
+
+    route_configs = {
+        "blog": {
+            "replacements": [
+                (
+                    r"<title>.*?</title>",
+                    "<title>OpenCMO Blog | Field Guide to Visibility Operations and OpenCMO</title>",
+                ),
+                (
+                    r'<meta\s+name="description"\s+content="[^"]*"\s*/?>',
+                    '<meta name="description" content="Read the public OpenCMO field guide covering adoption fit, first-30-day rollout, crawler-readable surfaces, and visibility operations." />',
+                ),
+                (
+                    r'<link\s+rel="canonical"\s+href="[^"]*"\s*/?>',
+                    '<link rel="canonical" href="https://www.aidcmo.com/blog" />',
+                ),
+                (
+                    r'<meta\s+property="og:title"\s+content="[^"]*"\s*/?>',
+                    '<meta property="og:title" content="OpenCMO Blog | Field Guide to Visibility Operations and OpenCMO" />',
+                ),
+                (
+                    r'<meta\s+property="og:description"\s+content="[^"]*"\s*/?>',
+                    '<meta property="og:description" content="Read the public OpenCMO field guide covering adoption fit, rollout, crawler-readable surfaces, and visibility operations." />',
+                ),
+                (
+                    r'<meta\s+property="og:url"\s+content="[^"]*"\s*/?>',
+                    '<meta property="og:url" content="https://www.aidcmo.com/blog" />',
+                ),
+                (
+                    r'<meta\s+name="twitter:title"\s+content="[^"]*"\s*/?>',
+                    '<meta name="twitter:title" content="OpenCMO Blog | Field Guide to Visibility Operations and OpenCMO" />',
+                ),
+                (
+                    r'<meta\s+name="twitter:description"\s+content="[^"]*"\s*/?>',
+                    '<meta name="twitter:description" content="Read the public OpenCMO field guide covering adoption fit, rollout, crawler-readable surfaces, and visibility operations." />',
+                ),
+                (
+                    r'<script\s+type="application/ld\+json">.*?</script>',
+                    f'<script type="application/ld+json">{_BLOG_JSON_LD}</script>',
+                ),
+            ],
+            "static_copy": _BLOG_STATIC_SITE_COPY,
+        },
+        "sample-audit": {
+            "replacements": [
+                (
+                    r"<title>.*?</title>",
+                    "<title>OpenCMO Sample Audit | Public walkthrough of a visibility operating report</title>",
+                ),
+                (
+                    r'<meta\s+name="description"\s+content="[^"]*"\s*/?>',
+                    '<meta name="description" content="See a public OpenCMO sample audit covering SEO, AI visibility, community signals, competitors, and the next actions an operator would ship." />',
+                ),
+                (
+                    r'<link\s+rel="canonical"\s+href="[^"]*"\s*/?>',
+                    '<link rel="canonical" href="https://www.aidcmo.com/sample-audit" />',
+                ),
+                (
+                    r'<meta\s+property="og:title"\s+content="[^"]*"\s*/?>',
+                    '<meta property="og:title" content="OpenCMO Sample Audit | Public walkthrough of a visibility operating report" />',
+                ),
+                (
+                    r'<meta\s+property="og:description"\s+content="[^"]*"\s*/?>',
+                    '<meta property="og:description" content="A public example of how OpenCMO reviews SEO, AI search, community narrative, competitors, and execution priorities." />',
+                ),
+                (
+                    r'<meta\s+property="og:url"\s+content="[^"]*"\s*/?>',
+                    '<meta property="og:url" content="https://www.aidcmo.com/sample-audit" />',
+                ),
+                (
+                    r'<meta\s+name="twitter:title"\s+content="[^"]*"\s*/?>',
+                    '<meta name="twitter:title" content="OpenCMO Sample Audit | Public walkthrough of a visibility operating report" />',
+                ),
+                (
+                    r'<meta\s+name="twitter:description"\s+content="[^"]*"\s*/?>',
+                    '<meta name="twitter:description" content="See a public OpenCMO sample audit covering SEO, AI visibility, community signals, competitors, and the next actions an operator would ship." />',
+                ),
+                (
+                    r'<script\s+type="application/ld\+json">.*?</script>',
+                    f'<script type="application/ld+json">{_SAMPLE_AUDIT_JSON_LD}</script>',
+                ),
+            ],
+            "static_copy": _SAMPLE_AUDIT_STATIC_SITE_COPY,
+        },
+    }
+
+    route_config = route_configs.get(normalized)
+    if not route_config:
+        return html
+
+    rendered = _replace_metadata(html, route_config["replacements"])
+    return _replace_static_site_copy(rendered, route_config["static_copy"])
 
 
 # ---------------------------------------------------------------------------
@@ -210,9 +588,11 @@ async def _startup_fix_stale_expansions():
         pass  # table may not exist yet on first run
 
     # Load DB-stored API settings into os.environ so background workers can read them.
-    from opencmo.config import apply_runtime_settings
+    from opencmo.config import apply_runtime_settings, configure_agent_tracing
     await apply_runtime_settings()
     logger.info("Runtime settings loaded from DB into environment")
+    tracing_disabled = configure_agent_tracing()
+    logger.info("Agents tracing %s", "disabled for custom provider" if tracing_disabled else "enabled")
 
 
 @app.on_event("startup")
@@ -264,6 +644,20 @@ _INJECTABLE_KEYS = frozenset({
     "TAVILY_API_KEY", "ANTHROPIC_API_KEY", "GOOGLE_AI_API_KEY",
     "PAGESPEED_API_KEY",
 })
+
+
+@app.middleware("http")
+async def canonical_host_middleware(request: Request, call_next):
+    """Redirect production traffic to the canonical public host."""
+    host_header = request.headers.get("host", "")
+    incoming_host = host_header.split(":", 1)[0].lower()
+    redirect_host = _CANONICAL_HOST_REDIRECTS.get(incoming_host)
+    if redirect_host:
+        forwarded_proto = request.headers.get("x-forwarded-proto", "https")
+        scheme = forwarded_proto.split(",", 1)[0].strip() or request.url.scheme
+        target_url = request.url.replace(scheme=scheme, netloc=redirect_host)
+        return RedirectResponse(str(target_url), status_code=308)
+    return await call_next(request)
 
 
 @app.middleware("http")
@@ -365,7 +759,9 @@ app.include_router(github_router)
 
 
 @app.get("/")
+@app.head("/")
 @app.get("/{full_path:path}")
+@app.head("/{full_path:path}")
 async def spa_catchall(request: Request, full_path: str = ""):
     spa_root = _SPA_DIR.resolve()
     index = spa_root / "index.html"
@@ -395,6 +791,8 @@ async def spa_catchall(request: Request, full_path: str = ""):
 
     # SPA fallback — always return index.html
     response = HTMLResponse(rendered_html)
+    if _is_app_surface(full_path):
+        response.headers["X-Robots-Tag"] = "noindex, nofollow, noarchive, nosnippet"
     if new_visitor_id:
         response.set_cookie(
             "opencmo_visitor_id",

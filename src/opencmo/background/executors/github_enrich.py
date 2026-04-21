@@ -50,7 +50,7 @@ async def run_github_enrich_executor(ctx) -> None:
         u["source"] = source
         u["seed_username"] = seed_username
 
-    stored = await storage.batch_upsert_github_leads(project_id, unique)
+    await storage.batch_upsert_github_leads(project_id, unique)
     await ctx.emit(
         event_type="progress", phase="discover", status="completed",
         summary=f"Discovered {len(unique)} users from {seed_username}",
@@ -106,7 +106,7 @@ async def run_github_enrich_executor(ctx) -> None:
             project_id, enriched=True, limit=10,
         )
         # Sort by followers descending
-        top_leads = sorted(top_leads, key=lambda l: l.get("followers", 0), reverse=True)[:10]
+        top_leads = sorted(top_leads, key=lambda lead_item: lead_item.get("followers", 0), reverse=True)[:10]
 
         for lead in top_leads:
             if get_rate_remaining() < 300:
@@ -172,7 +172,7 @@ async def run_github_enrich_executor(ctx) -> None:
         score = compute_outreach_score(lead, category=category, keywords=keywords)
         await storage.update_lead_score(project_id, lead["login"], score)
 
-    contactable = sum(1 for l in all_leads if has_contact_info(l))
+    contactable = sum(1 for lead_item in all_leads if has_contact_info(lead_item))
     await ctx.emit(
         event_type="progress", phase="score", status="completed",
         summary=f"Scored {len(all_leads)} leads, {contactable} contactable",

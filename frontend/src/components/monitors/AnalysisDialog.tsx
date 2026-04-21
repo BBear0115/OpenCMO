@@ -323,6 +323,56 @@ function StageCard({
   );
 }
 
+function buildLiveStageCards(
+  progress: AnalysisProgress[],
+  stageCards: TaskArtifactStageCard[],
+): TaskArtifactStageCard[] {
+  const stageMap = new Map(stageCards.map((card) => [card.stage, card]));
+
+  for (const item of progress) {
+    const stage = item.stage;
+    if (!stage || !STAGE_CONFIG[stage]) continue;
+    const current = stageMap.get(stage);
+    stageMap.set(stage, {
+      stage,
+      status: item.status ?? current?.status ?? "running",
+      summary: item.summary ?? item.detail ?? item.content ?? current?.summary ?? "",
+      agent: item.agent ?? current?.agent ?? "",
+      event_count: (current?.event_count ?? 0) + 1,
+    });
+  }
+
+  return Object.keys(STAGE_CONFIG).map((stage) => {
+    const card = stageMap.get(stage);
+    if (card) return card;
+    return {
+      stage,
+      status: "started",
+      summary: "",
+      agent: "",
+      event_count: 0,
+    };
+  });
+}
+
+function cleanProgressText(value: string | undefined) {
+  return (value ?? "").trim();
+}
+
+function uniqueSummaries(values: string[], limit = 3) {
+  const seen = new Set<string>();
+  const unique: string[] = [];
+
+  for (const value of values) {
+    const normalized = cleanProgressText(value);
+    if (!normalized || seen.has(normalized)) continue;
+    seen.add(normalized);
+    unique.push(normalized);
+  }
+
+  return unique.slice(0, limit);
+}
+
 export function AnalysisDialog({
   taskId,
   url,
@@ -341,9 +391,77 @@ export function AnalysisDialog({
   const isStale = useTaskStale(task?.status, progress.length);
   const analystEvents = useMemo(() => getAnalystEvents(progress), [progress]);
   const stageCards = artifacts?.stage_cards ?? [];
+  const liveStageCards = useMemo(() => buildLiveStageCards(progress, stageCards), [progress, stageCards]);
   const issues = artifacts?.issues ?? [];
   const topOpportunities = artifacts?.opportunities?.top ?? [];
   const topClusters = artifacts?.cluster_summary?.top_clusters ?? [];
+  const displayedStageCards = isDone && stageCards.length > 0 ? stageCards : liveStageCards;
+  const completedStageCount = liveStageCards.filter((card) => card.status === "completed" || card.status === "warning").length;
+  const progressPercent = isDone ? 100 : Math.round((completedStageCount / Math.max(liveStageCards.length, 1)) * 100);
+  const currentStageCard = liveStageCards.find((card) => card.status === "running") ?? liveStageCards[completedStageCount];
+  const latestProgressEntry = [...progress].reverse().find((item) => item.summary || item.detail || item.content);
+  const latestProgressSummary = latestProgressEntry?.summary ?? latestProgressEntry?.detail ?? latestProgressEntry?.content ?? task?.summary ?? "";
+  const noKeyWarning = progress.some((item) =>
+    cleanProgressText(item.summary ?? item.detail ?? item.content).toLowerCase().includes("no llm api key configured"),
+  );
+  const contextSnapshot = [...progress]
+    .reverse()
+    .find((item) => item.stage === "context_build" && cleanProgressText(item.summary ?? item.detail ?? item.content));
+  const signalHighlights = uniqueSummaries(
+    progress
+      .filter((item) => item.stage === "signal_collect" && item.status !== "started")
+      .map((item) => item.summary ?? item.detail ?? item.content)
+      .filter((item): item is string => Boolean(item)),
+    4,
+  );
+  const domainHighlights = uniqueSummaries(
+    progress
+      .filter((item) => item.stage === "domain_review" && item.agent)
+      .map((item) => item.detail ?? item.summary ?? item.content)
+      .filter((item): item is string => Boolean(item)),
+    4,
+  );
+  const strategyDraft = [...progress]
+    .reverse()
+    .find((item) => item.stage === "strategy_synthesis" && cleanProgressText(item.summary ?? item.detail ?? item.content));
+  const livePreviewCards = [
+    {
+      key: "context",
+      title: t("analysis.contextSnapshot"),
+      body: cleanProgressText(contextSnapshot?.summary ?? contextSnapshot?.detail ?? contextSnapshot?.content) || t("analysis.focusPending"),
+      items: [] as string[],
+    },
+    {
+      key: "signals",
+      title: t("analysis.signalHighlights"),
+      body:
+        topOpportunities[0]?.summary ??
+        signalHighlights[0] ??
+        t("analysis.focusPending"),
+      items:
+        topOpportunities.length > 0
+          ? topOpportunities.slice(0, 3).map((item) => item.title)
+          : signalHighlights,
+    },
+    {
+      key: "review",
+      title: t("analysis.reviewNotes"),
+      body: domainHighlights[0] ?? t("analysis.focusPending"),
+      items: domainHighlights,
+    },
+    {
+      key: "draft",
+      title: t("analysis.draftActions"),
+      body:
+        cleanProgressText(strategyDraft?.summary ?? strategyDraft?.detail ?? strategyDraft?.content) ||
+        topOpportunities[0]?.recommended_action ||
+        t("analysis.focusPending"),
+      items:
+        topClusters.length > 0
+          ? topClusters.slice(0, 3).map((cluster) => cluster.name)
+          : [],
+    },
+  ].filter((card) => card.body !== t("analysis.focusPending") || card.items.length > 0);
 
   const { data: findings = [] } = useTaskFindings(taskId, isDone);
   const { data: recommendations = [] } = useTaskRecommendations(taskId, isDone);
@@ -371,11 +489,113 @@ export function AnalysisDialog({
         </div>
 
         <div id="analysis-scroll" className="flex-1 space-y-6 overflow-y-auto px-6 py-4">
-          {progress.length === 0 && !isDone && !isStale && (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <Loader2 size={32} className="mb-3 animate-spin text-indigo-400" />
-              <p className="text-sm text-slate-400">{t("analysis.initializing")}</p>
-            </div>
+          {!isDone && !isStale && (
+            <section className="overflow-hidden rounded-3xl border border-slate-200/80 bg-[radial-gradient(circle_at_top,_rgba(99,102,241,0.12),_transparent_42%),linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] p-6 shadow-sm">
+              <div className="grid gap-5 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-indigo-500">
+                    {t("analysis.progressTitle")}
+                  </p>
+                  <h3 className="mt-2 text-xl font-semibold tracking-tight text-slate-950">
+                    {t("analysis.progressSubtitle")}
+                  </h3>
+                  <div className="mt-4 flex items-center gap-3">
+                    <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100">
+                      <div
+                        className="h-full rounded-full bg-indigo-500 transition-all duration-700"
+                        style={{ width: `${progressPercent}%` }}
+                      />
+                    </div>
+                    <span className="text-sm font-semibold text-slate-600">{progressPercent}%</span>
+                  </div>
+
+                  <div className="mt-4 rounded-2xl border border-slate-200/80 bg-white/80 p-4">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+                      {t("analysis.currentFocus")}
+                    </p>
+                    <p className="mt-2 text-sm font-semibold text-slate-950">
+                      {currentStageCard ? t(STAGE_CONFIG[currentStageCard.stage]?.labelKey ?? "analysis.stageContextBuild") : t("analysis.initializing")}
+                    </p>
+                    <p className="mt-2 text-sm leading-6 text-slate-600">
+                      {latestProgressSummary || t("analysis.focusPending")}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
+                  {[
+                    { title: t("welcome.featureSeo"), desc: t("welcome.featureSeoDesc") },
+                    { title: t("welcome.featureGeo"), desc: t("welcome.featureGeoDesc") },
+                    { title: t("welcome.featureCommunity"), desc: t("welcome.featureCommunityDesc") },
+                  ].map((item) => (
+                    <div key={item.title} className="rounded-2xl border border-slate-200/80 bg-white/80 p-4">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+                        {t("analysis.livePreview")}
+                      </p>
+                      <p className="mt-2 text-sm font-semibold text-slate-950">{item.title}</p>
+                      <p className="mt-2 text-sm leading-6 text-slate-600">{item.desc}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {noKeyWarning ? (
+                <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50/80 p-4">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-700">
+                    {t("analysis.limitedMode")}
+                  </p>
+                  <p className="mt-2 text-sm leading-6 text-amber-900">
+                    {t("analysis.limitedModeDesc")}
+                  </p>
+                  <div className="mt-3 grid gap-3 md:grid-cols-2">
+                    <div className="rounded-2xl bg-white/80 p-3">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+                        {t("analysis.limitedModeWorks")}
+                      </p>
+                      <p className="mt-2 text-sm leading-6 text-slate-700">{t("onboarding.limitedModeWorks")}</p>
+                    </div>
+                    <div className="rounded-2xl bg-white/80 p-3">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+                        {t("analysis.limitedModeNeedsKey")}
+                      </p>
+                      <p className="mt-2 text-sm leading-6 text-slate-700">{t("onboarding.limitedModeNeedsKey")}</p>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+            </section>
+          )}
+
+          {!isDone && livePreviewCards.length > 0 && (
+            <section>
+              <div className="mb-3 flex items-center gap-2">
+                <Sparkles size={14} className="text-indigo-500" />
+                <h3 className="text-sm font-semibold text-slate-900">{t("analysis.resultsArriving")}</h3>
+              </div>
+              <div className="grid gap-3 md:grid-cols-2">
+                {livePreviewCards.map((card) => (
+                  <div
+                    key={card.key}
+                    className="rounded-2xl border border-slate-200 bg-white/90 p-4 shadow-sm"
+                  >
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+                      {card.title}
+                    </p>
+                    <p className="mt-2 text-sm font-medium leading-6 text-slate-950">{card.body}</p>
+                    {card.items.length > 1 ? (
+                      <ul className="mt-3 space-y-2 text-sm leading-6 text-slate-600">
+                        {card.items.slice(0, 3).map((item) => (
+                          <li key={item} className="flex gap-2">
+                            <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-slate-300" />
+                            <span>{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            </section>
           )}
 
           {isStale && (
@@ -542,7 +762,7 @@ export function AnalysisDialog({
             </section>
           )}
 
-          {stageCards.length > 0 && (
+          {displayedStageCards.length > 0 && (
             <section>
               <div className="mb-3 flex items-center gap-2">
                 <div className="h-px flex-1 bg-slate-100" />
@@ -552,7 +772,7 @@ export function AnalysisDialog({
                 <div className="h-px flex-1 bg-slate-100" />
               </div>
               <div className="grid gap-3 md:grid-cols-2">
-                {stageCards.map((card) => {
+                {displayedStageCards.map((card) => {
                   const labelKey = STAGE_CONFIG[card.stage]?.labelKey;
                   return (
                     <StageCard

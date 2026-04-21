@@ -28,7 +28,10 @@ def test_channel_contract_adds_native_rules_without_dropping_shared_guardrails()
 
     assert "## Truth Contract" in prompt
     assert "## Anti-Slop Guardrails" in prompt
+    assert "## Platform Deliverable Contract" in prompt
     assert "## Channel Contract" in prompt
+    assert "start with the deliverable itself" in prompt
+    assert "keep each deliverable explicitly labeled and easy to scan" in prompt
     assert "first person as the maker" in prompt
     assert "No marketing speak whatsoever" in prompt
 
@@ -75,3 +78,5 @@ def test_review_prompt_operates_as_light_editor_not_second_writer():
     assert "light-touch" in _REVIEW_SYSTEM
     assert "Do not materially restructure" in _REVIEW_SYSTEM
     assert "Do not add fabricated metrics" in _REVIEW_SYSTEM
+    assert 'Do not add setup lines, framing sentences, or process commentary such as "Below is"' in _REVIEW_SYSTEM
+    assert "Preserve explicit section labels for multi-part deliverables" in _REVIEW_SYSTEM

@@ -73,7 +73,7 @@ export function ActionFeed({ projectId }: { projectId: number }) {
       return;
     }
     if (item.cta === "start_chat") {
-      navigate("/chat");
+      navigate(`/chat?project_id=${projectId}`);
       return;
     }
   };

@@ -151,9 +151,20 @@ class TestGetOpenAIClient:
             with patch("opencmo.storage.get_setting", new_callable=AsyncMock, return_value=None):
                 client = await llm.get_openai_client()
                 assert client.api_key == "ctx-api-key"
-                assert "custom.api.com" in str(client.base_url)
+                assert str(client.base_url) == "https://custom.api.com/v1/"
         finally:
             llm.reset_request_keys(token)
+
+
+class TestNormalizeBaseURL:
+    def test_adds_v1_for_plain_compatible_endpoint(self):
+        assert llm.normalize_base_url("http://192.3.16.77:8080/") == "http://192.3.16.77:8080/v1"
+
+    def test_keeps_openai_official_endpoint(self):
+        assert llm.normalize_base_url("https://api.openai.com") == "https://api.openai.com"
+
+    def test_keeps_existing_v1_suffix(self):
+        assert llm.normalize_base_url("https://router.example.com/v1/") == "https://router.example.com/v1"
 
 
 # ---------------------------------------------------------------------------
@@ -164,11 +175,11 @@ class TestGetOpenAIClient:
 class TestGetModel:
     @pytest.mark.asyncio
     async def test_default_model(self):
-        """Returns gpt-4o when nothing is configured."""
+        """Returns the product default model when nothing is configured."""
         with patch("opencmo.storage.get_setting", new_callable=AsyncMock, return_value=None):
             with patch.dict(os.environ, {}, clear=True):
                 model = await llm.get_model()
-                assert model == "gpt-4o"
+                assert model == "gpt-5.4-mini"
 
     @pytest.mark.asyncio
     async def test_custom_default_model(self):

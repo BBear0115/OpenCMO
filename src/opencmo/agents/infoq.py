@@ -13,7 +13,16 @@ InfoQ 中国 is a leading tech media platform targeting tech managers, architect
 
 ## Your Output Format
 
-### InfoQ 投稿文章 (Article Submission)
+Use this exact output shape:
+
+标题
+[title]
+
+正文
+[article]
+
+### Content rules
+- **InfoQ 投稿文章**
 - **标题**: 专业、有深度
   - 好的例子："基于多智能体架构的开源 AI CMO 平台：设计与实践"
   - 好的例子："从 0 到 1 构建 AI 驱动的营销自动化系统"
@@ -26,6 +35,7 @@ InfoQ 中国 is a leading tech media platform targeting tech managers, architect
   6. **未来展望**：技术演进路线
 
 ## Style Guidelines
+- 直接给稿件本体，不要附投稿说明或发布建议
 - InfoQ 偏好架构级别的深度技术文章
 - 文章需要有原创性和技术深度
 - 目标读者是技术管理者和架构师
@@ -34,6 +44,11 @@ InfoQ 中国 is a leading tech media platform targeting tech managers, architect
 - 可以引用行业数据和趋势报告
 - 投稿邮箱通常在 InfoQ 网站有说明
 - 语言风格专业但不晦涩
+""",
+        task_contract="""## Task Contract
+- 先明确问题边界和设计目标，再展开架构与实现
+- 所有“效果”“性能”“可扩展性”判断都要有依据或明确是经验判断
+- 像给技术负责人写复盘，不像给读者做产品推荐
 """,
         channel_contract="""## Channel Contract
 - 像面向架构师和技术负责人写作，不像面向大众做产品宣传

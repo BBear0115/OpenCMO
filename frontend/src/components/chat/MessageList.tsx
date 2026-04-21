@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useLayoutEffect, useRef } from "react";
 import type { ChatMessage } from "../../types";
 import { MessageBubble } from "./MessageBubble";
 import { StreamingIndicator } from "./StreamingIndicator";
@@ -12,15 +12,20 @@ export function MessageList({
   messages: ChatMessage[];
   isStreaming: boolean;
 }) {
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
   const { t } = useI18n();
 
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  useLayoutEffect(() => {
+    const list = listRef.current;
+    if (!list) return;
+    list.scrollTop = list.scrollHeight;
   }, [messages, isStreaming]);
 
   return (
-    <div className="flex-1 space-y-4 overflow-y-auto rounded-2xl border border-slate-200 bg-white p-4">
+    <div
+      ref={listRef}
+      className="flex-1 space-y-4 overflow-y-auto overscroll-contain rounded-2xl border border-slate-200 bg-white p-4"
+    >
       {messages.length === 0 && (
         <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-50">
@@ -33,7 +38,6 @@ export function MessageList({
         <MessageBubble key={msg.id} message={msg} />
       ))}
       {isStreaming && <StreamingIndicator />}
-      <div ref={bottomRef} />
     </div>
   );
 }

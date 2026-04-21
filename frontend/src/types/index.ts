@@ -4,6 +4,9 @@ export interface Project {
   url: string;
   category: string;
   latest?: LatestScans;
+  latest_monitoring?: MonitoringSummary | null;
+  latest_reports?: LatestReports;
+  pending_approvals?: number;
 }
 
 export interface SiteStats {
@@ -12,7 +15,12 @@ export interface SiteStats {
 }
 
 export interface LatestScans {
-  seo: { scanned_at: string; score: number | null } | null;
+  seo: {
+    scanned_at: string;
+    score: number | null;
+    performance_score?: number | null;
+    health_score?: number | null;
+  } | null;
   geo: { scanned_at: string; score: number } | null;
   community: { scanned_at: string; total_hits: number } | null;
   serp: SerpSnapshot[];
@@ -34,6 +42,7 @@ export interface Monitor {
   url: string;
   category: string;
   job_type: string;
+  locale?: string;
   cron_expr: string;
   enabled: boolean;
   last_run_at: string | null;
@@ -225,6 +234,7 @@ export interface SeoScan {
   has_robots_txt: boolean | null;
   has_sitemap: boolean | null;
   has_schema_org: boolean | null;
+  seo_health_score: number | null;
 }
 
 export interface GeoScan {
@@ -330,11 +340,19 @@ export interface ProjectSummary {
   is_paused: boolean;
   latest: LatestScans;
   previous: {
-    seo?: { scanned_at: string; score: number | null };
+    seo?: {
+      scanned_at: string;
+      score: number | null;
+      performance_score?: number | null;
+      health_score?: number | null;
+    };
     geo?: { scanned_at: string; score: number };
   } | null;
   latest_monitoring?: MonitoringSummary | null;
   latest_reports?: LatestReports;
+  keyword_count?: number;
+  competitor_count?: number;
+  pending_approvals?: number;
 }
 
 export type ReportKind = "strategic" | "periodic";

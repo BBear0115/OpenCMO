@@ -57,3 +57,35 @@ async def test_fetch_url_content_falls_back_to_crawl():
     assert source == "crawl4ai"
     mock_extract.assert_awaited_once()
     mock_crawler.arun.assert_awaited_once_with(url="https://example.com")
+
+
+@pytest.mark.asyncio
+async def test_fetch_url_content_falls_back_to_html_metadata_when_markdown_is_empty():
+    """Shared content fetch should recover page metadata for JS-heavy pages."""
+    from opencmo.tools import crawl as crawl_module
+
+    mock_extract = AsyncMock(return_value=None)
+    mock_result = MagicMock()
+    mock_result.markdown = ""
+    mock_result.html = """
+        <html>
+          <head>
+            <title>Coze</title>
+            <meta name="description" content="AI agent workspace for teams" />
+            <meta property="og:description" content="Build agents quickly" />
+          </head>
+        </html>
+    """
+    mock_crawler = AsyncMock()
+    mock_crawler.__aenter__ = AsyncMock(return_value=mock_crawler)
+    mock_crawler.__aexit__ = AsyncMock(return_value=False)
+    mock_crawler.arun = AsyncMock(return_value=mock_result)
+
+    with patch("opencmo.tools.tavily_helper.tavily_extract", mock_extract, create=True), \
+         patch("opencmo.tools.crawl.AsyncWebCrawler", return_value=mock_crawler):
+        content, source = await crawl_module.fetch_url_content("https://example.com")
+
+    assert source == "html_meta"
+    assert "Page title: Coze" in content
+    assert "Meta description: AI agent workspace for teams" in content
+    assert "Open Graph description: Build agents quickly" in content

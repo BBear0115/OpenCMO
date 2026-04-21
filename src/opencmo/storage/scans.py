@@ -5,6 +5,15 @@ from __future__ import annotations
 from opencmo.storage._db import get_db
 
 
+def _normalized_seo_score(score_performance: float | None, seo_health_score: float | None) -> float | None:
+    """Return the UI-facing SEO score in [0, 1]."""
+    if score_performance is not None:
+        return score_performance
+    if seo_health_score is not None:
+        return seo_health_score / 100
+    return None
+
+
 async def save_seo_scan(
     project_id: int,
     url: str,
@@ -165,7 +174,8 @@ async def get_latest_scans(project_id: int) -> dict:
     db = await get_db()
     try:
         seo = await db.execute(
-            "SELECT scanned_at, score_performance FROM seo_scans WHERE project_id = ? ORDER BY scanned_at DESC LIMIT 1",
+            """SELECT scanned_at, score_performance, seo_health_score
+               FROM seo_scans WHERE project_id = ? ORDER BY scanned_at DESC LIMIT 1""",
             (project_id,),
         )
         seo_row = await seo.fetchone()
@@ -201,7 +211,12 @@ async def get_latest_scans(project_id: int) -> dict:
         ] if serp_rows else []
 
         return {
-            "seo": {"scanned_at": seo_row[0], "score": seo_row[1]} if seo_row else None,
+            "seo": {
+                "scanned_at": seo_row[0],
+                "score": _normalized_seo_score(seo_row[1], seo_row[2]),
+                "performance_score": seo_row[1],
+                "health_score": seo_row[2],
+            } if seo_row else None,
             "geo": {"scanned_at": geo_row[0], "score": geo_row[1]} if geo_row else None,
             "community": {"scanned_at": comm_row[0], "total_hits": comm_row[1]} if comm_row else None,
             "serp": serp_summary,
@@ -215,7 +230,8 @@ async def get_previous_scans(project_id: int) -> dict | None:
     db = await get_db()
     try:
         seo = await db.execute(
-            "SELECT scanned_at, score_performance FROM seo_scans WHERE project_id = ? ORDER BY scanned_at DESC LIMIT 1 OFFSET 1",
+            """SELECT scanned_at, score_performance, seo_health_score
+               FROM seo_scans WHERE project_id = ? ORDER BY scanned_at DESC LIMIT 1 OFFSET 1""",
             (project_id,),
         )
         seo_row = await seo.fetchone()
@@ -231,7 +247,12 @@ async def get_previous_scans(project_id: int) -> dict | None:
 
         result = {}
         if seo_row:
-            result["seo"] = {"scanned_at": seo_row[0], "score": seo_row[1]}
+            result["seo"] = {
+                "scanned_at": seo_row[0],
+                "score": _normalized_seo_score(seo_row[1], seo_row[2]),
+                "performance_score": seo_row[1],
+                "health_score": seo_row[2],
+            }
         if geo_row:
             result["geo"] = {"scanned_at": geo_row[0], "score": geo_row[1]}
         return result

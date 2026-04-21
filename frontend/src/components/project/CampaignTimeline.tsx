@@ -72,7 +72,7 @@ export function CampaignTimeline({ projectId }: { projectId: number }) {
   if (!campaigns || campaigns.length === 0) return null;
 
   return (
-    <div className="mt-8">
+    <div>
       <h2 className="mb-4 flex items-center gap-2 text-lg font-bold text-zinc-800">
         <Rocket className="h-5 w-5 text-indigo-500" />
         {t("project.campaigns")}

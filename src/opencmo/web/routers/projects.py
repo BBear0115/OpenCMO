@@ -2,12 +2,52 @@
 
 from __future__ import annotations
 
+from datetime import datetime, timedelta, timezone
+
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
 from opencmo import storage
 
 router = APIRouter(prefix="/api/v1")
+
+
+def _parse_timestamp(value: str | None) -> datetime | None:
+    if not value:
+        return None
+    try:
+        parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if parsed.tzinfo is not None:
+        return parsed.astimezone(timezone.utc).replace(tzinfo=None)
+    return parsed
+
+
+def _latest_surface_timestamp(latest: dict) -> datetime | None:
+    candidates: list[datetime] = []
+    seo = latest.get("seo") or {}
+    geo = latest.get("geo") or {}
+    community = latest.get("community") or {}
+    serp = latest.get("serp") or []
+
+    for value in (
+        seo.get("scanned_at"),
+        geo.get("scanned_at"),
+        community.get("scanned_at"),
+    ):
+        parsed = _parse_timestamp(value)
+        if parsed:
+            candidates.append(parsed)
+
+    for snapshot in serp:
+        parsed = _parse_timestamp(snapshot.get("checked_at"))
+        if parsed:
+            candidates.append(parsed)
+
+    if not candidates:
+        return None
+    return max(candidates)
 
 
 @router.get("/projects")
@@ -81,6 +121,11 @@ async def api_v1_overview():
     total_keywords = 0
     total_competitors = 0
     recent_campaigns: list[dict] = []
+    projects_updated_today = 0
+    urgent_findings = 0
+    ready_actions = 0
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
+    fresh_cutoff = now - timedelta(hours=24)
 
     for p in projects:
         latest = await storage.get_latest_scans(p["id"])
@@ -97,6 +142,13 @@ async def api_v1_overview():
         total_keywords += len(kws)
         comps = await storage.list_competitors(p["id"])
         total_competitors += len(comps)
+        monitoring = await storage.get_latest_monitoring_summary(p["id"])
+        if monitoring:
+            urgent_findings += monitoring.get("findings_count", 0)
+            ready_actions += monitoring.get("recommendations_count", 0)
+        latest_ts = _latest_surface_timestamp(latest)
+        if latest_ts and latest_ts >= fresh_cutoff:
+            projects_updated_today += 1
         # Collect recent campaigns
         campaigns = await storage.list_campaign_runs(p["id"], limit=3)
         for c in campaigns:
@@ -106,6 +158,8 @@ async def api_v1_overview():
     # Sort campaigns by created_at descending
     recent_campaigns.sort(key=lambda c: c.get("created_at", ""), reverse=True)
 
+    pending_approvals = len(await storage.list_approvals(status="pending", limit=200))
+
     return JSONResponse({
         "project_count": len(projects),
         "avg_seo_score": round(sum(seo_scores) / len(seo_scores) * 100) if seo_scores else None,
@@ -113,6 +167,10 @@ async def api_v1_overview():
         "total_community_hits": community_hits,
         "total_keywords": total_keywords,
         "total_competitors": total_competitors,
+        "projects_updated_today": projects_updated_today,
+        "urgent_findings": urgent_findings,
+        "ready_actions": ready_actions,
+        "pending_approvals": pending_approvals,
         "recent_campaigns": recent_campaigns[:5],
     })
 
@@ -131,6 +189,11 @@ async def api_v1_project_summary(project_id: int):
     previous = await storage.get_previous_scans(project_id)
     monitoring = await storage.get_latest_monitoring_summary(project_id)
     latest_reports = await storage.get_latest_reports(project_id)
+    keyword_count = len(await storage.list_tracked_keywords(project_id))
+    competitor_count = len(await storage.list_competitors(project_id))
+    pending_approvals = len(
+        [item for item in await storage.list_approvals(status="pending", limit=200) if item.get("project_id") == project_id]
+    )
     return JSONResponse({
         "project": project,
         "is_paused": is_paused,
@@ -138,6 +201,9 @@ async def api_v1_project_summary(project_id: int):
         "previous": previous,
         "latest_monitoring": monitoring,
         "latest_reports": latest_reports,
+        "keyword_count": keyword_count,
+        "competitor_count": competitor_count,
+        "pending_approvals": pending_approvals,
     })
 
 
@@ -250,7 +316,14 @@ async def api_v1_seo_chart(project_id: int):
     history.reverse()
     return JSONResponse({
         "labels": [s["scanned_at"][:10] for s in history],
-        "performance": [s["score_performance"] for s in history],
+        "performance": [
+            s["score_performance"]
+            if s["score_performance"] is not None
+            else (s["seo_health_score"] / 100 if s.get("seo_health_score") is not None else None)
+            for s in history
+        ],
+        "pagespeed_performance": [s["score_performance"] for s in history],
+        "health": [s.get("seo_health_score") for s in history],
         "lcp": [s["score_lcp"] for s in history],
         "cls": [s["score_cls"] for s in history],
         "tbt": [s["score_tbt"] for s in history],

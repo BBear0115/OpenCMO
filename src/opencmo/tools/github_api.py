@@ -160,7 +160,7 @@ async def enrich_user(login: str) -> dict:
             languages[lang] = languages.get(lang, 0) + 1
         total_stars += repo.get("stars", 0)
 
-    top_langs = [l for l, _ in sorted(languages.items(), key=lambda x: -x[1])[:5]]
+    top_langs = [language for language, _count in sorted(languages.items(), key=lambda item: -item[1])[:5]]
     top_repos = sorted(repos, key=lambda r: r.get("stars", 0), reverse=True)[:5]
 
     return {

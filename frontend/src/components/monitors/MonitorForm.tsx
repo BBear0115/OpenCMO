@@ -1,7 +1,10 @@
 import { useState } from "react";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight, CheckCircle2, KeyRound, Sparkles } from "lucide-react";
 import { useI18n } from "../../i18n";
 import { ScheduleSelector } from "./ScheduleSelector";
+import { getEffectiveKeyStatus } from "../../api/userKeys";
+import { useSettings } from "../../hooks/useSettings";
+import { SettingsDialog } from "../settings/SettingsDialog";
 
 export function MonitorForm({
   onSubmit,
@@ -13,6 +16,10 @@ export function MonitorForm({
   const { t } = useI18n();
   const [url, setUrl] = useState("");
   const [cronExpr, setCronExpr] = useState("0 9 * * *");
+  const [showSettings, setShowSettings] = useState(false);
+  const settingsQuery = useSettings();
+  const keyStatus = getEffectiveKeyStatus(settingsQuery.data);
+  const keysReady = keyStatus.effective.llm;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,40 +29,104 @@ export function MonitorForm({
   };
 
   return (
-    <div className="rounded-2xl border border-zinc-200/60 bg-gradient-to-br from-white to-indigo-50/30 p-6 shadow-sm ring-1 ring-zinc-950/5">
-      <div className="mb-4 flex items-center gap-2">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-100 ring-1 ring-indigo-200/50">
-          <Sparkles size={16} className="text-indigo-600" />
+    <>
+      <div className="rounded-3xl border border-slate-200/80 bg-[radial-gradient(circle_at_top,_rgba(99,102,241,0.08),_transparent_42%),linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] p-6 shadow-sm">
+        <div className="mb-5 flex items-start gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-900 text-white">
+            <Sparkles size={18} />
+          </div>
+          <div className="max-w-3xl">
+            <p className="text-sm text-slate-600">{t("monitorForm.subtitle")}</p>
+          </div>
         </div>
-        <p className="text-sm text-zinc-500">{t("monitorForm.subtitle")}</p>
-      </div>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="flex gap-3">
-          <input
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-            type="url"
-            required
-            placeholder={t("monitorForm.urlPlaceholder")}
-            className="flex-1 rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm shadow-sm transition-shadow placeholder:text-zinc-400 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
-          />
-          <button
-            type="submit"
-            disabled={isLoading || !url.trim()}
-            className="flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-3 text-sm font-medium text-white shadow-sm transition-all hover:bg-indigo-500 hover:shadow-md disabled:opacity-50 active:scale-95"
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="flex flex-col gap-3 lg:flex-row">
+            <input
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              type="url"
+              required
+              placeholder={t("monitorForm.urlPlaceholder")}
+              className="flex-1 rounded-2xl border border-slate-200 bg-white px-5 py-3.5 text-sm shadow-sm transition-shadow placeholder:text-slate-400 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+            />
+            <button
+              type="submit"
+              disabled={isLoading || !url.trim()}
+              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-900 px-5 py-3.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-slate-800 hover:shadow-md disabled:opacity-50"
+            >
+              {isLoading ? (
+                t("monitorForm.analyzing")
+              ) : (
+                <>
+                  {t("monitorForm.startMonitoring")}
+                  <ArrowRight size={16} />
+                </>
+              )}
+            </button>
+          </div>
+
+          <div
+            className={`rounded-2xl border px-4 py-3 ${
+              keysReady ? "border-emerald-200 bg-emerald-50/70" : "border-amber-200 bg-amber-50/70"
+            }`}
           >
-            {isLoading ? (
-              t("monitorForm.analyzing")
-            ) : (
-              <>
-                {t("monitorForm.startMonitoring")}
-                <ArrowRight size={16} />
-              </>
-            )}
-          </button>
-        </div>
-        <ScheduleSelector value={cronExpr} onChange={setCronExpr} />
-      </form>
-    </div>
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                <div className="flex items-start gap-3">
+                  {keysReady ? (
+                    <CheckCircle2 size={18} className="mt-0.5 text-emerald-600" />
+                  ) : (
+                  <KeyRound size={18} className="mt-0.5 text-amber-600" />
+                )}
+                <div>
+                  <p className={`text-sm font-semibold ${keysReady ? "text-emerald-900" : "text-amber-900"}`}>
+                    {t(keysReady ? "onboarding.keyReadyTitle" : "onboarding.keyNeededTitle")}
+                  </p>
+                  <p className={`mt-1 text-sm leading-6 ${keysReady ? "text-emerald-800/80" : "text-amber-800/80"}`}>
+                    {t(keysReady ? "onboarding.keyReadyDesc" : "onboarding.keyNeededDesc")}
+                  </p>
+                  <p className={`mt-2 text-xs ${keysReady ? "text-emerald-800/70" : "text-amber-800/70"}`}>
+                    {t("onboarding.privacyHint")}
+                  </p>
+                  <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                    <div className="rounded-2xl bg-white/80 px-3 py-3">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+                        {t(keysReady ? "onboarding.fullModeTitle" : "onboarding.limitedModeWorksTitle")}
+                      </p>
+                      <p className="mt-2 text-sm leading-6 text-slate-700">
+                        {t(keysReady ? "onboarding.fullModeDesc" : "onboarding.limitedModeWorks")}
+                      </p>
+                    </div>
+                    <div className="rounded-2xl bg-white/80 px-3 py-3">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+                        {t(keysReady ? "onboarding.privacyTitle" : "onboarding.limitedModeNeedsKeyTitle")}
+                      </p>
+                      <p className="mt-2 text-sm leading-6 text-slate-700">
+                        {t(keysReady ? "onboarding.privacyDesc" : "onboarding.limitedModeNeedsKey")}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {!keysReady ? (
+                <button
+                  type="button"
+                  onClick={() => setShowSettings(true)}
+                  className="inline-flex items-center gap-2 rounded-full border border-amber-300 bg-white px-4 py-2 text-sm font-semibold text-amber-900 transition-colors hover:border-amber-400 hover:bg-amber-100"
+                >
+                  <KeyRound size={14} />
+                  {t("onboarding.configureKeys")}
+                </button>
+              ) : null}
+            </div>
+          </div>
+
+          <ScheduleSelector value={cronExpr} onChange={setCronExpr} />
+        </form>
+      </div>
+
+      {showSettings ? <SettingsDialog onClose={() => setShowSettings(false)} /> : null}
+    </>
   );
 }

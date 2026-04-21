@@ -201,7 +201,7 @@ async def generate_github_outreach(
         channel: Outreach channel: "email", "twitter_dm", or "github_issue".
         tone: Message tone: "friendly-professional", "casual-dev", or "technical".
     """
-    login_list = [l.strip() for l in logins.split(",") if l.strip()]
+    login_list = [login.strip() for login in logins.split(",") if login.strip()]
     if not login_list:
         return json.dumps({"error": "No logins provided"})
 

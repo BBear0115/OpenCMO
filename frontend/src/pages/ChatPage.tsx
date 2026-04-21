@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router";
+import { History, Plus } from "lucide-react";
 import { useChat } from "../hooks/useChat";
 import { useChatContext } from "../hooks/useChatContext";
 import { useProjects } from "../hooks/useProjects";
@@ -19,6 +20,7 @@ export function ChatPage() {
   const [initialProjectId] = useState<number | null>(() =>
     parseProjectId(searchParams.get("project_id")),
   );
+  const [mobileHistoryOpen, setMobileHistoryOpen] = useState(false);
   const chat = useChat(initialProjectId);
   const { data: projects } = useProjects();
   const { data: chatContext } = useChatContext(chat.projectId);
@@ -55,8 +57,30 @@ export function ChatPage() {
         onNewChat={() => {
           void chat.resetChat();
         }}
+        mobileOpen={mobileHistoryOpen}
+        onCloseMobile={() => setMobileHistoryOpen(false)}
       />
       <div className="flex flex-1 flex-col min-w-0">
+        <div className="mb-3 flex items-center gap-2 lg:hidden">
+          <button
+            type="button"
+            onClick={() => setMobileHistoryOpen(true)}
+            className="flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 shadow-sm transition hover:border-slate-300 hover:text-slate-900"
+          >
+            <History size={16} />
+            {t("chat.history")}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              void chat.resetChat();
+            }}
+            className="flex h-10 items-center gap-2 rounded-xl bg-slate-900 px-3 text-sm font-medium text-white shadow-sm transition hover:bg-slate-800"
+          >
+            <Plus size={16} />
+            {t("chat.newChat")}
+          </button>
+        </div>
         <div className="mb-4 shrink-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>

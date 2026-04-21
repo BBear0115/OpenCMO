@@ -10,6 +10,7 @@ import {
   BLOG_PRINCIPLES,
   BLOG_READER_PATHS,
   PUBLIC_BLOG_NAV,
+  getBlogArticlePath,
 } from "../content/marketing";
 import { usePageMetadata } from "../hooks/usePageMetadata";
 import { useI18n } from "../i18n";
@@ -59,13 +60,13 @@ export function BlogPage() {
               </p>
 
               <div className="mt-8 flex flex-wrap gap-3">
-                <a
-                  href={`#${featuredArticle.slug}`}
+                <Link
+                  to={getBlogArticlePath(featuredArticle.slug)}
                   className="inline-flex items-center gap-2 rounded-full bg-[#f7ecde] px-5 py-3 text-sm font-semibold text-[#082032] transition-colors hover:bg-white"
                 >
                   {t("blog.featuredLabel")}
                   <ArrowRight size={16} />
-                </a>
+                </Link>
                 <Link
                   to="/workspace"
                   className="inline-flex items-center gap-2 rounded-full border border-white/16 bg-white/7 px-5 py-3 text-sm font-semibold text-white transition-colors hover:border-white/30 hover:bg-white/10"
@@ -138,9 +139,9 @@ export function BlogPage() {
 
             <div className="mt-8 grid gap-5 lg:grid-cols-2">
               {decisionArticles.map((article) => (
-                <a
+                <Link
                   key={article.slug}
-                  href={`#${article.slug}`}
+                  to={getBlogArticlePath(article.slug)}
                   className={`group relative overflow-hidden rounded-[1.8rem] border border-black/8 bg-gradient-to-br p-6 shadow-[0_18px_50px_rgba(8,32,50,0.08)] transition-transform duration-300 hover:-translate-y-1 ${article.accentClass}`}
                 >
                   <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.42),rgba(255,255,255,0.82))]" />
@@ -177,7 +178,7 @@ export function BlogPage() {
                       </span>
                     </div>
                   </div>
-                </a>
+                </Link>
               ))}
             </div>
           </div>
@@ -286,22 +287,22 @@ export function BlogPage() {
                   {t(featuredArticle.thesis)}
                 </p>
               </div>
-              <a
-                href={`#${featuredArticle.slug}`}
+              <Link
+                to={getBlogArticlePath(featuredArticle.slug)}
                 className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-slate-900 transition-colors hover:text-[#082032]"
               >
                 {t("blog.readArticleCta")}
                 <ArrowRight size={15} />
-              </a>
+              </Link>
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
               {articleDirectoryColumns.map((column, columnIndex) => (
                 <div key={columnIndex} className="grid gap-4">
                   {column.map((article) => (
-                    <a
+                    <Link
                       key={article.slug}
-                      href={`#${article.slug}`}
+                      to={getBlogArticlePath(article.slug)}
                       className="group rounded-[1.6rem] border border-black/8 bg-white/78 p-5 shadow-[0_18px_50px_rgba(8,32,50,0.05)] transition-transform duration-300 hover:-translate-y-1"
                     >
                       <div className="flex items-start justify-between gap-4">
@@ -325,7 +326,7 @@ export function BlogPage() {
                           <ArrowUpRight size={15} className="transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
                         </span>
                       </div>
-                    </a>
+                    </Link>
                   ))}
                 </div>
               ))}
@@ -345,13 +346,13 @@ export function BlogPage() {
 
           <div className="mt-10 space-y-8">
             {BLOG_ARTICLES.map((article) => (
-              <article
+              <Link
                 key={article.slug}
-                id={article.slug}
+                to={getBlogArticlePath(article.slug)}
                 className="rounded-[2rem] border border-black/8 bg-white/80 p-6 shadow-[0_18px_60px_rgba(8,32,50,0.06)] backdrop-blur sm:p-8"
               >
-                <div className="grid gap-10 lg:grid-cols-[280px_minmax(0,1fr)]">
-                  <div className="lg:sticky lg:top-28 lg:self-start">
+                <div className="grid gap-8 lg:grid-cols-[280px_minmax(0,1fr)]">
+                  <div>
                     <div className={`rounded-[1.5rem] bg-gradient-to-br ${article.accentClass} p-5`}>
                       <p className="text-xs font-semibold uppercase tracking-[0.26em] text-slate-500">
                         {t(article.category)}
@@ -364,24 +365,6 @@ export function BlogPage() {
                       </p>
                       <div className="mt-5 rounded-2xl bg-white/72 p-4 text-sm leading-6 text-slate-700">
                         {t(article.highlight)}
-                      </div>
-                    </div>
-                    <div className="mt-4 grid gap-4 rounded-[1.4rem] border border-black/8 bg-[#f8f4ed] p-4 text-sm text-slate-700">
-                      <div className="flex items-center gap-2 font-semibold text-slate-600">
-                        <NotebookPen size={15} />
-                        <span>{t(article.readTime)}</span>
-                      </div>
-                      <div>
-                        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
-                          {t("blog.audienceLabel")}
-                        </p>
-                        <p className="mt-2 leading-6">{t(article.audience)}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
-                          {t("blog.thesisLabel")}
-                        </p>
-                        <p className="mt-2 leading-6">{t(article.thesis)}</p>
                       </div>
                     </div>
                     <div className="mt-4 rounded-[1.4rem] border border-black/8 bg-white/72 p-4">
@@ -399,20 +382,44 @@ export function BlogPage() {
                     </div>
                   </div>
 
-                  <div className="space-y-6">
-                    {article.sections.map((section) => (
-                      <section key={section.title} className="border-b border-black/6 pb-6 last:border-none last:pb-0">
-                        <h4 className="font-display text-2xl font-semibold tracking-tight text-slate-950">
-                          {t(section.title)}
-                        </h4>
-                        <p className="mt-4 max-w-3xl text-base leading-8 text-slate-700">
-                          {t(section.body)}
-                        </p>
-                      </section>
-                    ))}
+                  <div className="rounded-[1.6rem] border border-black/8 bg-[#f8f4ed] p-5">
+                    <div className="flex items-center gap-2 font-semibold text-slate-600">
+                      <NotebookPen size={15} />
+                      <span>{t(article.readTime)}</span>
+                    </div>
+                    <div className="mt-5 border-t border-black/8 pt-5">
+                      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
+                        {t("blog.audienceLabel")}
+                      </p>
+                      <p className="mt-2 text-sm leading-7 text-slate-700">{t(article.audience)}</p>
+                    </div>
+                    <div className="mt-5 border-t border-black/8 pt-5">
+                      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
+                        {t("blog.thesisLabel")}
+                      </p>
+                      <p className="mt-2 text-sm leading-7 text-slate-700">{t(article.thesis)}</p>
+                    </div>
+                    <div className="mt-5 border-t border-black/8 pt-5">
+                      <div className="space-y-3">
+                        {article.sections.map((section) => (
+                          <div key={section.title} className="rounded-2xl border border-black/8 bg-white/78 p-4">
+                            <h4 className="font-display text-xl font-semibold tracking-tight text-slate-950">
+                              {t(section.title)}
+                            </h4>
+                            <p className="mt-2 text-sm leading-7 text-slate-700">
+                              {t(section.body)}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-slate-900">
+                      {t("blog.readArticleCta")}
+                      <ArrowUpRight size={15} />
+                    </div>
                   </div>
                 </div>
-              </article>
+              </Link>
             ))}
           </div>
         </SectionReveal>

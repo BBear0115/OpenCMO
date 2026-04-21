@@ -29,9 +29,9 @@ export type BlogArticle = {
 };
 
 export const PUBLIC_HOME_NAV: PublicNavItem[] = [
-  { href: "#platform", label: "landing.navPlatform" },
+  { href: "#sample-audit", label: "landing.navPlatform" },
   { href: "#workflow", label: "landing.navWorkflow" },
-  { href: "/blog", label: "landing.navBlog" },
+  { href: "#trust", label: "landing.navTrust" },
   { href: "#faq", label: "landing.navFaq" },
 ];
 
@@ -53,24 +53,40 @@ export const LANDING_PLATFORM_ITEMS: MarketingItem[] = [
     title: "landing.platform3Title",
     description: "landing.platform3Desc",
   },
+  {
+    title: "landing.platform4Title",
+    description: "landing.platform4Desc",
+  },
+  {
+    title: "landing.platform5Title",
+    description: "landing.platform5Desc",
+  },
 ];
 
 export const LANDING_WORKFLOW_STEPS: MarketingItem[] = [
   {
-    title: "landing.workflow1Title",
+    title: "landing.stage1",
     description: "landing.workflow1Desc",
   },
   {
-    title: "landing.workflow2Title",
+    title: "landing.stage2",
     description: "landing.workflow2Desc",
   },
   {
-    title: "landing.workflow3Title",
+    title: "landing.stage3",
     description: "landing.workflow3Desc",
   },
   {
-    title: "landing.workflow4Title",
+    title: "landing.stage4",
     description: "landing.workflow4Desc",
+  },
+  {
+    title: "landing.stage5",
+    description: "landing.workflow5Desc",
+  },
+  {
+    title: "landing.stage6",
+    description: "landing.workflow6Desc",
   },
 ];
 
@@ -113,6 +129,25 @@ export const LANDING_PROOF_ITEMS: MarketingItem[] = [
   {
     title: "landing.proofWorkflowTitle",
     description: "landing.proofWorkflowDesc",
+  },
+];
+
+export const LANDING_TRUST_ITEMS: MarketingItem[] = [
+  {
+    title: "landing.trust1Title",
+    description: "landing.trust1Desc",
+  },
+  {
+    title: "landing.trust2Title",
+    description: "landing.trust2Desc",
+  },
+  {
+    title: "landing.trust3Title",
+    description: "landing.trust3Desc",
+  },
+  {
+    title: "landing.trust4Title",
+    description: "landing.trust4Desc",
   },
 ];
 
@@ -345,3 +380,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
       "from-[#86c8bc]/20 via-[#eff7f5] to-[#dce9f0]",
   },
 ];
+
+export function getBlogArticlePath(slug: string) {
+  return `/blog/${slug}`;
+}
+
+export function findBlogArticleBySlug(slug: string) {
+  return BLOG_ARTICLES.find((article) => article.slug === slug);
+}

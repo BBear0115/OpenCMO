@@ -14,6 +14,51 @@ function nextId() {
   return `msg-${++msgIdCounter}`;
 }
 
+const TOOL_LABELS: Record<string, string> = {
+  crawl_website: "Analyzing website",
+  web_search: "Researching",
+  analyze_competitor: "Analyzing competitor",
+  generate_research_brief: "Preparing brief",
+  generate_twitter_content: "Drafting Twitter/X content",
+  generate_reddit_content: "Drafting Reddit content",
+  generate_linkedin_content: "Drafting LinkedIn content",
+  generate_producthunt_content: "Drafting Product Hunt launch copy",
+  generate_hackernews_content: "Drafting Hacker News post",
+  generate_blog_content: "Drafting article",
+  generate_ruanyifeng_content: "Drafting weekly submission",
+  generate_zhihu_content: "Drafting Zhihu content",
+  generate_xiaohongshu_content: "Drafting Xiaohongshu note",
+  generate_v2ex_content: "Drafting V2EX post",
+  generate_juejin_content: "Drafting Juejin article",
+  generate_jike_content: "Drafting Jike post",
+  generate_wechat_content: "Drafting WeChat article",
+  generate_oschina_content: "Drafting OSChina content",
+  generate_gitcode_content: "Drafting GitCode content",
+  generate_sspai_content: "Drafting SSPAI article",
+  generate_infoq_content: "Drafting InfoQ article",
+  generate_devto_content: "Drafting Dev.to article",
+  research_trends: "Researching trends",
+  github_user_discovery: "Finding GitHub prospects",
+  get_competitive_landscape: "Analyzing market landscape",
+};
+
+function formatToolLabel(name?: string | null): string {
+  if (!name) return "Working";
+  if (TOOL_LABELS[name]) return TOOL_LABELS[name];
+  return name
+    .replace(/^transfer_to_/, "")
+    .replace(/^generate_/, "")
+    .replace(/_/g, " ")
+    .replace(/\bexpert\b/gi, "")
+    .trim()
+    .replace(/\s+/g, " ")
+    .replace(/^./, (char) => char.toUpperCase()) || "Working";
+}
+
+function isInternalHandoffTool(name?: string | null): boolean {
+  return Boolean(name && name.startsWith("transfer_to_"));
+}
+
 export function useChat(initialProjectId: number | null = null) {
   const { locale } = useI18n();
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -168,6 +213,7 @@ export function useChat(initialProjectId: number | null = null) {
           );
           break;
         case "tool_call":
+          if (isInternalHandoffTool(event.name)) break;
           setMessages((prev) =>
             prev.map((m) =>
               m.id === msgId
@@ -175,7 +221,7 @@ export function useChat(initialProjectId: number | null = null) {
                     ...m,
                     tools: [
                       ...(m.tools ?? []),
-                      { name: event.name ?? "tool", done: false },
+                      { name: formatToolLabel(event.name), done: false },
                     ],
                   }
                 : m,
@@ -194,36 +240,22 @@ export function useChat(initialProjectId: number | null = null) {
           );
           break;
         case "handoff":
+          break;
+        case "handoff_done":
+          break;
+        case "done":
+          if (event.agent_name) setCurrentAgent(event.agent_name);
           setMessages((prev) =>
             prev.map((m) =>
               m.id === msgId
                 ? {
                     ...m,
-                    tools: [
-                      ...(m.tools ?? []),
-                      {
-                        name: `Handing off to ${event.target}`,
-                        done: false,
-                      },
-                    ],
+                    agent: event.agent_name ?? m.agent,
+                    content: event.final_output ?? m.content,
                   }
                 : m,
             ),
           );
-          break;
-        case "handoff_done":
-          setMessages((prev) =>
-            prev.map((m) => {
-              if (m.id !== msgId) return m;
-              const tools = [...(m.tools ?? [])];
-              const last = tools.findLast((t: ToolStatus) => !t.done);
-              if (last) last.done = true;
-              return { ...m, tools };
-            }),
-          );
-          break;
-        case "done":
-          if (event.agent_name) setCurrentAgent(event.agent_name);
           break;
         case "error":
           setMessages((prev) =>

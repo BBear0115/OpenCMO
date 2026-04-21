@@ -17,10 +17,11 @@ export function useProjectSummary(id: number) {
   });
 }
 
-export function useNextActions(id: number) {
+export function useNextActions(id: number, enabled = true) {
   return useQuery<{ actions: NextAction[] }>({
     queryKey: ["next-actions", id],
     queryFn: () => getNextActions(id),
+    enabled,
     refetchInterval: 60_000,
   });
 }

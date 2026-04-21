@@ -3,8 +3,10 @@ import { BrowserRouter, Routes, Route } from "react-router";
 import { AppShell } from "./components/layout/AppShell";
 import { LandingPage } from "./pages/LandingPage";
 import { BlogPage } from "./pages/BlogPage";
+import { BlogArticlePage } from "./pages/BlogArticlePage";
 import { DashboardPage } from "./pages/DashboardPage";
 import { ProjectPage } from "./pages/ProjectPage";
+import { SampleAuditPage } from "./pages/SampleAuditPage";
 import { SeoPage } from "./pages/SeoPage";
 import { GeoPage } from "./pages/GeoPage";
 import { SerpPage } from "./pages/SerpPage";
@@ -42,7 +44,9 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<LandingPage />} />
+      <Route path="/sample-audit" element={<SampleAuditPage />} />
       <Route path="/blog" element={<BlogPage />} />
+      <Route path="/blog/:slug" element={<BlogArticlePage />} />
       <Route
         path="*"
         element={(

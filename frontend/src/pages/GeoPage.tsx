@@ -27,10 +27,10 @@ function latest(arr: (number | null)[] | undefined): number | null {
 }
 
 const SNAPSHOT_SERIES = [
-  { key: "geo_score", label: "GEO Score", color: "bg-emerald-500" },
-  { key: "visibility", label: "Visibility", color: "bg-violet-500" },
-  { key: "position", label: "Position", color: "bg-sky-500" },
-  { key: "sentiment", label: "Sentiment", color: "bg-amber-500" },
+  { key: "geo_score", labelKey: "geo.geoScore", color: "bg-emerald-500" },
+  { key: "visibility", labelKey: "geo.visibility", color: "bg-violet-500" },
+  { key: "position", labelKey: "geo.position", color: "bg-sky-500" },
+  { key: "sentiment", labelKey: "geo.sentiment", color: "bg-amber-500" },
 ];
 
 export function GeoPage() {
@@ -113,7 +113,7 @@ export function GeoPage() {
                 return (
                   <div key={s.key}>
                     <div className="mb-1 flex items-center justify-between text-sm">
-                      <span className="font-medium text-zinc-700">{s.label}</span>
+                      <span className="font-medium text-zinc-700">{t(s.labelKey as never)}</span>
                       <span className="font-mono text-zinc-500">
                         {val != null ? Math.round(val) : "—"}/100
                       </span>

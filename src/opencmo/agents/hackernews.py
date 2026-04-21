@@ -13,13 +13,25 @@ Based on the product information provided by the CMO Agent, create Hacker News l
 
 ## Your Output Format
 
-### 1. Show HN Title
-- Format: "Show HN: [Product Name] – [concise description]"
-- Keep it factual and understated — HN rewards humility
-- Provide 3 title options
+Use this exact output shape:
 
-### 2. Show HN Post Body
-A concise post (150-300 words) covering:
+Title 1
+[title]
+
+Title 2
+[title]
+
+Title 3
+[title]
+
+Show HN Body
+[body]
+
+### Content rules
+- Titles should follow: "Show HN: [Product Name] - [concise description]"
+- Keep titles factual and understated — HN rewards humility
+
+- **Show HN Body**: a concise post (150-300 words) covering:
 - What it is and what problem it solves (1-2 sentences)
 - Technical approach — what's under the hood (frameworks, architecture, interesting technical decisions)
 - Why you built it (keep it brief and genuine)
@@ -35,6 +47,12 @@ A concise post (150-300 words) covering:
 - If open source, mention the tech stack and invite contributions
 - Never use words like "revolutionary", "game-changing", or "disruptive"
 - Short paragraphs, no bullet-point marketing lists
+""",
+        task_contract="""## Task Contract
+- The body should read like a maker talking to engineers, not like launch copy rewritten for engineers
+- Include one concrete technical choice or trade-off that gives the post credibility
+- End with one real question or feedback request, not a generic CTA
+- Keep the output limited to the three titles and one body
 """,
         channel_contract="""## Channel Contract
 - Lead with technical substance and implementation reality

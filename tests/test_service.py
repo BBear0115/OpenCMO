@@ -210,3 +210,35 @@ async def test_analyze_url_helper_fallback_still_returns_result():
         max_chars=20000,
         tavily_extract_depth="advanced",
     )
+
+
+@pytest.mark.asyncio
+async def test_analyze_url_uses_html_metadata_without_filter_roundtrip():
+    """Metadata fallback should skip the noise-filter pass and still synthesize a result."""
+    fetch_mock = AsyncMock(return_value=(
+        "Page title: Coze\nMeta description: Coze is an AI agent workspace for teams.",
+        "html_meta",
+    ))
+    llm_mock = AsyncMock(side_effect=[
+        "Product analysis",
+        "SEO analysis",
+        "Community analysis",
+        "Product refinement",
+        "SEO refinement",
+        "Community refinement",
+        (
+            '{"brand_name": "Coze", "category": "ai", '
+            '"keywords": ["coze ai", "ai agent workspace"], "competitors": []}'
+        ),
+    ])
+
+    with patch.dict(os.environ, {"OPENAI_API_KEY": "test-key"}, clear=False), \
+         patch("opencmo.tools.crawl.fetch_url_content", fetch_mock, create=True), \
+         patch("openai.AsyncOpenAI", return_value=MagicMock()), \
+         patch("opencmo.services.intelligence_service._llm_call", llm_mock):
+        result = await service.analyze_url_with_ai("https://www.coze.com/")
+
+    assert result["brand_name"] == "Coze"
+    assert result["category"] == "ai"
+    assert result["keywords"] == ["coze ai", "ai agent workspace"]
+    assert llm_mock.await_count == 7

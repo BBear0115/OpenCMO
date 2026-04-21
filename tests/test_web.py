@@ -1185,6 +1185,175 @@ def test_api_v1_chat_applies_marketing_review_to_final_output(client):
     assert session[-1]["content"] == "Reviewed answer"
 
 
+def test_api_v1_chat_finalizes_partial_stream_after_idle_timeout(client):
+    resp = client.post("/api/v1/chat/sessions")
+    session_id = resp.json()["session_id"]
+
+    mock_result = MagicMock()
+    mock_result.last_agent.name = "OSChina Expert"
+    mock_result.final_output = None
+    mock_result.to_input_list.return_value = [
+        {"role": "user", "content": "hi"},
+    ]
+
+    class MockDelta:
+        type = "response.output_text.delta"
+        delta = "Partial answer"
+
+    class MockRawEvent:
+        type = "raw_response_event"
+        data = MockDelta()
+
+    async def mock_stream():
+        yield MockRawEvent()
+        await asyncio.sleep(1)
+
+    mock_result.stream_events = mock_stream
+
+    with patch("agents.Runner.run_streamed", return_value=mock_result), \
+         patch("opencmo.web.routers.chat._STREAM_IDLE_EVENT_TIMEOUT_SECONDS", 0.01), \
+         patch("opencmo.marketing_review.review_marketing_output_with_metadata", new_callable=AsyncMock) as mock_review:
+        mock_review.return_value = {
+            "final_output": "Partial answer",
+            "review_applied": False,
+            "profile": None,
+            "weak_points": [],
+        }
+        resp = client.post("/api/v1/chat", json={
+            "session_id": session_id,
+            "message": "hi",
+        })
+
+    assert resp.status_code == 200
+    events = []
+    for line in resp.text.strip().split("\n"):
+        if line.startswith("data: "):
+            events.append(json.loads(line[6:]))
+
+    assert events[-1]["type"] == "done"
+    assert events[-1]["stream_timed_out"] is True
+    assert events[-1]["final_output"] == "Partial answer"
+    mock_result.cancel.assert_called_once_with()
+
+    session = asyncio.run(chat_sessions.get_session(session_id))
+    assert session is not None
+    assert session[-1]["role"] == "assistant"
+    assert session[-1]["content"] == "Partial answer"
+
+
+def test_api_v1_chat_skips_slow_marketing_review(client):
+    resp = client.post("/api/v1/chat/sessions")
+    session_id = resp.json()["session_id"]
+
+    mock_result = MagicMock()
+    mock_result.last_agent.name = "InfoQ Expert"
+    mock_result.final_output = "Raw answer"
+    mock_result.to_input_list.return_value = [
+        {"role": "user", "content": "hi"},
+        {"role": "assistant", "content": "Raw answer"},
+    ]
+
+    class MockDelta:
+        type = "response.output_text.delta"
+        delta = "Raw"
+
+    class MockRawEvent:
+        type = "raw_response_event"
+        data = MockDelta()
+
+    async def mock_stream():
+        yield MockRawEvent()
+
+    async def slow_review(**_kwargs):
+        await asyncio.sleep(0.1)
+        return {
+            "final_output": "Reviewed answer",
+            "review_applied": True,
+            "profile": "technical_launch",
+            "weak_points": ["clarity"],
+        }
+
+    mock_result.stream_events = mock_stream
+
+    with patch("agents.Runner.run_streamed", return_value=mock_result), \
+         patch("opencmo.web.routers.chat._MARKETING_REVIEW_TIMEOUT_SECONDS", 0.01), \
+         patch("opencmo.marketing_review.review_marketing_output_with_metadata", side_effect=slow_review):
+        resp = client.post("/api/v1/chat", json={
+            "session_id": session_id,
+            "message": "hi",
+        })
+
+    assert resp.status_code == 200
+    events = []
+    for line in resp.text.strip().split("\n"):
+        if line.startswith("data: "):
+            events.append(json.loads(line[6:]))
+
+    assert events[-1]["type"] == "done"
+    assert events[-1]["final_output"] == "Raw answer"
+    assert events[-1]["review_applied"] is False
+    assert events[-1]["review_profile"] is None
+    assert events[-1]["review_weak_points"] == []
+
+    session = asyncio.run(chat_sessions.get_session(session_id))
+    assert session is not None
+    assert session[-1]["content"] == "Raw answer"
+
+
+def test_resolve_direct_platform_agent_detects_single_platform_content_request():
+    from opencmo.web.routers.chat import _resolve_direct_platform_agent
+
+    assert _resolve_direct_platform_agent("帮我写 3 条 Twitter/X 推文和 1 条 thread").name == "Twitter Expert"
+    assert _resolve_direct_platform_agent("帮我写一条 X 帖子，介绍 OpenCMO").name == "Twitter Expert"
+    assert _resolve_direct_platform_agent("帮我写一篇知乎回答，主题是 AI 搜索品牌监控").name == "Zhihu Expert"
+    assert _resolve_direct_platform_agent("Draft a Reddit post for OpenCMO and keep it humble").name == "Reddit Expert"
+    assert _resolve_direct_platform_agent("Draft a Reddit post for r/SideProject and ask for feedback").name == "Reddit Expert"
+    assert _resolve_direct_platform_agent("帮我写一篇 V2EX 帖子，介绍 OpenCMO 做 AI 搜索品牌监控").name == "V2EX Expert"
+    assert _resolve_direct_platform_agent("帮我写一篇 OSChina 项目介绍，主题是 OpenCMO").name == "OSChina Expert"
+    assert _resolve_direct_platform_agent("帮我写一篇 GitCode/CSDN 风格的项目介绍，介绍 OpenCMO").name == "GitCode Expert"
+    assert _resolve_direct_platform_agent("帮我写一篇少数派文章，主题是 AI 搜索时代为什么要做品牌监控").name == "Sspai Expert"
+    assert _resolve_direct_platform_agent("帮我写一篇 InfoQ 风格的文章，主题是 AI 搜索品牌监控").name == "InfoQ Expert"
+    assert _resolve_direct_platform_agent("Write a Dev.to article about AI search brand monitoring").name == "Devto Expert"
+    assert _resolve_direct_platform_agent("帮我写一条阮一峰周刊投稿，主题是 OpenCMO").name == "Ruanyifeng Weekly Expert"
+    assert _resolve_direct_platform_agent("给我做一个全平台分发策略，包含知乎和小红书") is None
+    assert _resolve_direct_platform_agent("帮我监控 Reddit 上关于 OpenCMO 的讨论") is None
+
+
+def test_api_v1_chat_routes_single_platform_requests_directly_to_platform_expert(client):
+    resp = client.post("/api/v1/chat/sessions")
+    session_id = resp.json()["session_id"]
+
+    mock_result = MagicMock()
+    mock_result.last_agent.name = "Reddit Expert"
+    mock_result.final_output = "Primary Post\nSubreddit: r/SideProject"
+    mock_result.to_input_list.return_value = [
+        {"role": "user", "content": "Draft a Reddit post"},
+        {"role": "assistant", "content": "Primary Post\nSubreddit: r/SideProject"},
+    ]
+
+    class MockDelta:
+        type = "response.output_text.delta"
+        delta = "Primary"
+
+    class MockRawEvent:
+        type = "raw_response_event"
+        data = MockDelta()
+
+    async def mock_stream():
+        yield MockRawEvent()
+
+    mock_result.stream_events = mock_stream
+
+    with patch("agents.Runner.run_streamed", return_value=mock_result) as mock_runner:
+        resp = client.post("/api/v1/chat", json={
+            "session_id": session_id,
+            "message": "Draft a Reddit post for OpenCMO and ask for feedback",
+        })
+
+    assert resp.status_code == 200
+    assert mock_runner.call_args.args[0].name == "Reddit Expert"
+
+
 def test_api_v1_chat_invalid_session(client):
     resp = client.post("/api/v1/chat", json={
         "session_id": "nonexistent",

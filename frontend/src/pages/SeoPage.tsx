@@ -61,7 +61,7 @@ export function SeoPage() {
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
             <KpiCard
               icon={Gauge}
-              label={t("seo.performanceScore")}
+              label={t("score.seoScore")}
               value={latestPerf != null ? `${Math.round(latestPerf * 100)}%` : null}
               delta={getDelta(perf)}
               status={latestPerf != null ? (latestPerf >= 0.9 ? "good" : latestPerf >= 0.5 ? "warning" : "poor") : undefined}
@@ -98,7 +98,7 @@ export function SeoPage() {
           </div>
 
           {/* Performance Score Trend */}
-          <ChartCard title={t("seo.performanceScore")} accentBorder="border-l-sky-500">
+          <ChartCard title={t("score.seoScore")} accentBorder="border-l-sky-500">
             <SeoPerformanceChart data={chart} />
           </ChartCard>
 

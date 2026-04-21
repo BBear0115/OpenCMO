@@ -8,6 +8,8 @@ import { AnimatedPage } from "../components/common/AnimatedPage";
 import { SkeletonCard } from "../components/common/SkeletonCard";
 import { ProjectCard } from "../components/dashboard/ProjectCard";
 import { WelcomeHero } from "../components/dashboard/WelcomeHero";
+import { GlobalOverview } from "../components/dashboard/GlobalOverview";
+import { InsightBanner } from "../components/dashboard/InsightBanner";
 import { MonitorForm } from "../components/monitors/MonitorForm";
 import { AnalysisDialog } from "../components/monitors/AnalysisDialog";
 import { useI18n } from "../i18n";
@@ -75,6 +77,9 @@ export function DashboardPage() {
             <p className="text-[15px] text-slate-500 mt-1.5">{t("dashboard.subtitle")}</p>
           </div>
 
+          <GlobalOverview />
+          <InsightBanner />
+
           <div className="mb-8">
             <MonitorForm
               onSubmit={async (data) => {
@@ -109,7 +114,7 @@ export function DashboardPage() {
       )}
 
       {projects?.length ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div id="project-grid" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {projects.map((p, i) => (
             <motion.div
               key={p.id}

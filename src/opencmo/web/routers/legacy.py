@@ -131,7 +131,14 @@ async def api_seo_data(project_id: int):
     history.reverse()
     return JSONResponse({
         "labels": [s["scanned_at"][:10] for s in history],
-        "performance": [s["score_performance"] for s in history],
+        "performance": [
+            s["score_performance"]
+            if s["score_performance"] is not None
+            else (s["seo_health_score"] / 100 if s.get("seo_health_score") is not None else None)
+            for s in history
+        ],
+        "pagespeed_performance": [s["score_performance"] for s in history],
+        "health": [s.get("seo_health_score") for s in history],
         "lcp": [s["score_lcp"] for s in history],
         "cls": [s["score_cls"] for s in history],
         "tbt": [s["score_tbt"] for s in history],

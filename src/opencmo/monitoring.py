@@ -233,6 +233,7 @@ async def _collect_signals(
             from opencmo.tools.seo_audit import (
                 _build_report,
                 _check_robots_and_sitemap,
+                _compute_seo_health_score,
                 _fetch_core_web_vitals,
                 _SEOParser,
             )
@@ -248,6 +249,7 @@ async def _collect_signals(
             cwv = await _fetch_core_web_vitals(url)
             robots_sitemap = await _check_robots_and_sitemap(url)
             report = _build_report(parser, result, url, cwv=cwv, robots_sitemap=robots_sitemap)
+            seo_health_score = _compute_seo_health_score(parser, cwv=cwv, robots_sitemap=robots_sitemap)
             await _storage.save_seo_scan(
                 project_id, url, report,
                 score_performance=cwv.get("performance") if cwv else None,
@@ -257,6 +259,7 @@ async def _collect_signals(
                 has_robots_txt=robots_sitemap.get("has_robots") if robots_sitemap else None,
                 has_sitemap=robots_sitemap.get("has_sitemap") if robots_sitemap else None,
                 has_schema_org=bool(parser.schema_types),
+                seo_health_score=seo_health_score,
             )
             await _emit(run_id, on_progress, _event(
                 "signal_collect",
@@ -443,12 +446,22 @@ async def _collect_signals(
             result = await auto_discover_from_product(project_id)
             discovered = result.get("discovered", 0)
             contactable = result.get("contactable", 0)
-            await _emit(run_id, on_progress, _event(
-                "signal_collect",
-                "running",
-                f"GitHub discovery finished: {discovered} found, {contactable} contactable.",
-                agent="Signal Collector",
-            ))
+            discovery_warnings = [str(item).strip() for item in result.get("warnings", []) if str(item).strip()]
+            for message in discovery_warnings:
+                warnings.append(message)
+                await _emit(run_id, on_progress, _event(
+                    "signal_collect",
+                    "warning",
+                    message,
+                    agent="Signal Collector",
+                ))
+            if discovered or contactable or not discovery_warnings:
+                await _emit(run_id, on_progress, _event(
+                    "signal_collect",
+                    "running",
+                    f"GitHub discovery finished: {discovered} found, {contactable} contactable.",
+                    agent="Signal Collector",
+                ))
         except Exception as exc:
             warnings.append(f"GitHub discovery failed: {exc}")
             await _emit(run_id, on_progress, _event(

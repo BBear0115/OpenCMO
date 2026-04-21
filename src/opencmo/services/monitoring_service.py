@@ -18,12 +18,13 @@ async def create_monitor(
     url: str,
     category: str,
     job_type: str = "full",
+    locale: str = "en",
     cron_expr: str = "0 9 * * *",
     keywords: list[str] | None = None,
 ) -> dict:
     """Create monitor + project + keywords. Returns {project_id, monitor_id, keywords_added}."""
     project_id = await storage.ensure_project(brand, url, category)
-    job_id = await storage.add_scheduled_job(project_id, job_type, cron_expr)
+    job_id = await storage.add_scheduled_job(project_id, job_type, locale, cron_expr)
     await _sync_runtime_job(job_id)
     kw_added: list[str] = []
     for kw in keywords or []:
@@ -51,9 +52,10 @@ async def update_monitor(
     *,
     cron_expr: str | None = None,
     enabled: bool | None = None,
+    locale: str | None = None,
 ) -> bool:
     """Update a scheduled job and reconcile the in-memory scheduler."""
-    ok = await storage.update_scheduled_job(job_id, cron_expr=cron_expr, enabled=enabled)
+    ok = await storage.update_scheduled_job(job_id, cron_expr=cron_expr, enabled=enabled, locale=locale)
     if ok:
         await _sync_runtime_job(job_id)
     return ok
@@ -171,5 +173,16 @@ async def get_status_summary() -> list[dict]:
     result = []
     for p in projects:
         latest = await storage.get_latest_scans(p["id"])
-        result.append({**p, "latest": latest})
+        latest_monitoring = await storage.get_latest_monitoring_summary(p["id"])
+        latest_reports = await storage.get_latest_reports(p["id"])
+        pending_approvals = len(
+            [item for item in await storage.list_approvals(status="pending", limit=200) if item.get("project_id") == p["id"]]
+        )
+        result.append({
+            **p,
+            "latest": latest,
+            "latest_monitoring": latest_monitoring,
+            "latest_reports": latest_reports,
+            "pending_approvals": pending_approvals,
+        })
     return result

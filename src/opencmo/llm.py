@@ -40,7 +40,7 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
-_MODEL_DEFAULT = "gpt-4o"
+_MODEL_DEFAULT = "gpt-5.4-mini"
 _ENV_PRIORITY_KEYS = frozenset({
     "OPENAI_API_KEY",
     "OPENAI_BASE_URL",
@@ -161,16 +161,7 @@ async def get_openai_client() -> Any:
     api_key = await get_key_async("OPENAI_API_KEY")
     base_url = await get_key_async("OPENAI_BASE_URL")
 
-    # Normalize base_url: Many providers (XH, DeepSeek, etc.) require /v1 suffix.
-    # Skip for OpenAI official domains — the SDK handles routing internally.
-    _SKIP_V1_DOMAINS = {"api.openai.com", "api.anthropic.com"}
-    if base_url:
-        base_url = base_url.strip().rstrip("/")
-        from urllib.parse import urlparse as _urlparse
-        host = _urlparse(base_url).hostname or ""
-        if host not in _SKIP_V1_DOMAINS and not base_url.endswith("/v1"):
-            if base_url.count("/") <= 2:
-                base_url += "/v1"
+    base_url = normalize_base_url(base_url)
 
     model = await get_model()
     logger.debug("LLM client: model=%s, base_url=%s", model, base_url or "OpenAI Default")
@@ -181,10 +172,31 @@ async def get_openai_client() -> Any:
     )
 
 
+def normalize_base_url(base_url: str | None) -> str | None:
+    """Normalize OpenAI-compatible endpoints to the form expected by SDK clients."""
+    if not base_url:
+        return None
+
+    normalized = base_url.strip().rstrip("/")
+    if not normalized:
+        return None
+
+    # OpenAI official endpoints already route correctly without an explicit /v1 suffix.
+    skip_v1_domains = {"api.openai.com", "api.anthropic.com"}
+    from urllib.parse import urlparse
+
+    host = urlparse(normalized).hostname or ""
+    if host in skip_v1_domains or normalized.endswith("/v1"):
+        return normalized
+    if normalized.count("/") <= 2:
+        return f"{normalized}/v1"
+    return normalized
+
+
 async def get_model(purpose: str = "default") -> str:
     """Get the model name for a given purpose.
 
-    Resolution: OPENCMO_MODEL_{PURPOSE} > OPENCMO_MODEL_DEFAULT > 'gpt-4o'
+    Resolution: OPENCMO_MODEL_{PURPOSE} > OPENCMO_MODEL_DEFAULT > 'gpt-5.4-mini'
     """
     if purpose and purpose != "default":
         specific = await get_key_async(f"OPENCMO_MODEL_{purpose.upper()}")

@@ -14,7 +14,7 @@ def get_model(agent_name: str):
     """Return the model for a given agent.
 
     Resolution order for model name:
-        OPENCMO_MODEL_{AGENT} > OPENCMO_MODEL_DEFAULT > 'gpt-4o'
+        OPENCMO_MODEL_{AGENT} > OPENCMO_MODEL_DEFAULT > 'gpt-5.4-mini'
 
     If OPENAI_BASE_URL is set, returns an OpenAIChatCompletionsModel
     configured with a custom client (works with NVIDIA, DeepSeek, etc.).
@@ -24,9 +24,9 @@ def get_model(agent_name: str):
 
     model_name = llm.get_key(f"OPENCMO_MODEL_{agent_name.upper()}")
     if not model_name:
-        model_name = llm.get_key("OPENCMO_MODEL_DEFAULT", "gpt-4o")
+        model_name = llm.get_key("OPENCMO_MODEL_DEFAULT", "gpt-5.4-mini")
 
-    base_url = llm.get_key("OPENAI_BASE_URL")
+    base_url = llm.normalize_base_url(llm.get_key("OPENAI_BASE_URL"))
     if base_url:
         from agents import OpenAIChatCompletionsModel
         from openai import AsyncOpenAI
@@ -47,6 +47,25 @@ def is_custom_provider() -> bool:
     """True if a non-default OPENAI_BASE_URL is configured."""
     from opencmo import llm
     return bool(llm.get_key("OPENAI_BASE_URL"))
+
+
+def configure_agent_tracing() -> bool:
+    """Disable agents tracing when using a custom OpenAI-compatible provider.
+
+    The agents SDK exports traces to OpenAI's backend by default. When the runtime
+    API key belongs to a third-party OpenAI-compatible gateway (OpenRouter,
+    DeepSeek, NVIDIA, etc.), that export path emits noisy 401 errors. We disable
+    tracing globally in those cases because the trace exporter is not used by the
+    product at runtime.
+
+    Returns:
+        True when tracing was disabled, False otherwise.
+    """
+    custom_provider = is_custom_provider()
+    from agents import set_tracing_disabled
+
+    set_tracing_disabled(custom_provider)
+    return custom_provider
 
 
 async def apply_runtime_settings():
