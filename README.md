@@ -166,6 +166,7 @@ The dev app runs at `http://localhost:5173` and proxies API traffic to `:8080`.
 ## Contributors
 
 - [study8677](https://github.com/study8677) - Creator and maintainer
+- [Lling0000](https://github.com/Lling0000) - Lead contributor
 - [ParakhJaggi](https://github.com/ParakhJaggi) - Tavily integration ([#2](https://github.com/study8677/OpenCMO/pull/2), [#3](https://github.com/study8677/OpenCMO/pull/3))
 - [BBear0115](https://github.com/BBear0115) - Bug fixes for BYOK key isolation, base_url normalization, and reports ([#9](https://github.com/study8677/OpenCMO/pull/9))
 - See [CONTRIBUTORS.md](CONTRIBUTORS.md) for the full contributor list

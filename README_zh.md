@@ -166,6 +166,7 @@ npm run build
 ## 贡献者
 
 - [study8677](https://github.com/study8677) - 创建者与维护者
+- [Lling0000](https://github.com/Lling0000) - 最主要贡献者
 - [ParakhJaggi](https://github.com/ParakhJaggi) - Tavily 集成 ([#2](https://github.com/study8677/OpenCMO/pull/2), [#3](https://github.com/study8677/OpenCMO/pull/3))
 - [BBear0115](https://github.com/BBear0115) - BYOK 密钥隔离、base_url 规范化及报告相关 Bug 修复 ([#9](https://github.com/study8677/OpenCMO/pull/9))
 - 完整名单见 [CONTRIBUTORS.md](CONTRIBUTORS.md)
