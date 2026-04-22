@@ -19,6 +19,7 @@ import { SiteFooter } from "../components/layout/SiteFooter";
 import {
   BLOG_ARTICLES,
   BLOG_DECISION_ARTICLE_SLUGS,
+  BLOG_FEATURED_ARTICLE_SLUG,
   LANDING_CRAWLER_BULLETS,
   LANDING_FAQS,
   LANDING_PLATFORM_ITEMS,
@@ -26,12 +27,14 @@ import {
   LANDING_TRUST_ITEMS,
   LANDING_WORKFLOW_STEPS,
   PUBLIC_HOME_NAV,
-  getBlogArticlePath,
+  getLocalizedBlogArticlePath,
+  getSampleAuditPath,
 } from "../content/marketing";
 import { useSiteStats } from "../hooks/useSiteStats";
-import { usePageMetadata } from "../hooks/usePageMetadata";
+import { usePublicPageMetadata } from "../hooks/usePublicPageMetadata";
 import { useI18n } from "../i18n";
 import type { TranslationKey } from "../i18n";
+import { getSeoLocaleFromLocale } from "../utils/publicRoutes";
 
 const PROOF_ICONS = [Search, Bot, Users];
 const CAPABILITY_ICONS = [Search, Globe, Users, GitBranch, FileText];
@@ -41,13 +44,16 @@ export function LandingPage() {
   const { t, locale } = useI18n();
   const { data: siteStats } = useSiteStats();
   const numberFormatter = new Intl.NumberFormat(locale);
+  const seoLocale = getSeoLocaleFromLocale(locale);
   const featuredBlogArticle =
-    BLOG_ARTICLES.find((article) => article.slug === BLOG_DECISION_ARTICLE_SLUGS[0]) ?? BLOG_ARTICLES[0]!;
+    BLOG_ARTICLES.find((article) => article.slug === BLOG_FEATURED_ARTICLE_SLUG)
+    ?? BLOG_ARTICLES.find((article) => article.slug === BLOG_DECISION_ARTICLE_SLUGS[0])
+    ?? BLOG_ARTICLES[0]!;
 
-  usePageMetadata({
+  usePublicPageMetadata({
     title: t("landing.metaTitle"),
     description: t("landing.metaDescription"),
-    canonicalPath: "/",
+    basePath: "/",
   });
 
   return (
@@ -86,7 +92,7 @@ export function LandingPage() {
                   <ArrowRight size={16} />
                 </Link>
                 <Link
-                  to="/sample-audit"
+                  to={getSampleAuditPath(seoLocale)}
                   className="inline-flex items-center gap-2 rounded-full border border-white/14 bg-white/8 px-5 py-3 text-sm font-semibold text-white transition-colors hover:border-white/28 hover:bg-white/12"
                 >
                   {t("landing.sampleCta")}
@@ -451,7 +457,7 @@ export function LandingPage() {
 
             <SectionReveal delay={0.1}>
               <Link
-                to={getBlogArticlePath(featuredBlogArticle.slug)}
+                to={getLocalizedBlogArticlePath(featuredBlogArticle.slug, seoLocale)}
                 className={`group block overflow-hidden rounded-[2rem] border border-black/8 bg-gradient-to-br p-6 shadow-[0_18px_60px_rgba(8,32,50,0.06)] transition-transform duration-300 hover:-translate-y-1 ${featuredBlogArticle.accentClass}`}
               >
                 <div className="rounded-[1.4rem] bg-white/78 p-5">
@@ -501,7 +507,7 @@ export function LandingPage() {
                     <ArrowRight size={16} />
                   </Link>
                   <Link
-                    to="/sample-audit"
+                    to={getSampleAuditPath(seoLocale)}
                     className="inline-flex items-center gap-2 rounded-full border border-white/14 bg-white/8 px-5 py-3 text-sm font-semibold text-white transition-colors hover:border-white/28 hover:bg-white/12"
                   >
                     {t("landing.sampleCta")}

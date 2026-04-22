@@ -5,10 +5,11 @@ import { SiteFooter } from "../components/layout/SiteFooter";
 import { ProjectCommandCenter } from "../components/project/ProjectCommandCenter";
 import { ScorePanel } from "../components/project/ScorePanel";
 import { useI18n } from "../i18n";
-import { usePageMetadata } from "../hooks/usePageMetadata";
+import { usePublicPageMetadata } from "../hooks/usePublicPageMetadata";
 import type { LatestReports, LatestScans, MonitoringSummary, Project, ReportRecord } from "../types";
 import type { NextAction } from "../api/projects";
-import type { PublicNavItem } from "../content/marketing";
+import { getSampleAuditPath, type PublicNavItem } from "../content/marketing";
+import { getSeoLocaleFromLocale } from "../utils/publicRoutes";
 
 const SAMPLE_PROJECT: Project = {
   id: 9001,
@@ -237,12 +238,14 @@ function SampleAuditCard({
 }
 
 export function SampleAuditPage() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
+  const seoLocale = getSeoLocaleFromLocale(locale);
+  const sampleAuditPath = getSampleAuditPath(seoLocale);
 
-  usePageMetadata({
+  usePublicPageMetadata({
     title: t("sampleAudit.metaTitle"),
     description: t("sampleAudit.metaDescription"),
-    canonicalPath: "/sample-audit",
+    basePath: "/sample-audit",
   });
 
   return (
@@ -328,14 +331,14 @@ export function SampleAuditPage() {
               pendingApprovals={2}
               actionsOverride={SAMPLE_ACTIONS}
               routeOverrides={{
-                changedToday: "/sample-audit#seo",
-                whatMattersNow: "/sample-audit#opportunities",
-                readyToShip: "/sample-audit#next-actions",
-                siteHealth: "/sample-audit#seo",
-                aiSearch: "/sample-audit#ai-search",
-                community: "/sample-audit#opportunities",
-                competitor: "/sample-audit#competitors",
-                report: "/sample-audit#next-actions",
+                changedToday: `${sampleAuditPath}#seo`,
+                whatMattersNow: `${sampleAuditPath}#opportunities`,
+                readyToShip: `${sampleAuditPath}#next-actions`,
+                siteHealth: `${sampleAuditPath}#seo`,
+                aiSearch: `${sampleAuditPath}#ai-search`,
+                community: `${sampleAuditPath}#opportunities`,
+                competitor: `${sampleAuditPath}#competitors`,
+                report: `${sampleAuditPath}#next-actions`,
               }}
             />
 

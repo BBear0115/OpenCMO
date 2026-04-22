@@ -1,4 +1,6 @@
 import type { TranslationKey } from "../i18n";
+import type { SeoLocale } from "../utils/publicRoutes";
+import { getLocalizedPublicPath } from "../utils/publicRoutes";
 
 export type PublicNavItem = {
   href: string;
@@ -186,10 +188,172 @@ export const BLOG_DECISION_ARTICLE_SLUGS = [
   "first-30-days-with-opencmo",
 ] as const;
 
+export const BLOG_FEATURED_ARTICLE_SLUG = "what-is-a-cmo" as const;
+
 export const BLOG_ARTICLES: BlogArticle[] = [
   {
-    slug: "ai-cmo-workspace",
+    slug: "what-is-a-cmo",
     index: "01",
+    category: "blog.post7.category",
+    title: "blog.post7.title",
+    summary: "blog.post7.summary",
+    readTime: "blog.post7.readTime",
+    highlight: "blog.post7.highlight",
+    audience: "blog.post7.audience",
+    thesis: "blog.post7.thesis",
+    takeawayKeys: ["blog.post7.point1", "blog.post7.point2", "blog.post7.point3"],
+    sections: [
+      {
+        title: "blog.post7.section1Title",
+        body: "blog.post7.section1Body",
+      },
+      {
+        title: "blog.post7.section2Title",
+        body: "blog.post7.section2Body",
+      },
+      {
+        title: "blog.post7.section3Title",
+        body: "blog.post7.section3Body",
+      },
+      {
+        title: "blog.post7.section4Title",
+        body: "blog.post7.section4Body",
+      },
+    ],
+    accentClass:
+      "from-[#d7c7ff]/22 via-[#f8f1e7] to-[#86c8bc]/18",
+  },
+  {
+    slug: "what-is-product-marketing",
+    index: "02",
+    category: "blog.post8.category",
+    title: "blog.post8.title",
+    summary: "blog.post8.summary",
+    readTime: "blog.post8.readTime",
+    highlight: "blog.post8.highlight",
+    audience: "blog.post8.audience",
+    thesis: "blog.post8.thesis",
+    takeawayKeys: ["blog.post8.point1", "blog.post8.point2", "blog.post8.point3"],
+    sections: [
+      {
+        title: "blog.post8.section1Title",
+        body: "blog.post8.section1Body",
+      },
+      {
+        title: "blog.post8.section2Title",
+        body: "blog.post8.section2Body",
+      },
+      {
+        title: "blog.post8.section3Title",
+        body: "blog.post8.section3Body",
+      },
+      {
+        title: "blog.post8.section4Title",
+        body: "blog.post8.section4Body",
+      },
+    ],
+    accentClass:
+      "from-[#b9d9ff]/24 via-[#f8f5ee] to-[#cfe8dd]/24",
+  },
+  {
+    slug: "what-is-go-to-market-strategy",
+    index: "03",
+    category: "blog.post9.category",
+    title: "blog.post9.title",
+    summary: "blog.post9.summary",
+    readTime: "blog.post9.readTime",
+    highlight: "blog.post9.highlight",
+    audience: "blog.post9.audience",
+    thesis: "blog.post9.thesis",
+    takeawayKeys: ["blog.post9.point1", "blog.post9.point2", "blog.post9.point3"],
+    sections: [
+      {
+        title: "blog.post9.section1Title",
+        body: "blog.post9.section1Body",
+      },
+      {
+        title: "blog.post9.section2Title",
+        body: "blog.post9.section2Body",
+      },
+      {
+        title: "blog.post9.section3Title",
+        body: "blog.post9.section3Body",
+      },
+      {
+        title: "blog.post9.section4Title",
+        body: "blog.post9.section4Body",
+      },
+    ],
+    accentClass:
+      "from-[#ffe0b8]/28 via-[#f9f3ea] to-[#dce9f0]",
+  },
+  {
+    slug: "what-is-brand-positioning",
+    index: "04",
+    category: "blog.post10.category",
+    title: "blog.post10.title",
+    summary: "blog.post10.summary",
+    readTime: "blog.post10.readTime",
+    highlight: "blog.post10.highlight",
+    audience: "blog.post10.audience",
+    thesis: "blog.post10.thesis",
+    takeawayKeys: ["blog.post10.point1", "blog.post10.point2", "blog.post10.point3"],
+    sections: [
+      {
+        title: "blog.post10.section1Title",
+        body: "blog.post10.section1Body",
+      },
+      {
+        title: "blog.post10.section2Title",
+        body: "blog.post10.section2Body",
+      },
+      {
+        title: "blog.post10.section3Title",
+        body: "blog.post10.section3Body",
+      },
+      {
+        title: "blog.post10.section4Title",
+        body: "blog.post10.section4Body",
+      },
+    ],
+    accentClass:
+      "from-[#f3dcc9]/45 via-[#f8efe6] to-[#efe7ff]/32",
+  },
+  {
+    slug: "demand-generation-vs-lead-generation",
+    index: "05",
+    category: "blog.post11.category",
+    title: "blog.post11.title",
+    summary: "blog.post11.summary",
+    readTime: "blog.post11.readTime",
+    highlight: "blog.post11.highlight",
+    audience: "blog.post11.audience",
+    thesis: "blog.post11.thesis",
+    takeawayKeys: ["blog.post11.point1", "blog.post11.point2", "blog.post11.point3"],
+    sections: [
+      {
+        title: "blog.post11.section1Title",
+        body: "blog.post11.section1Body",
+      },
+      {
+        title: "blog.post11.section2Title",
+        body: "blog.post11.section2Body",
+      },
+      {
+        title: "blog.post11.section3Title",
+        body: "blog.post11.section3Body",
+      },
+      {
+        title: "blog.post11.section4Title",
+        body: "blog.post11.section4Body",
+      },
+    ],
+    accentClass:
+      "from-[#cde7d7]/28 via-[#f5f8ef] to-[#fff0d8]/28",
+  },
+  {
+    slug: "ai-cmo-workspace",
+    index: "06",
     category: "blog.post1.category",
     title: "blog.post1.title",
     summary: "blog.post1.summary",
@@ -221,7 +385,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
   },
   {
     slug: "visibility-operating-system",
-    index: "02",
+    index: "07",
     category: "blog.post2.category",
     title: "blog.post2.title",
     summary: "blog.post2.summary",
@@ -253,7 +417,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
   },
   {
     slug: "crawler-readable-brand-surface",
-    index: "03",
+    index: "08",
     category: "blog.post3.category",
     title: "blog.post3.title",
     summary: "blog.post3.summary",
@@ -285,7 +449,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
   },
   {
     slug: "inside-opencmo-workspace",
-    index: "04",
+    index: "09",
     category: "blog.post4.category",
     title: "blog.post4.title",
     summary: "blog.post4.summary",
@@ -317,7 +481,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
   },
   {
     slug: "who-should-use-opencmo",
-    index: "05",
+    index: "10",
     category: "blog.post5.category",
     title: "blog.post5.title",
     summary: "blog.post5.summary",
@@ -349,7 +513,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
   },
   {
     slug: "first-30-days-with-opencmo",
-    index: "06",
+    index: "11",
     category: "blog.post6.category",
     title: "blog.post6.title",
     summary: "blog.post6.summary",
@@ -383,6 +547,23 @@ export const BLOG_ARTICLES: BlogArticle[] = [
 
 export function getBlogArticlePath(slug: string) {
   return `/blog/${slug}`;
+}
+
+export function getLandingPath(locale?: SeoLocale | null) {
+  return locale ? getLocalizedPublicPath("/", locale) : "/";
+}
+
+export function getBlogIndexPath(locale?: SeoLocale | null) {
+  return locale ? getLocalizedPublicPath("/blog", locale) : "/blog";
+}
+
+export function getLocalizedBlogArticlePath(slug: string, locale?: SeoLocale | null) {
+  const path = getBlogArticlePath(slug);
+  return locale ? getLocalizedPublicPath(path, locale) : path;
+}
+
+export function getSampleAuditPath(locale?: SeoLocale | null) {
+  return locale ? getLocalizedPublicPath("/sample-audit", locale) : "/sample-audit";
 }
 
 export function findBlogArticleBySlug(slug: string) {

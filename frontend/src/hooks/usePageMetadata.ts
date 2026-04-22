@@ -4,6 +4,10 @@ type PageMetadataOptions = {
   title: string;
   description: string;
   canonicalPath: string;
+  alternates?: Array<{
+    hrefLang: string;
+    path: string;
+  }>;
   robots?: string;
 };
 
@@ -29,10 +33,29 @@ function ensureCanonical() {
   return node;
 }
 
+function syncAlternateLinks(alternates: Array<{ hrefLang: string; path: string }>) {
+  const managedSelector = 'link[rel="alternate"][data-opencmo-managed="true"]';
+  document.querySelectorAll<HTMLLinkElement>(managedSelector).forEach((node) => node.remove());
+
+  const canonicalLink = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+  let currentAnchor: Element | null = canonicalLink ?? document.head.querySelector("meta:last-of-type");
+
+  alternates.forEach((alternate) => {
+    const node = document.createElement("link");
+    node.setAttribute("rel", "alternate");
+    node.setAttribute("hreflang", alternate.hrefLang);
+    node.setAttribute("href", new URL(alternate.path, window.location.origin).toString());
+    node.setAttribute("data-opencmo-managed", "true");
+    currentAnchor?.insertAdjacentElement("afterend", node);
+    currentAnchor = node;
+  });
+}
+
 export function usePageMetadata({
   title,
   description,
   canonicalPath,
+  alternates = [],
   robots = "index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1",
 }: PageMetadataOptions) {
   useEffect(() => {
@@ -66,6 +89,7 @@ export function usePageMetadata({
     twitterTitleMeta.setAttribute("content", title);
     twitterDescriptionMeta.setAttribute("content", description);
     canonicalLink.setAttribute("href", canonicalUrl);
+    syncAlternateLinks(alternates);
 
     return () => {
       document.title = previousTitle;
@@ -93,6 +117,7 @@ export function usePageMetadata({
       if (previousCanonical) {
         canonicalLink.setAttribute("href", previousCanonical);
       }
+      document.querySelectorAll<HTMLLinkElement>('link[rel="alternate"][data-opencmo-managed="true"]').forEach((node) => node.remove());
     };
-  }, [canonicalPath, description, robots, title]);
+  }, [alternates, canonicalPath, description, robots, title]);
 }

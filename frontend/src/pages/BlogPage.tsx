@@ -7,27 +7,32 @@ import { SiteFooter } from "../components/layout/SiteFooter";
 import {
   BLOG_ARTICLES,
   BLOG_DECISION_ARTICLE_SLUGS,
+  BLOG_FEATURED_ARTICLE_SLUG,
   BLOG_PRINCIPLES,
   BLOG_READER_PATHS,
   PUBLIC_BLOG_NAV,
-  getBlogArticlePath,
+  getLandingPath,
+  getLocalizedBlogArticlePath,
 } from "../content/marketing";
-import { usePageMetadata } from "../hooks/usePageMetadata";
+import { usePublicPageMetadata } from "../hooks/usePublicPageMetadata";
 import { useI18n } from "../i18n";
+import { getSeoLocaleFromLocale } from "../utils/publicRoutes";
 
 export function BlogPage() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
+  const seoLocale = getSeoLocaleFromLocale(locale);
   const featuredArticle =
-    BLOG_ARTICLES.find((article) => article.slug === BLOG_DECISION_ARTICLE_SLUGS[0]) ?? BLOG_ARTICLES[0]!;
+    BLOG_ARTICLES.find((article) => article.slug === BLOG_FEATURED_ARTICLE_SLUG) ?? BLOG_ARTICLES[0]!;
   const decisionArticles = BLOG_ARTICLES.filter((article) =>
     BLOG_DECISION_ARTICLE_SLUGS.includes(article.slug as (typeof BLOG_DECISION_ARTICLE_SLUGS)[number])
   );
-  const articleDirectoryColumns = [BLOG_ARTICLES.slice(0, 3), BLOG_ARTICLES.slice(3)];
+  const articleSplitIndex = Math.ceil(BLOG_ARTICLES.length / 2);
+  const articleDirectoryColumns = [BLOG_ARTICLES.slice(0, articleSplitIndex), BLOG_ARTICLES.slice(articleSplitIndex)];
 
-  usePageMetadata({
+  usePublicPageMetadata({
     title: t("blog.metaTitle"),
     description: t("blog.metaDescription"),
-    canonicalPath: "/blog",
+    basePath: "/blog",
   });
 
   return (
@@ -61,7 +66,7 @@ export function BlogPage() {
 
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link
-                  to={getBlogArticlePath(featuredArticle.slug)}
+                  to={getLocalizedBlogArticlePath(featuredArticle.slug, seoLocale)}
                   className="inline-flex items-center gap-2 rounded-full bg-[#f7ecde] px-5 py-3 text-sm font-semibold text-[#082032] transition-colors hover:bg-white"
                 >
                   {t("blog.featuredLabel")}
@@ -141,7 +146,7 @@ export function BlogPage() {
               {decisionArticles.map((article) => (
                 <Link
                   key={article.slug}
-                  to={getBlogArticlePath(article.slug)}
+                  to={getLocalizedBlogArticlePath(article.slug, seoLocale)}
                   className={`group relative overflow-hidden rounded-[1.8rem] border border-black/8 bg-gradient-to-br p-6 shadow-[0_18px_50px_rgba(8,32,50,0.08)] transition-transform duration-300 hover:-translate-y-1 ${article.accentClass}`}
                 >
                   <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.42),rgba(255,255,255,0.82))]" />
@@ -260,7 +265,7 @@ export function BlogPage() {
               </h2>
             </div>
             <Link
-              to="/"
+              to={getLandingPath(seoLocale)}
               className="inline-flex items-center gap-2 text-sm font-semibold text-slate-700 transition-colors hover:text-slate-950"
             >
               {t("blog.homeCta")}
@@ -288,7 +293,7 @@ export function BlogPage() {
                 </p>
               </div>
               <Link
-                to={getBlogArticlePath(featuredArticle.slug)}
+                to={getLocalizedBlogArticlePath(featuredArticle.slug, seoLocale)}
                 className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-slate-900 transition-colors hover:text-[#082032]"
               >
                 {t("blog.readArticleCta")}
@@ -302,7 +307,7 @@ export function BlogPage() {
                   {column.map((article) => (
                     <Link
                       key={article.slug}
-                      to={getBlogArticlePath(article.slug)}
+                      to={getLocalizedBlogArticlePath(article.slug, seoLocale)}
                       className="group rounded-[1.6rem] border border-black/8 bg-white/78 p-5 shadow-[0_18px_50px_rgba(8,32,50,0.05)] transition-transform duration-300 hover:-translate-y-1"
                     >
                       <div className="flex items-start justify-between gap-4">
@@ -348,7 +353,7 @@ export function BlogPage() {
             {BLOG_ARTICLES.map((article) => (
               <Link
                 key={article.slug}
-                to={getBlogArticlePath(article.slug)}
+                to={getLocalizedBlogArticlePath(article.slug, seoLocale)}
                 className="rounded-[2rem] border border-black/8 bg-white/80 p-6 shadow-[0_18px_60px_rgba(8,32,50,0.06)] backdrop-blur sm:p-8"
               >
                 <div className="grid gap-8 lg:grid-cols-[280px_minmax(0,1fr)]">
