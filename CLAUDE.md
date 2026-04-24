@@ -38,7 +38,7 @@ OpenCMO is an open-source AI Chief Marketing Officer — a multi-agent system fo
 - `components/` — Organized by domain: `charts/` (recharts + react-force-graph-3d), `chat/` (SSE streaming), `monitors/`, `auth/`, `layout/`, `dashboard/`, `project/`
 - `hooks/` — TanStack Query hooks per domain (`useProjects`, `useSeoData`, `useGraphData`, etc.). Stale time 30s, retry 1. `useChat` manages local state + SSE via async generator
 - `api/client.ts` — `apiFetch()` adds Bearer token, dispatches `opencmo:unauthorized` on 401. Domain modules export typed wrappers around `apiJson()`
-- `i18n/` — React context-based EN + ZH translations
+- `i18n/` — React context-based EN/ZH/JA/KO/ES translations
 - Routing: React Router v7 at base `/app`. Provider stack: QueryClient → I18n → Auth → Router
 
 ### Key patterns
@@ -115,50 +115,65 @@ When optimizing report generation or other LLM-heavy workflows:
 4. **Benchmark before and after** — Measure timing for each phase to validate optimizations. Track both performance and quality metrics (report length, section count, pass rate)
 5. **Balance quality and speed** — Grader thresholds and retry counts directly impact both. Current settings: `_GRADER_PASS_THRESHOLD = 3.5`, `_MAX_GRADER_RETRIES = 1`
 
-## BWG Server Deployment (aidcmo.com)
+## Critical Patterns
 
-**Server**: BandwagonHost VPS — `97.64.16.217`, SSH port `2222`, user `root`
+- **LLM calls**: Always use `llm.chat_completion_messages()` for retry. Never call `client.chat.completions.create()` directly.
+- **Agent names**: ASCII only (`Zhihu Expert`, not `知乎专家`). openai-agents generates `transfer_to_{name}` tool names.
+- **Timestamps**: SQLite stores UTC. Frontend must use `utcDate()` from `utils/time.ts` to parse.
+- **Community search**: Tavily → crawl4ai Google scrape fallback. Skip category queries when category is placeholder `"auto"`.
+- **BYOK**: Per-request API keys via `X-User-Keys` header → ContextVar. Background tasks capture and restore keys.
+- **SPA routing**: No `AnimatePresence key={pathname}` in AppShell — causes full remount and breaks query cache.
+- **Production topology**: Primary production is `newyork` (`192.3.16.77`). OpenCMO runs behind nginx on `80/443`, proxied to local `127.0.0.1:8081`. Nginx config: `/etc/nginx/sites-enabled/aidcmo.conf`.
+- **Nginx security headers**: `Strict-Transport-Security` + `X-Frame-Options: DENY` configured in `aidcmo.conf`.
+- **Port allocation**: Do not assume production app port is `8080`. `8080` is occupied by `sub2api` on `newyork`; OpenCMO uses `8081`.
+- **BWG role**: `BWG` is no longer the primary OpenCMO host. Treat it as a lightweight box, temporary reverse proxy, or fallback node unless explicitly re-promoted.
+- **Browser-backed scans**: SEO/context fallback paths use `crawl4ai`/Playwright. Fresh servers need browser binaries installed, or scans will fail with `BrowserType.launch` executable errors.
 
-```bash
-ssh -p 2222 root@97.64.16.217
-```
+## Deployment (newyork — aidcmo.com)
 
-**Code location**: `/opt/OpenCMO/`
-**systemd service**: `opencmo` (runs `opencmo-web` on port 8080)
-**Database**: `/root/.opencmo/data.db`
-**Config**: `/opt/OpenCMO/.env`
-
-### Deploy latest code
-
-```bash
-ssh -p 2222 root@97.64.16.217 "
-  cd /opt/OpenCMO &&
-  git pull origin main &&
-  pip install -e '.[all]' -q &&
-  systemctl restart opencmo &&
-  systemctl is-active opencmo
-"
-```
-
-### Frontend build
-
-The server has only 1GB RAM — `npm run build` will OOM. **Always build locally and rsync**:
+### Deploy frontend assets to New York
 
 ```bash
-cd frontend && npm run build
-rsync -avz --delete dist/ root@97.64.16.217:/opt/OpenCMO/frontend/dist/ -e "ssh -p 2222"
+cd frontend && npm run build   # Build locally (avoid server-side frontend builds)
+rsync -avz --delete frontend/dist/ root@192.3.16.77:/opt/OpenCMO/frontend/dist/
 ```
 
-### Nginx
+### Deploy backend code to New York
 
-- Config file: `/etc/nginx/conf.d/aidcmo.conf` (NOT `sites-enabled/` — nginx.conf only includes `conf.d/*.conf`)
-- HTTPS via Let's Encrypt (certbot via snap, not apt)
-- Proxies `https://aidcmo.com/` → `http://127.0.0.1:8080`
-- To reload: `nginx -t && systemctl reload nginx`
+```bash
+rsync -avz --delete \
+  --exclude '.git' \
+  --exclude 'frontend/node_modules' \
+  --exclude 'frontend/dist' \
+  --exclude '.venv' \
+  ./ root@192.3.16.77:/opt/OpenCMO/
+ssh newyork "cd /opt/OpenCMO && source .venv/bin/activate && pip install -e . -q && systemctl restart opencmo"
+```
 
-### Key gotchas
+### New York service / runtime checks
 
-- **nginx.conf includes only `conf.d/`** — putting configs in `sites-enabled/` has no effect on this server
-- **Another server block (`724claw.conf`) was previously intercepting aidcmo.com** — check `conf.d/` for conflicting `server_name` entries if 502 appears unexpectedly
-- **SPA is served from root `/`** — React Router `basename="/"`, Vite `base: "/"`, FastAPI catchall at `/{full_path:path}`
-- **certbot must be installed via snap**, not apt (apt version has Python `requests_toolbelt` conflict)
+```bash
+ssh newyork "systemctl status opencmo --no-pager"
+ssh newyork "journalctl -u opencmo -n 200 --no-pager"
+ssh newyork "ss -ltnp | grep -E ':80|:443|:8081'"
+```
+
+### Install Playwright browsers (when scan workers need them)
+
+```bash
+ssh newyork "cd /opt/OpenCMO && .venv/bin/playwright install chromium"
+```
+
+### BWG (optional fallback / proxy only)
+
+```bash
+ssh bwg "systemctl status nginx --no-pager"
+```
+
+## Coding Conventions
+
+- **Python**: snake_case, 4-space indent, type hints where useful, line length 120 (ruff)
+- **TypeScript**: strict mode, PascalCase components, useX hooks, double quotes
+- **Commits**: `feat:` / `fix:` / `docs:` prefix, short imperative subject
+- **i18n**: All user-facing strings via translation keys (EN/ZH/JA/KO/ES). Never hardcode.
+- **Secrets**: `.env` or settings UI only. Never commit API keys or `.db` files.
