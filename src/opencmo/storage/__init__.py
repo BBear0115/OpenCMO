@@ -23,6 +23,15 @@ from opencmo.storage._db import (
     get_db,
 )
 
+# --- Approvals ---
+from opencmo.storage.approvals import (
+    create_approval,
+    create_approval_with_source,
+    get_approval,
+    list_approvals,
+    update_approval_status,
+)
+
 # --- Blog Drafts ---
 from opencmo.storage.blog_drafts import (
     count_blog_drafts,
@@ -31,15 +40,6 @@ from opencmo.storage.blog_drafts import (
     get_blog_drafts_by_task,
     list_blog_drafts,
     update_blog_draft,
-)
-
-# --- Approvals ---
-from opencmo.storage.approvals import (
-    create_approval,
-    create_approval_with_source,
-    get_approval,
-    list_approvals,
-    update_approval_status,
 )
 
 # --- Brand Kit ---

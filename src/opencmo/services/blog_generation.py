@@ -306,21 +306,21 @@ async def _phase_write_blog(
                 f"- **{article.get('title', 'Untitled')}** ({article.get('url', '')})\n"
                 f"  Key points: {', '.join(article.get('key_points', []))}"
             )
-        prompt_parts.append(f"## Competitive Articles\n" + "\n".join(articles_summary))
+        prompt_parts.append("## Competitive Articles\n" + "\n".join(articles_summary))
 
     if research.get("data_points"):
         prompt_parts.append(
-            f"## Data Points\n" + "\n".join(f"- {dp}" for dp in research["data_points"][:10])
+            "## Data Points\n" + "\n".join(f"- {dp}" for dp in research["data_points"][:10])
         )
 
     if research.get("tracked_keywords"):
         prompt_parts.append(
-            f"## Target Keywords\n" + ", ".join(research["tracked_keywords"][:10])
+            "## Target Keywords\n" + ", ".join(research["tracked_keywords"][:10])
         )
 
     if research.get("competitors"):
         prompt_parts.append(
-            f"## Known Competitors\n" + ", ".join(research["competitors"])
+            "## Known Competitors\n" + ", ".join(research["competitors"])
         )
 
     prompt_parts.append(f"\n## Instruction\nWrite a **{style.replace('_', ' ')}** style promotional blog article.")

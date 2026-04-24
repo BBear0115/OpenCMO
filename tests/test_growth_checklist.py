@@ -8,7 +8,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-
 # ---------------------------------------------------------------------------
 # Brand presence — SERP diversity + new platforms
 # ---------------------------------------------------------------------------
@@ -16,8 +15,8 @@ import pytest
 class TestBrandPresenceSERPDiversity:
     def test_serp_diversity_scoring_logic(self):
         """Test scoring logic: 3+ third-party = 100, 2 = 70, 1 = 40, 0 = 0."""
+
         from opencmo.tools.brand_presence import _check_serp_diversity  # noqa: F401
-        from urllib.parse import urlparse as _up
 
         # Simulate the scoring logic directly
         def _score(third_party_count: int) -> int:
@@ -55,10 +54,9 @@ class TestBrandPresenceSERPDiversity:
     @pytest.mark.asyncio
     async def test_serp_diversity_tavily_failure(self):
         """When Tavily fails, score defaults to 0."""
-        from opencmo.tools.brand_presence import _check_serp_diversity
-
         # Patch the entire tavily_helper module to prevent real API calls
         import opencmo.tools.tavily_helper as th
+        from opencmo.tools.brand_presence import _check_serp_diversity
         original = getattr(th, 'tavily_search', None)
         th.tavily_search = AsyncMock(side_effect=Exception("API down"))
         try:
@@ -87,7 +85,7 @@ class TestBrandPresenceWeights:
 
 class TestSSLCheck:
     def test_ssl_present_in_report(self):
-        from opencmo.tools.seo_audit import _SEOParser, _build_report
+        from opencmo.tools.seo_audit import _build_report, _SEOParser
 
         parser = _SEOParser()
         parser.feed("<html><head><title>Test</title></head><body><h1>Hello</h1></body></html>")
@@ -96,7 +94,7 @@ class TestSSLCheck:
         assert "[OK] SSL (HTTPS)" in report
 
     def test_no_ssl_in_report(self):
-        from opencmo.tools.seo_audit import _SEOParser, _build_report
+        from opencmo.tools.seo_audit import _build_report, _SEOParser
 
         parser = _SEOParser()
         parser.feed("<html><head><title>Test</title></head><body><h1>Hello</h1></body></html>")
@@ -105,7 +103,7 @@ class TestSSLCheck:
         assert "[CRITICAL] SSL (HTTPS)" in report
 
     def test_health_score_includes_ssl(self):
-        from opencmo.tools.seo_audit import _SEOParser, _compute_seo_health_score
+        from opencmo.tools.seo_audit import _compute_seo_health_score, _SEOParser
 
         parser = _SEOParser()
         parser.feed("<html><head><title>Test Page Title Len OK</title></head><body></body></html>")

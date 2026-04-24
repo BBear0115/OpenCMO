@@ -323,12 +323,12 @@ def _format_site_audit(
         lines.append("No orphan pages detected.")
 
     if lt["low_inbound_pages"]:
-        lines.append(f"\n### Low-Authority Pages (only 1 inbound link)\n")
+        lines.append("\n### Low-Authority Pages (only 1 inbound link)\n")
         for p in lt["low_inbound_pages"][:10]:
             lines.append(f"- {p['url']} ({p['inbound_count']} inbound)")
 
     if lt["missing_cross_links"]:
-        lines.append(f"\n### Missing Cross-Links Between Core Pages\n")
+        lines.append("\n### Missing Cross-Links Between Core Pages\n")
         lines.append("These content-rich pages don't link to each other:\n")
         for a, b in lt["missing_cross_links"][:8]:
             lines.append(f"- {a} ↔ {b}")

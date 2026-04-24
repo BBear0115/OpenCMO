@@ -261,7 +261,7 @@ async def _detect_low_content_frequency(project_id: int) -> list[Insight]:
             title="No blog or content section detected",
             summary="A regularly updated blog is essential for SEO growth. Without one, you miss opportunities to rank for problem, tool, and comparison keywords.",
             action_type="chat",
-            action_params=f'{{"message": "I don\'t have a blog yet. Help me plan a content strategy for my product."}}',
+            action_params='{"message": "I don\'t have a blog yet. Help me plan a content strategy for my product."}',
         )]
 
     ppm = data.get("posts_per_month", 0)

@@ -1112,6 +1112,7 @@ async def api_v1_health():
 # ---------------------------------------------------------------------------
 
 from opencmo.web.routers.approvals import router as approvals_router
+from opencmo.web.routers.blog_gen import router as blog_gen_router
 from opencmo.web.routers.brand_kit import router as brand_kit_router
 from opencmo.web.routers.campaigns import router as campaigns_router
 from opencmo.web.routers.chat import router as chat_router
@@ -1129,7 +1130,6 @@ from opencmo.web.routers.report import router as report_router
 from opencmo.web.routers.settings import router as settings_router
 from opencmo.web.routers.site import router as site_router
 from opencmo.web.routers.tasks import router as tasks_router
-from opencmo.web.routers.blog_gen import router as blog_gen_router
 
 app.include_router(legacy_router, prefix="/legacy")
 app.include_router(projects_router)

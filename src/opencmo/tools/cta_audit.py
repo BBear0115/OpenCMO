@@ -11,7 +11,6 @@ import asyncio
 import json
 import logging
 from html.parser import HTMLParser
-from urllib.parse import urlparse
 
 from agents import function_tool
 

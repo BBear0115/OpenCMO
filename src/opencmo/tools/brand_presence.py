@@ -8,7 +8,7 @@ AI visibility than backlinks. YouTube (0.737), Reddit, Wikipedia are top signals
 from __future__ import annotations
 
 import logging
-from urllib.parse import quote_plus
+from urllib.parse import quote_plus, urlparse
 
 import httpx
 from agents import function_tool
@@ -270,7 +270,7 @@ def _format_report(data: dict) -> str:
     # Crunchbase
     cb = p.get("crunchbase", {})
     if cb.get("found"):
-        lines.append(f"| Crunchbase | ✅ Found | Company credibility signal |")
+        lines.append("| Crunchbase | ✅ Found | Company credibility signal |")
     else:
         lines.append("| Crunchbase | ❌ Not found | Create a Crunchbase profile for company credibility |")
 
