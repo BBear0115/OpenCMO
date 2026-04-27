@@ -1,12 +1,12 @@
 # aidCMO
 
-> Overseas B2B lead data, email verification, SEO services, and GEO AI search visibility optimization backed by OpenCMO.
+> Overseas B2B lead data, email verification, SEO services, and GEO AI search visibility optimization with OpenCMO technical support.
 
 ## Summary
 
 aidCMO provides overseas B2B commercial lead data and growth services for companies that need to reach international accounts. The commercial offer includes B2B email leads filtered by country, region, industry, role, company size, website, and company domain; email verification; deduplication; invalid-data cleanup; risky-mailbox labels; SEO services; and GEO / AI search visibility optimization.
 
-OpenCMO remains the open-source technical support and methodology proof. It is used to analyze SEO, GEO, SERP, community discussion, and AI visibility signals for overseas acquisition diagnosis, content strategy, and growth execution.
+OpenCMO remains the open-source technical support and methodology layer. It is used to analyze SEO, GEO, SERP, community discussion, and AI visibility signals for overseas acquisition diagnosis, content strategy, and growth execution.
 
 ## Primary URLs
 

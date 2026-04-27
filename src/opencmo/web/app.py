@@ -63,7 +63,7 @@ _HOME_STATIC_SITE_COPY_BY_LOCALE = {
     <p>
       OpenCMO remains the open-source growth system behind the method. It analyzes
       SEO, GEO, SERP, community discussion, and AI visibility signals, and is kept
-      as public proof of the operating approach.
+      as technical support for the operating approach.
     </p>
     <ul>
       <li>GitHub repository: https://github.com/study8677/OpenCMO</li>
@@ -1105,7 +1105,7 @@ def _apply_public_route_metadata(html: str, full_path: str) -> str:
             else "aidCMO | 海外 B2B 线索数据与 SEO/GEO 增长服务"
         )
         description = (
-            "aidCMO provides compliant overseas B2B lead data, email verification, data cleaning, SEO services, and GEO AI search visibility optimization backed by OpenCMO."
+            "aidCMO provides compliant overseas B2B lead data, email verification, data cleaning, SEO services, and GEO AI search visibility optimization with OpenCMO technical support."
             if locale_key == "en"
             else "aidCMO 提供合规的海外 B2B 邮箱线索、邮箱验证、数据清洗、SEO 服务与 GEO/AI 搜索可见度优化，并由 OpenCMO 方法论技术支持。"
         )
