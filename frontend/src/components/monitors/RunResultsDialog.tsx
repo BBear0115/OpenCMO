@@ -14,6 +14,7 @@ import { useI18n } from "../../i18n";
 import type { TranslationKey } from "../../i18n";
 import { apiJson } from "../../api/client";
 import type { MonitorRun } from "../../types";
+import { getSeverityLabelKey } from "../../utils/severity";
 import { utcDate } from "../../utils/time";
 
 const SEVERITY_STYLE: Record<string, string> = {
@@ -232,7 +233,7 @@ export function RunResultsDialog({
                               SEVERITY_STYLE[f.severity] ?? SEVERITY_STYLE.low
                             }`}
                           >
-                            {f.severity}
+                            {t(getSeverityLabelKey(f.severity))}
                           </span>
                         </div>
                         <p className="text-sm font-semibold text-slate-900">{f.title}</p>

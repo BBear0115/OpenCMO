@@ -4,6 +4,8 @@ import { useLocation, useNavigate } from "react-router";
 import type { InsightActionParams, InsightSeverity, InsightSummaryItem } from "../../api/insights";
 import { useInsightsSummary, useMarkInsightRead } from "../../hooks/useInsights";
 import { useI18n } from "../../i18n";
+import { getSeverityLabelKey } from "../../utils/severity";
+import { utcDate } from "../../utils/time";
 
 function getSeverityStyles(severity: InsightSeverity) {
   switch (severity) {
@@ -30,8 +32,6 @@ function getInsightRoute(actionParams: InsightActionParams): string | null {
     ? actionParams.route
     : null;
 }
-
-import { utcDate } from "../../utils/time";
 
 function formatTimeAgo(value: string, locale: string) {
   const timestamp = utcDate(value).getTime();
@@ -188,7 +188,7 @@ export function NotificationBell() {
                           <p className="text-sm font-semibold text-slate-900">{insight.title}</p>
                           <div className="mt-1 flex items-center gap-2">
                             <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] ring-1 ${severity.badge}`}>
-                              {insight.severity}
+                              {t(getSeverityLabelKey(insight.severity))}
                             </span>
                             <span className="text-[11px] text-slate-400">
                               {formatTimeAgo(insight.created_at, locale)}

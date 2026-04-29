@@ -40,7 +40,6 @@ export function WelcomeHero({
   const settingsQuery = useSettings();
   const keyStatus = getEffectiveKeyStatus(settingsQuery.data);
   const keysReady = keyStatus.effective.llm;
-  const serverModel = settingsQuery.data?.model?.trim() || "gpt-5.4-mini";
   void keyRefresh;
 
   useEffect(() => {
@@ -71,14 +70,11 @@ export function WelcomeHero({
   return (
     <>
       <div className="animate-in fade-in slide-in-from-bottom-6 duration-700 ease-out">
-        <div className="relative overflow-hidden rounded-3xl border border-slate-200/70 bg-[radial-gradient(circle_at_top_left,_rgba(99,102,241,0.14),_transparent_42%),linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] p-8 shadow-[0_20px_60px_rgba(15,23,42,0.08)] sm:p-10">
-          <div className="absolute -right-12 -top-12 h-48 w-48 rounded-full bg-indigo-100/40 blur-3xl" />
-          <div className="absolute -left-8 bottom-0 h-32 w-32 rounded-full bg-sky-100/30 blur-2xl" />
-
+        <div className="relative overflow-hidden rounded-3xl border border-slate-200/70 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] p-8 shadow-[0_20px_60px_rgba(15,23,42,0.08)] sm:p-10">
           <div className="relative">
             <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2 text-sm font-medium text-white">
               <Sparkles size={16} />
-              {t("landing.heroEyebrow")}
+              {t("welcome.eyebrow")}
             </div>
 
             <h1 className="text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">
@@ -130,27 +126,6 @@ export function WelcomeHero({
                       <p className={`mt-2 text-xs ${keysReady ? "text-emerald-800/70" : "text-amber-800/70"}`}>
                         {t("onboarding.privacyHint")}
                       </p>
-                      <p className={`mt-1 text-xs ${keysReady ? "text-emerald-800/70" : "text-amber-800/70"}`}>
-                        {t("onboarding.serverDefaultModel", { model: serverModel })}
-                      </p>
-                      <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                        <div className="rounded-2xl bg-white/80 px-3 py-3">
-                          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">
-                            {t(keysReady ? "onboarding.fullModeTitle" : "onboarding.limitedModeWorksTitle")}
-                          </p>
-                          <p className="mt-2 text-sm leading-6 text-slate-700">
-                            {t(keysReady ? "onboarding.fullModeDesc" : "onboarding.limitedModeWorks")}
-                          </p>
-                        </div>
-                        <div className="rounded-2xl bg-white/80 px-3 py-3">
-                          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">
-                            {t(keysReady ? "onboarding.privacyTitle" : "onboarding.limitedModeNeedsKeyTitle")}
-                          </p>
-                          <p className="mt-2 text-sm leading-6 text-slate-700">
-                            {t(keysReady ? "onboarding.privacyDesc" : "onboarding.limitedModeNeedsKey")}
-                          </p>
-                        </div>
-                      </div>
                     </div>
                   </div>
 

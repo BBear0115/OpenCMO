@@ -72,9 +72,28 @@ export function DashboardPage() {
     <AnimatedPage>
       {projects?.length ? (
         <>
-          <div className="mb-6">
-            <h1 className="text-3xl font-bold tracking-tight text-slate-900">{t("dashboard.title")}</h1>
-            <p className="text-[15px] text-slate-500 mt-1.5">{t("dashboard.subtitle")}</p>
+          <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight text-slate-900">{t("dashboard.title")}</h1>
+              <p className="text-[15px] text-slate-500 mt-1.5">{t("dashboard.subtitle")}</p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {[
+                "command.changedToday",
+                "command.whatMattersNow",
+                "command.readyToShip",
+              ].map((key, index) => (
+                <span
+                  key={key}
+                  className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm"
+                >
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-900 text-[10px] text-white">
+                    {index + 1}
+                  </span>
+                  {t(key as Parameters<typeof t>[0])}
+                </span>
+              ))}
+            </div>
           </div>
 
           <GlobalOverview />

@@ -4,6 +4,7 @@ import { useNavigate } from "react-router";
 import type { InsightActionParams, InsightRecord, InsightSeverity } from "../../api/insights";
 import { useInsights, useMarkInsightRead } from "../../hooks/useInsights";
 import { useI18n } from "../../i18n";
+import { getSeverityLabelKey } from "../../utils/severity";
 
 function getInsightRoute(actionParams: InsightActionParams): string | null {
   return typeof actionParams.route === "string" && actionParams.route.length > 0
@@ -105,7 +106,7 @@ export function InsightBanner({ projectId }: { projectId?: number }) {
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className={`rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] ring-1 ${severity.badge}`}>
-                      {insight.severity}
+                      {t(getSeverityLabelKey(insight.severity))}
                     </span>
                     <span className="text-[11px] font-medium text-slate-400">
                       #{insight.project_id}

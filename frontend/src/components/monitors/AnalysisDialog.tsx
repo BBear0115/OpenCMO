@@ -33,6 +33,7 @@ import type {
   TaskArtifactStageCard,
   TaskArtifactWatchout,
 } from "../../types";
+import { getSeverityLabelKey } from "../../utils/severity";
 
 const STAGE_CONFIG: Record<string, { icon: typeof Search; labelKey: TranslationKey }> = {
   context_build: { icon: Search, labelKey: "analysis.stageContextBuild" },
@@ -238,9 +239,11 @@ function EvidenceRefs({
 function FindingCard({
   finding,
   evidenceLabel,
+  severityLabel,
 }: {
   finding: Finding;
   evidenceLabel: string;
+  severityLabel: string;
 }) {
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
@@ -253,7 +256,7 @@ function FindingCard({
             SEVERITY_STYLE[finding.severity] ?? SEVERITY_STYLE.info
           }`}
         >
-          {finding.severity}
+          {severityLabel}
         </span>
       </div>
       <p className="text-sm font-semibold text-slate-900">{finding.title}</p>
@@ -966,6 +969,7 @@ export function AnalysisDialog({
                     key={`${finding.domain}-${finding.title}-${index}`}
                     finding={finding}
                     evidenceLabel={t("analysis.evidence")}
+                    severityLabel={t(getSeverityLabelKey(finding.severity))}
                   />
                 ))}
               </div>
