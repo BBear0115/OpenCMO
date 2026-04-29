@@ -87,6 +87,23 @@ async def mark_insight_read(insight_id: int) -> bool:
         await db.close()
 
 
+async def mark_all_insights_read(project_id: int | None = None) -> int:
+    """Mark unread insights as read. Returns the number of updated rows."""
+    db = await get_db()
+    try:
+        if project_id is None:
+            cursor = await db.execute("UPDATE insights SET read = 1 WHERE read = 0")
+        else:
+            cursor = await db.execute(
+                "UPDATE insights SET read = 1 WHERE project_id = ? AND read = 0",
+                (project_id,),
+            )
+        await db.commit()
+        return cursor.rowcount
+    finally:
+        await db.close()
+
+
 async def get_insights_summary(project_id: int | None = None) -> dict:
     """Get unread insight count and latest 3 for the notification bell."""
     db = await get_db()

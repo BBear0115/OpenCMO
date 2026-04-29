@@ -136,3 +136,10 @@ export function markInsightRead(id: number): Promise<{ ok: boolean }> {
     method: "POST",
   });
 }
+
+export function markAllInsightsRead(projectId?: number): Promise<{ ok: boolean; updated: number }> {
+  const query = typeof projectId === "number" ? `?project_id=${projectId}` : "";
+  return apiJson<{ ok: boolean; updated: number }>(`/insights/read-all${query}`, {
+    method: "POST",
+  });
+}

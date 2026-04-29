@@ -677,6 +677,33 @@ class TestStorageCRUD:
         ok = asyncio.run(storage.mark_insight_read(99999))
         assert ok is False
 
+    def test_mark_all_insights_read(self, db):
+        """mark_all_insights_read flips all unread insights."""
+        pid = _seed_project()
+        asyncio.run(storage.save_insight(pid, "serp_drop", "warning", "A", "s", "navigate", "{}"))
+        asyncio.run(storage.save_insight(pid, "geo_decline", "critical", "B", "s", "navigate", "{}"))
+
+        updated = asyncio.run(storage.mark_all_insights_read())
+        assert updated == 2
+
+        unread = asyncio.run(storage.list_insights(unread_only=True))
+        assert unread == []
+
+    def test_mark_all_insights_read_project_filter(self, db):
+        """mark_all_insights_read can be scoped to one project."""
+        pid1 = _seed_project("Brand1", "https://b1.com")
+        pid2 = _seed_project("Brand2", "https://b2.com")
+        asyncio.run(storage.save_insight(pid1, "serp_drop", "warning", "P1", "s", "navigate", "{}"))
+        asyncio.run(storage.save_insight(pid2, "geo_decline", "critical", "P2", "s", "navigate", "{}"))
+
+        updated = asyncio.run(storage.mark_all_insights_read(project_id=pid1))
+        assert updated == 1
+
+        s1 = asyncio.run(storage.get_insights_summary(project_id=pid1))
+        s2 = asyncio.run(storage.get_insights_summary(project_id=pid2))
+        assert s1["unread_count"] == 0
+        assert s2["unread_count"] == 1
+
     def test_get_insights_summary_global(self, db):
         """get_insights_summary returns correct unread count and recent items."""
         pid = _seed_project()
@@ -818,6 +845,74 @@ class TestInsightsAPI:
         assert len(data) == 1
         assert data[0]["id"] == iid1
 
+    def test_get_insights_zh_translates_known_rule_copy(self, client):
+        """GET /api/v1/insights?lang=zh localizes deterministic rule-generated copy."""
+        pid = _seed_project()
+        asyncio.run(storage.save_insight(
+            pid,
+            "geo_decline",
+            "critical",
+            "GEO score dropped 20 points",
+            "AI visibility score fell from 80 to 60/100.",
+            "navigate",
+            "{}",
+        ))
+
+        resp = client.get("/api/v1/insights?lang=zh")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data[0]["title"] == "GEO 分数下降 20 分"
+        assert data[0]["summary"] == "AI 可见度分数从 80 降至 60/100。"
+
+    def test_action_feed_zh_translates_insight_items(self, client):
+        """GET /api/v1/projects/{id}/action-feed?lang=zh localizes insight cards."""
+        pid = _seed_project()
+        asyncio.run(storage.save_insight(
+            pid,
+            "seo_regress",
+            "warning",
+            "SEO performance dropped 20%",
+            "Performance score fell from 80% to 60%.",
+            "navigate",
+            f'{{"route": "/projects/{pid}/seo"}}',
+        ))
+
+        resp = client.get(f"/api/v1/projects/{pid}/action-feed?lang=zh")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data[0]["title"] == "SEO 表现下降 20%"
+        assert data[0]["summary"] == "表现分数从 80% 降至 60%。"
+
+    def test_action_feed_zh_approval_summary_uses_display_labels(self, client):
+        """GET /api/v1/projects/{id}/action-feed?lang=zh hides raw approval enums."""
+        pid = _seed_project()
+        asyncio.run(storage.create_approval(
+            pid,
+            "twitter",
+            "twitter_post",
+            "Draft tweet",
+            {},
+            {},
+        ))
+        asyncio.run(storage.create_approval(
+            pid,
+            "github_email",
+            "github_outreach_email",
+            "Draft email",
+            {},
+            {},
+        ))
+
+        resp = client.get(f"/api/v1/projects/{pid}/action-feed?lang=zh")
+        assert resp.status_code == 200
+        data = resp.json()
+        summaries = [item["summary"] for item in data if item["type"] == "approval"]
+        joined = "\n".join(summaries)
+        assert "twitter_post" not in joined
+        assert "github_outreach_email" not in joined
+        assert "X/Twitter · X/Twitter 帖子 已准备好复核" in summaries
+        assert "GitHub 邮件 · GitHub 外联邮件 已准备好复核" in summaries
+
     def test_post_insight_read(self, client):
         """POST /api/v1/insights/{id}/read marks an insight as read."""
         pid = _seed_project()
@@ -846,3 +941,32 @@ class TestInsightsAPI:
         resp = client.post(f"/api/v1/insights/{iid}/read")
         assert resp.status_code == 404
         assert "already read" in resp.json()["error"].lower()
+
+    def test_post_insights_read_all(self, client):
+        """POST /api/v1/insights/read-all marks all unread insights as read."""
+        pid = _seed_project()
+        asyncio.run(storage.save_insight(pid, "serp_drop", "warning", "A", "s", "navigate", "{}"))
+        asyncio.run(storage.save_insight(pid, "geo_decline", "critical", "B", "s", "navigate", "{}"))
+
+        resp = client.post("/api/v1/insights/read-all")
+        assert resp.status_code == 200
+        assert resp.json()["updated"] == 2
+
+        summary = asyncio.run(storage.get_insights_summary())
+        assert summary["unread_count"] == 0
+
+    def test_post_insights_read_all_project_filter(self, client):
+        """POST /api/v1/insights/read-all?project_id=N only clears that project."""
+        pid1 = _seed_project("Brand1", "https://b1.com")
+        pid2 = _seed_project("Brand2", "https://b2.com")
+        asyncio.run(storage.save_insight(pid1, "serp_drop", "warning", "P1", "s", "navigate", "{}"))
+        asyncio.run(storage.save_insight(pid2, "geo_decline", "critical", "P2", "s", "navigate", "{}"))
+
+        resp = client.post(f"/api/v1/insights/read-all?project_id={pid1}")
+        assert resp.status_code == 200
+        assert resp.json()["updated"] == 1
+
+        s1 = asyncio.run(storage.get_insights_summary(project_id=pid1))
+        s2 = asyncio.run(storage.get_insights_summary(project_id=pid2))
+        assert s1["unread_count"] == 0
+        assert s2["unread_count"] == 1

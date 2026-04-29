@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { ChevronRight, X } from "lucide-react";
+import { CheckCheck, ChevronRight, Loader2, X } from "lucide-react";
 import { useNavigate } from "react-router";
 import type { InsightActionParams, InsightRecord, InsightSeverity } from "../../api/insights";
-import { useInsights, useMarkInsightRead } from "../../hooks/useInsights";
+import { useInsights, useMarkAllInsightsRead, useMarkInsightRead } from "../../hooks/useInsights";
 import { useI18n } from "../../i18n";
 import { getSeverityLabelKey } from "../../utils/severity";
 
@@ -41,6 +41,7 @@ export function InsightBanner({ projectId }: { projectId?: number }) {
   const { t } = useI18n();
   const { data: insights } = useInsights(projectId, true);
   const markInsightRead = useMarkInsightRead();
+  const markAllInsightsRead = useMarkAllInsightsRead();
 
   const visibleInsights = (insights ?? [])
     .filter((insight) => !dismissedIds.includes(insight.id))
@@ -76,6 +77,14 @@ export function InsightBanner({ projectId }: { projectId?: number }) {
     }
   }
 
+  async function handleClearAll() {
+    try {
+      await markAllInsightsRead.mutateAsync(projectId);
+    } catch {
+      // The mutation hook restores the previous cache if the request fails.
+    }
+  }
+
   return (
     <section className="mb-8 rounded-2xl border border-slate-200/70 bg-[radial-gradient(circle_at_top,_rgba(99,102,241,0.1),_transparent_35%),linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.94))] p-5 shadow-[0_18px_50px_rgba(15,23,42,0.08)] backdrop-blur-xl ring-1 ring-white/50 sm:p-6">
       <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
@@ -87,9 +96,26 @@ export function InsightBanner({ projectId }: { projectId?: number }) {
             {t("insights.topUnread")}
           </h2>
         </div>
-        <span className="w-fit rounded-full bg-slate-900 px-2.5 py-1 text-[11px] font-semibold text-white">
-          {visibleInsights.length}
-        </span>
+        <div className="flex w-fit items-center gap-2">
+          <span className="rounded-full bg-slate-900 px-2.5 py-1 text-[11px] font-semibold text-white">
+            {visibleInsights.length}
+          </span>
+          <button
+            type="button"
+            disabled={markAllInsightsRead.isPending}
+            onClick={() => {
+              void handleClearAll();
+            }}
+            className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-slate-600 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:text-slate-900 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {markAllInsightsRead.isPending ? (
+              <Loader2 size={13} className="animate-spin" />
+            ) : (
+              <CheckCheck size={13} />
+            )}
+            {t("insights.clearAll")}
+          </button>
+        </div>
       </div>
 
       <div className="space-y-3">

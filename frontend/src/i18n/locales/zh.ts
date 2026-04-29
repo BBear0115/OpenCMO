@@ -44,6 +44,7 @@ export const zh: Partial<Record<TranslationKey, string>> = {
   "insights.loading": "正在加载信号...",
   "insights.view": "查看",
   "insights.dismiss": "忽略",
+  "insights.clearAll": "一键清除",
   "insights.severityCritical": "紧急",
   "insights.severityHigh": "高",
   "insights.severityWarning": "关注",
@@ -1208,6 +1209,9 @@ export const zh: Partial<Record<TranslationKey, string>> = {
   "actionFeed.reviewDraft": "审阅草稿",
   "actionFeed.generateFix": "生成修复",
   "actionFeed.discuss": "讨论",
+  "actionFeed.typeInsight": "信号",
+  "actionFeed.typeApproval": "审批",
+  "actionFeed.typeFinding": "发现",
 
   // Competitor Panel
   "competitor.title": "竞品管理",

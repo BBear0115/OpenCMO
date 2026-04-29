@@ -140,6 +140,7 @@ from opencmo.storage.insights import (
     is_insight_duplicate,
     is_project_autopilot_enabled,
     list_insights,
+    mark_all_insights_read,
     mark_insight_read,
     save_insight,
     snapshot_project_metrics,
@@ -323,7 +324,7 @@ __all__ = [
     "get_campaign_run", "list_campaign_runs",
     # insights
     "save_insight", "is_insight_duplicate", "list_insights",
-    "mark_insight_read", "get_insights_summary",
+    "mark_insight_read", "mark_all_insights_read", "get_insights_summary",
     "get_pending_actionable_insights", "update_insight_execution",
     "snapshot_project_metrics", "is_project_autopilot_enabled",
     "count_recent_autopilot_approvals",

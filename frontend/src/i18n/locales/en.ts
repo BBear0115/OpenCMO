@@ -42,6 +42,7 @@ export const en = {
   "insights.loading": "Loading signals...",
   "insights.view": "View",
   "insights.dismiss": "Dismiss",
+  "insights.clearAll": "Clear all",
   "insights.severityCritical": "Critical",
   "insights.severityHigh": "High",
   "insights.severityWarning": "Warning",
@@ -1221,6 +1222,9 @@ export const en = {
   "actionFeed.reviewDraft": "Review Draft",
   "actionFeed.generateFix": "Generate Fix",
   "actionFeed.discuss": "Discuss",
+  "actionFeed.typeInsight": "Signal",
+  "actionFeed.typeApproval": "Approval",
+  "actionFeed.typeFinding": "Finding",
 
   // Competitor Panel
   "competitor.title": "Competitors",
