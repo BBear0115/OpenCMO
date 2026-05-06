@@ -11,6 +11,7 @@ from urllib.parse import urlparse
 from agents import function_tool
 
 from opencmo import llm
+from opencmo.tools.browser_pool import browser_slot
 from opencmo.tools.community_providers import (
     PROVIDER_REGISTRY,
     DisabledProvider,
@@ -127,8 +128,9 @@ async def _crawl4ai_site_search(
     search_url = f"https://www.google.com/search?q={full_query}&num={max_results}"
 
     try:
-        async with AsyncWebCrawler() as crawler:
-            result = await crawler.arun(url=search_url)
+        async with browser_slot():
+            async with AsyncWebCrawler() as crawler:
+                result = await crawler.arun(url=search_url)
         md = result.markdown if hasattr(result, "markdown") else ""
         if not md:
             return []

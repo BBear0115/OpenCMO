@@ -1,4 +1,6 @@
 import type { TranslationKey } from "../i18n";
+import type { SeoLocale } from "../utils/publicRoutes";
+import { getLocalizedPublicPath } from "../utils/publicRoutes";
 
 export type PublicNavItem = {
   href: string;
@@ -8,6 +10,14 @@ export type PublicNavItem = {
 export type MarketingItem = {
   title: TranslationKey;
   description: TranslationKey;
+};
+
+export type MarketingMention = {
+  source: TranslationKey;
+  title: TranslationKey;
+  description: TranslationKey;
+  href: string;
+  publishedAt: string;
 };
 
 export type BlogArticle = {
@@ -29,10 +39,11 @@ export type BlogArticle = {
 };
 
 export const PUBLIC_HOME_NAV: PublicNavItem[] = [
-  { href: "#sample-audit", label: "landing.navPlatform" },
-  { href: "#workflow", label: "landing.navWorkflow" },
-  { href: "#trust", label: "landing.navTrust" },
-  { href: "#faq", label: "landing.navFaq" },
+  { href: "/services", label: "landing.navServices" },
+  { href: "/workspace", label: "landing.navOpenSource" },
+  { href: "/sample-audit", label: "landing.navAuditExample" },
+  { href: "/blog", label: "landing.navBlog" },
+  { href: "/contact", label: "landing.navContact" },
 ];
 
 export const PUBLIC_BLOG_NAV: PublicNavItem[] = [
@@ -60,6 +71,25 @@ export const LANDING_PLATFORM_ITEMS: MarketingItem[] = [
   {
     title: "landing.platform5Title",
     description: "landing.platform5Desc",
+  },
+];
+
+export const LANDING_LEARNING_LOOP_ITEMS: MarketingItem[] = [
+  {
+    title: "landing.learningLoop1Title",
+    description: "landing.learningLoop1Desc",
+  },
+  {
+    title: "landing.learningLoop2Title",
+    description: "landing.learningLoop2Desc",
+  },
+  {
+    title: "landing.learningLoop3Title",
+    description: "landing.learningLoop3Desc",
+  },
+  {
+    title: "landing.learningLoop4Title",
+    description: "landing.learningLoop4Desc",
   },
 ];
 
@@ -151,6 +181,23 @@ export const LANDING_TRUST_ITEMS: MarketingItem[] = [
   },
 ];
 
+export const LANDING_MENTION_ITEMS: MarketingMention[] = [
+  {
+    source: "landing.mention1Source",
+    title: "landing.mention1Title",
+    description: "landing.mention1Desc",
+    href: "https://x.com/chuanliang/status/2035869753978519764",
+    publishedAt: "2026-03-23",
+  },
+  {
+    source: "landing.mention2Source",
+    title: "landing.mention2Title",
+    description: "landing.mention2Desc",
+    href: "https://www.80aj.com/2026/04/05/openai-marketing-tools-update/",
+    publishedAt: "2026-04-05",
+  },
+];
+
 export const BLOG_PRINCIPLES: MarketingItem[] = [
   {
     title: "blog.principle1Title",
@@ -182,14 +229,176 @@ export const BLOG_READER_PATHS: MarketingItem[] = [
 ];
 
 export const BLOG_DECISION_ARTICLE_SLUGS = [
+  "opencmo-vs-mautic-posthog",
   "who-should-use-opencmo",
-  "first-30-days-with-opencmo",
 ] as const;
+
+export const BLOG_FEATURED_ARTICLE_SLUG = "opencmo-vs-mautic-posthog" as const;
 
 export const BLOG_ARTICLES: BlogArticle[] = [
   {
-    slug: "ai-cmo-workspace",
+    slug: "what-is-a-cmo",
     index: "01",
+    category: "blog.post7.category",
+    title: "blog.post7.title",
+    summary: "blog.post7.summary",
+    readTime: "blog.post7.readTime",
+    highlight: "blog.post7.highlight",
+    audience: "blog.post7.audience",
+    thesis: "blog.post7.thesis",
+    takeawayKeys: ["blog.post7.point1", "blog.post7.point2", "blog.post7.point3"],
+    sections: [
+      {
+        title: "blog.post7.section1Title",
+        body: "blog.post7.section1Body",
+      },
+      {
+        title: "blog.post7.section2Title",
+        body: "blog.post7.section2Body",
+      },
+      {
+        title: "blog.post7.section3Title",
+        body: "blog.post7.section3Body",
+      },
+      {
+        title: "blog.post7.section4Title",
+        body: "blog.post7.section4Body",
+      },
+    ],
+    accentClass:
+      "from-[#d7c7ff]/22 via-[#f8f1e7] to-[#86c8bc]/18",
+  },
+  {
+    slug: "what-is-product-marketing",
+    index: "02",
+    category: "blog.post8.category",
+    title: "blog.post8.title",
+    summary: "blog.post8.summary",
+    readTime: "blog.post8.readTime",
+    highlight: "blog.post8.highlight",
+    audience: "blog.post8.audience",
+    thesis: "blog.post8.thesis",
+    takeawayKeys: ["blog.post8.point1", "blog.post8.point2", "blog.post8.point3"],
+    sections: [
+      {
+        title: "blog.post8.section1Title",
+        body: "blog.post8.section1Body",
+      },
+      {
+        title: "blog.post8.section2Title",
+        body: "blog.post8.section2Body",
+      },
+      {
+        title: "blog.post8.section3Title",
+        body: "blog.post8.section3Body",
+      },
+      {
+        title: "blog.post8.section4Title",
+        body: "blog.post8.section4Body",
+      },
+    ],
+    accentClass:
+      "from-[#b9d9ff]/24 via-[#f8f5ee] to-[#cfe8dd]/24",
+  },
+  {
+    slug: "what-is-go-to-market-strategy",
+    index: "03",
+    category: "blog.post9.category",
+    title: "blog.post9.title",
+    summary: "blog.post9.summary",
+    readTime: "blog.post9.readTime",
+    highlight: "blog.post9.highlight",
+    audience: "blog.post9.audience",
+    thesis: "blog.post9.thesis",
+    takeawayKeys: ["blog.post9.point1", "blog.post9.point2", "blog.post9.point3"],
+    sections: [
+      {
+        title: "blog.post9.section1Title",
+        body: "blog.post9.section1Body",
+      },
+      {
+        title: "blog.post9.section2Title",
+        body: "blog.post9.section2Body",
+      },
+      {
+        title: "blog.post9.section3Title",
+        body: "blog.post9.section3Body",
+      },
+      {
+        title: "blog.post9.section4Title",
+        body: "blog.post9.section4Body",
+      },
+    ],
+    accentClass:
+      "from-[#ffe0b8]/28 via-[#f9f3ea] to-[#dce9f0]",
+  },
+  {
+    slug: "what-is-brand-positioning",
+    index: "04",
+    category: "blog.post10.category",
+    title: "blog.post10.title",
+    summary: "blog.post10.summary",
+    readTime: "blog.post10.readTime",
+    highlight: "blog.post10.highlight",
+    audience: "blog.post10.audience",
+    thesis: "blog.post10.thesis",
+    takeawayKeys: ["blog.post10.point1", "blog.post10.point2", "blog.post10.point3"],
+    sections: [
+      {
+        title: "blog.post10.section1Title",
+        body: "blog.post10.section1Body",
+      },
+      {
+        title: "blog.post10.section2Title",
+        body: "blog.post10.section2Body",
+      },
+      {
+        title: "blog.post10.section3Title",
+        body: "blog.post10.section3Body",
+      },
+      {
+        title: "blog.post10.section4Title",
+        body: "blog.post10.section4Body",
+      },
+    ],
+    accentClass:
+      "from-[#f3dcc9]/45 via-[#f8efe6] to-[#efe7ff]/32",
+  },
+  {
+    slug: "demand-generation-vs-lead-generation",
+    index: "05",
+    category: "blog.post11.category",
+    title: "blog.post11.title",
+    summary: "blog.post11.summary",
+    readTime: "blog.post11.readTime",
+    highlight: "blog.post11.highlight",
+    audience: "blog.post11.audience",
+    thesis: "blog.post11.thesis",
+    takeawayKeys: ["blog.post11.point1", "blog.post11.point2", "blog.post11.point3"],
+    sections: [
+      {
+        title: "blog.post11.section1Title",
+        body: "blog.post11.section1Body",
+      },
+      {
+        title: "blog.post11.section2Title",
+        body: "blog.post11.section2Body",
+      },
+      {
+        title: "blog.post11.section3Title",
+        body: "blog.post11.section3Body",
+      },
+      {
+        title: "blog.post11.section4Title",
+        body: "blog.post11.section4Body",
+      },
+    ],
+    accentClass:
+      "from-[#cde7d7]/28 via-[#f5f8ef] to-[#fff0d8]/28",
+  },
+  {
+    slug: "ai-cmo-workspace",
+    index: "06",
     category: "blog.post1.category",
     title: "blog.post1.title",
     summary: "blog.post1.summary",
@@ -221,7 +430,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
   },
   {
     slug: "visibility-operating-system",
-    index: "02",
+    index: "07",
     category: "blog.post2.category",
     title: "blog.post2.title",
     summary: "blog.post2.summary",
@@ -253,7 +462,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
   },
   {
     slug: "crawler-readable-brand-surface",
-    index: "03",
+    index: "08",
     category: "blog.post3.category",
     title: "blog.post3.title",
     summary: "blog.post3.summary",
@@ -285,7 +494,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
   },
   {
     slug: "inside-opencmo-workspace",
-    index: "04",
+    index: "09",
     category: "blog.post4.category",
     title: "blog.post4.title",
     summary: "blog.post4.summary",
@@ -316,8 +525,40 @@ export const BLOG_ARTICLES: BlogArticle[] = [
       "from-[#f3dcc9]/55 via-[#f7ecde] to-[#86c8bc]/18",
   },
   {
+    slug: "opencmo-vs-mautic-posthog",
+    index: "10",
+    category: "blog.post12.category",
+    title: "blog.post12.title",
+    summary: "blog.post12.summary",
+    readTime: "blog.post12.readTime",
+    highlight: "blog.post12.highlight",
+    audience: "blog.post12.audience",
+    thesis: "blog.post12.thesis",
+    takeawayKeys: ["blog.post12.point1", "blog.post12.point2", "blog.post12.point3"],
+    sections: [
+      {
+        title: "blog.post12.section1Title",
+        body: "blog.post12.section1Body",
+      },
+      {
+        title: "blog.post12.section2Title",
+        body: "blog.post12.section2Body",
+      },
+      {
+        title: "blog.post12.section3Title",
+        body: "blog.post12.section3Body",
+      },
+      {
+        title: "blog.post12.section4Title",
+        body: "blog.post12.section4Body",
+      },
+    ],
+    accentClass:
+      "from-[#c9e6df]/28 via-[#f5f1ea] to-[#d7e5ff]/26",
+  },
+  {
     slug: "who-should-use-opencmo",
-    index: "05",
+    index: "11",
     category: "blog.post5.category",
     title: "blog.post5.title",
     summary: "blog.post5.summary",
@@ -349,7 +590,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
   },
   {
     slug: "first-30-days-with-opencmo",
-    index: "06",
+    index: "12",
     category: "blog.post6.category",
     title: "blog.post6.title",
     summary: "blog.post6.summary",
@@ -383,6 +624,68 @@ export const BLOG_ARTICLES: BlogArticle[] = [
 
 export function getBlogArticlePath(slug: string) {
   return `/blog/${slug}`;
+}
+
+export function getLandingPath(locale?: SeoLocale | null) {
+  return locale ? getLocalizedPublicPath("/", locale) : "/";
+}
+
+export function getBlogIndexPath(locale?: SeoLocale | null) {
+  return locale ? getLocalizedPublicPath("/blog", locale) : "/blog";
+}
+
+export function getLocalizedBlogArticlePath(slug: string, locale?: SeoLocale | null) {
+  const path = getBlogArticlePath(slug);
+  return locale ? getLocalizedPublicPath(path, locale) : path;
+}
+
+export function getSampleAuditPath(locale?: SeoLocale | null) {
+  return locale ? getLocalizedPublicPath("/sample-audit", locale) : "/sample-audit";
+}
+
+export function getOpenSourcePath(locale?: SeoLocale | null) {
+  return locale ? getLocalizedPublicPath("/open-source", locale) : "/open-source";
+}
+
+export function getContactPath(locale?: SeoLocale | null) {
+  return locale ? getLocalizedPublicPath("/contact", locale) : "/contact";
+}
+
+export function getServicesPath(locale?: SeoLocale | null) {
+  return locale ? getLocalizedPublicPath("/services", locale) : "/services";
+}
+
+export function getHostedPath(locale?: SeoLocale | null) {
+  return locale ? getLocalizedPublicPath("/hosted", locale) : "/hosted";
+}
+
+// --- Deprecated wrappers --------------------------------------------------
+// Kept temporarily so legacy call sites in LandingPage.tsx etc. still build
+// during the transition. All resolve to the new positioning paths. Will be
+// removed once §B.8 rewrites LandingPage to call the new helpers directly.
+//
+// Server-side 301 redirects in `web/app.py` handle the old URLs for
+// inbound links from the public web. The deprecated paths returned here
+// also bounce to /services or / via those 301s.
+
+/** @deprecated legacy lead page deleted — points to /services */
+export function getB2BLeadsPath(locale?: SeoLocale | null) {
+  return getServicesPath(locale);
+}
+
+/** @deprecated old SEO/GEO page renamed to /services */
+export function getSeoGeoPath(locale?: SeoLocale | null) {
+  return getServicesPath(locale);
+}
+
+/** @deprecated sample-data page deleted — points to /services */
+export function getSampleDataPath(locale?: SeoLocale | null) {
+  return getServicesPath(locale);
+}
+
+/** @deprecated data-policy page deleted — points to landing root */
+export function getDataPolicyPath(locale?: SeoLocale | null) {
+  return locale ? getLocalizedPublicPath("/", locale) : "/";
 }
 
 export function findBlogArticleBySlug(slug: string) {

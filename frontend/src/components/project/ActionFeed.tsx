@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router";
+import { useQuery } from "@tanstack/react-query";
 import {
   AlertTriangle, Info, AlertCircle, CheckCircle,
   Zap, FileCheck, Search, Sparkles,
@@ -34,19 +35,20 @@ const SEV_STYLES: Record<string, { border: string; icon: React.ElementType; icon
   info: { border: "border-l-sky-500", icon: Info, iconColor: "text-sky-500" },
 };
 
+const TYPE_LABEL_KEYS: Record<ActionItem["type"], TranslationKey> = {
+  insight: "actionFeed.typeInsight",
+  approval: "actionFeed.typeApproval",
+  finding: "actionFeed.typeFinding",
+};
+
 export function ActionFeed({ projectId }: { projectId: number }) {
   const navigate = useNavigate();
-  const [items, setItems] = useState<ActionItem[]>([]);
-  const [loading, setLoading] = useState(true);
   const [quickLoading, setQuickLoading] = useState<number | null>(null);
-  const { t } = useI18n();
-
-  useEffect(() => {
-    apiJson<ActionItem[]>(`/projects/${projectId}/action-feed`)
-      .then(setItems)
-      .catch(() => setItems([]))
-      .finally(() => setLoading(false));
-  }, [projectId]);
+  const { t, locale } = useI18n();
+  const { data: items = [], isLoading: loading } = useQuery({
+    queryKey: ["action-feed", projectId, locale],
+    queryFn: () => apiJson<ActionItem[]>(`/projects/${projectId}/action-feed?lang=${locale}`),
+  });
 
   const handleCta = async (item: ActionItem) => {
     if (item.cta === "review_approval") {
@@ -129,7 +131,7 @@ export function ActionFeed({ projectId }: { projectId: number }) {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <span className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-slate-500">
-                    {item.type}
+                    {t(TYPE_LABEL_KEYS[item.type])}
                   </span>
                 </div>
                 <h3 className="mt-1 text-sm font-semibold text-slate-800 leading-snug">

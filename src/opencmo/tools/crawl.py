@@ -5,6 +5,8 @@ import re
 from agents import function_tool
 from crawl4ai import AsyncWebCrawler
 
+from opencmo.tools.browser_pool import browser_slot
+
 
 def _extract_markdown(result) -> str:
     """Safely extract markdown string from CrawlResult.
@@ -69,8 +71,9 @@ async def fetch_url_content(
 
     if not content:
         async def _crawl():
-            async with AsyncWebCrawler() as crawler:
-                return await crawler.arun(url=url)
+            async with browser_slot():
+                async with AsyncWebCrawler() as crawler:
+                    return await crawler.arun(url=url)
 
         result = await asyncio.wait_for(_crawl(), timeout=90)
         content = _extract_markdown(result)

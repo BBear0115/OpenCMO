@@ -11,6 +11,7 @@ from urllib.parse import urlparse
 
 from opencmo import storage
 from opencmo.scrape_config import get_scrape_profile
+from opencmo.tools.browser_pool import browser_slot
 
 logger = logging.getLogger(__name__)
 
@@ -57,8 +58,9 @@ async def _web_search_direct(query: str) -> str:
         from opencmo.tools.crawl import _extract_markdown
 
         url = f"https://www.google.com/search?q={query.replace(' ', '+')}&num=5"
-        async with AsyncWebCrawler() as crawler:
-            result = await crawler.arun(url=url)
+        async with browser_slot():
+            async with AsyncWebCrawler() as crawler:
+                result = await crawler.arun(url=url)
         content = _extract_markdown(result)
         return content[:4000] if content else ""
     except Exception as exc:

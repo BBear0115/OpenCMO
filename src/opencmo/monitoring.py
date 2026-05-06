@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 from opencmo import llm, storage
 from opencmo.finding_contract import upgrade_legacy_finding
 from opencmo.finding_verifier import run_verifier_suite
+from opencmo.tools.browser_pool import browser_slot
 
 ProgressCallback = Callable[[dict], None]
 
@@ -77,6 +78,10 @@ def _event(
     detail: str | None = None,
     role: str | None = None,
     round_num: int = 0,
+    code: str | None = None,
+    kind: str | None = None,
+    hint: str | None = None,
+    blocking: bool | None = None,
 ) -> dict:
     payload = {
         "stage": stage,
@@ -89,6 +94,14 @@ def _event(
         "content": detail or summary,
         "round": round_num,
     }
+    if code:
+        payload["code"] = code
+    if kind:
+        payload["kind"] = kind
+    if hint:
+        payload["hint"] = hint
+    if blocking is not None:
+        payload["blocking"] = blocking
     return payload
 
 
@@ -134,6 +147,10 @@ async def _build_project_context(
             "context_build", "warning",
             "No LLM API key configured. AI analysis skipped — keywords and competitors will not be extracted automatically.",
             agent="Project Context Builder",
+            code="no_llm_key",
+            kind="coverage_gap",
+            hint="Add an AI provider key, then rerun the scan to unlock keyword extraction and competitor discovery.",
+            blocking=True,
         ))
 
     if analyze_url and llm.get_key("OPENAI_API_KEY"):
@@ -170,6 +187,10 @@ async def _build_project_context(
             "warning",
             "AI analysis did not extract any keywords. Downstream SEO and SERP checks will have limited coverage.",
             agent="Project Context Builder",
+            code="keywords_missing",
+            kind="coverage_gap",
+            hint="Seed initial keywords or rerun after crawl access is fixed so downstream SEO and SERP checks have coverage.",
+            blocking=True,
         ))
 
     await _emit(run_id, on_progress, _event(
@@ -239,8 +260,9 @@ async def _collect_signals(
             )
 
             async def _crawl_and_parse():
-                async with AsyncWebCrawler() as crawler:
-                    return await crawler.arun(url=url)
+                async with browser_slot():
+                    async with AsyncWebCrawler() as crawler:
+                        return await crawler.arun(url=url)
 
             result = await _asyncio.wait_for(_crawl_and_parse(), timeout=90)
             parser = _SEOParser()
@@ -449,12 +471,16 @@ async def _collect_signals(
             discovery_warnings = [str(item).strip() for item in result.get("warnings", []) if str(item).strip()]
             for message in discovery_warnings:
                 warnings.append(message)
-                await _emit(run_id, on_progress, _event(
-                    "signal_collect",
-                    "warning",
-                    message,
-                    agent="Signal Collector",
-                ))
+            await _emit(run_id, on_progress, _event(
+                "signal_collect",
+                "warning",
+                message,
+                agent="Signal Collector",
+                code="github_rate_limit" if "rate limit" in message.lower() else "github_warning",
+                kind="source_limit" if "rate limit" in message.lower() else "coverage_gap",
+                hint="Retry after the GitHub API limit resets or add a dedicated GitHub token for discovery coverage.",
+                blocking=False,
+            ))
             if discovered or contactable or not discovery_warnings:
                 await _emit(run_id, on_progress, _event(
                     "signal_collect",

@@ -112,6 +112,66 @@ async def test_report_version_history_tracks_latest_per_kind_and_audience():
 
 
 @pytest.mark.asyncio
+async def test_failed_bundle_does_not_replace_latest_completed_report():
+    project_id = await _seed_project()
+
+    await storage.create_report_bundle(
+        project_id=project_id,
+        kind="strategic",
+        source_run_id=None,
+        window_start=None,
+        window_end=None,
+        records={
+            "human": {
+                "generation_status": "completed",
+                "content": "human ok",
+                "content_html": "<p>human ok</p>",
+                "meta": {},
+            },
+            "agent": {
+                "generation_status": "completed",
+                "content": "agent ok",
+                "content_html": "<p>agent ok</p>",
+                "meta": {},
+            },
+        },
+    )
+
+    failed = await storage.create_report_bundle(
+        project_id=project_id,
+        kind="strategic",
+        source_run_id=None,
+        window_start=None,
+        window_end=None,
+        records={
+            "human": {
+                "generation_status": "failed",
+                "content": "",
+                "content_html": "",
+                "meta": {"llm_error": "LLM unavailable"},
+            },
+            "agent": {
+                "generation_status": "failed",
+                "content": "",
+                "content_html": "",
+                "meta": {"llm_error": "LLM unavailable"},
+            },
+        },
+    )
+
+    latest = await storage.get_latest_reports(project_id)
+    assert latest["strategic"]["human"]["content"] == "human ok"
+    assert latest["strategic"]["agent"]["content"] == "agent ok"
+    assert all(item["is_latest"] is False for item in failed)
+
+    history = await storage.list_reports(project_id, kind="strategic", audience="human")
+    assert [item["version"] for item in history] == [2, 1]
+    assert history[0]["generation_status"] == "failed"
+    assert history[0]["is_latest"] is False
+    assert history[1]["is_latest"] is True
+
+
+@pytest.mark.asyncio
 async def test_generate_strategic_report_bundle_creates_human_and_agent_versions():
     project_id = await _seed_project()
 
@@ -261,6 +321,9 @@ async def test_generate_report_marks_failed_when_all_generation_paths_fail():
     assert "LLM unavailable" in str(report["human"]["meta"].get("llm_error"))
     assert report["agent"]["generation_status"] == "failed"
     assert report["agent"]["content"] == ""
+    latest = await storage.get_latest_reports(project_id)
+    assert latest["strategic"]["human"] is None
+    assert latest["strategic"]["agent"] is None
 
 
 @pytest.mark.asyncio

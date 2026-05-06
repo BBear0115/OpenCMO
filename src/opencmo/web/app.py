@@ -30,163 +30,439 @@ app = FastAPI(title="OpenCMO Dashboard")
 app.mount("/static", StaticFiles(directory=str(_HERE / "static")), name="static")
 logger = logging.getLogger(__name__)
 
-_BLOG_STATIC_SITE_COPY = """
+_SEO_PUBLIC_LOCALES = ("en", "zh")
+_HREFLANG_BY_LOCALE = {
+    "en": "en",
+    "zh": "zh-CN",
+}
+
+_HOME_STATIC_SITE_COPY_BY_LOCALE = {
+    "en": """
+<main id="static-site-copy">
+  <header>
+    <p>aidCMO</p>
+    <h1>OpenCMO: private customization, GitHub source, or deployed trial.</h1>
+    <p>
+      OpenCMO scans SEO, AI visibility, SERP movement, and community signals.
+      Use it through private customization, self-host it from GitHub, or open
+      the deployed workspace first.
+    </p>
+  </header>
+  <section>
+    <h2>Three paths</h2>
+    <ul>
+      <li>Private customization for teams that need deployment and workflow adaptation.</li>
+      <li>GitHub source for teams that want to inspect, fork, or self-host OpenCMO.</li>
+      <li>Deployed trial workspace for teams that want to experience the product first.</li>
+    </ul>
+  </section>
+  <section>
+    <h2>OpenCMO — open-source on GitHub</h2>
+    <p>
+      OpenCMO is open on GitHub and self-hostable. The deployed workspace shows
+      the operator surface before you commit to private customization.
+    </p>
+    <ul>
+      <li>GitHub repository: https://github.com/study8677/OpenCMO</li>
+      <li>OpenCMO workspace: https://www.aidcmo.com/workspace</li>
+      <li>License: Apache 2.0 — https://github.com/study8677/OpenCMO/blob/main/LICENSE</li>
+      <li>Machine-readable summary: https://www.aidcmo.com/llms.txt</li>
+    </ul>
+  </section>
+  <section>
+    <h2>How to engage</h2>
+    <p>
+      Choose the path that matches your stage: private customization, GitHub
+      self-hosting, or the deployed trial.
+    </p>
+    <ul>
+      <li>Private customization: https://www.aidcmo.com/en/services</li>
+      <li>Audit example: https://www.aidcmo.com/en/sample-audit</li>
+      <li>Open-source project: https://www.aidcmo.com/en/open-source</li>
+      <li>Deployed trial: https://www.aidcmo.com/workspace</li>
+      <li>Contact: hello@aidcmo.com</li>
+    </ul>
+  </section>
+</main>
+""".strip(),
+    "zh": """
+<main id="static-site-copy">
+  <header>
+    <p>aidCMO</p>
+    <h1>OpenCMO：私有化定制、GitHub 源码、已部署版试用。</h1>
+    <p>
+      OpenCMO 扫描 SEO、AI 可见度、SERP 变化和社区信号。
+      你可以做私有化定制，从 GitHub 自部署，也可以先打开已部署版体验。
+    </p>
+  </header>
+  <section>
+    <h2>三条路径</h2>
+    <ul>
+      <li>私有化定制：适合需要部署和工作流适配的团队。</li>
+      <li>GitHub 源码：适合想检查、fork 或自部署 OpenCMO 的团队。</li>
+      <li>已部署版试用：适合先体验产品界面的团队。</li>
+    </ul>
+  </section>
+  <section>
+    <h2>OpenCMO — 在 GitHub 上开源</h2>
+    <p>
+      OpenCMO 在 GitHub 上开源，也可以自部署。已部署版工作台让你先看到真实操作界面，
+      再决定是否做私有化定制。
+    </p>
+    <ul>
+      <li>GitHub 仓库: https://github.com/study8677/OpenCMO</li>
+      <li>OpenCMO 工作台: https://www.aidcmo.com/workspace</li>
+      <li>许可证: Apache 2.0 — https://github.com/study8677/OpenCMO/blob/main/LICENSE</li>
+      <li>机器可读摘要: https://www.aidcmo.com/llms.txt</li>
+    </ul>
+  </section>
+  <section>
+    <h2>如何合作</h2>
+    <p>
+      按阶段选择：私有化定制、GitHub 自部署，或已部署版试用。
+    </p>
+    <ul>
+      <li>私有化定制: https://www.aidcmo.com/zh/services</li>
+      <li>审计样例: https://www.aidcmo.com/zh/sample-audit</li>
+      <li>开源项目: https://www.aidcmo.com/zh/open-source</li>
+      <li>已部署版试用: https://www.aidcmo.com/workspace</li>
+      <li>联系: hello@aidcmo.com</li>
+    </ul>
+  </section>
+</main>
+""".strip(),
+}
+
+_BLOG_STATIC_SITE_COPY_BY_LOCALE = {
+    "en": """
 <main id="static-site-copy">
   <header>
     <p>OpenCMO Blog</p>
-    <h1>A public field guide to what OpenCMO is, who it is for, and how the system should be used</h1>
+    <h1>A public field guide to what OpenCMO is, how it fits the stack, and how teams should use it</h1>
     <p>
-      The OpenCMO blog explains why the workspace exists, when it becomes worth adopting,
-      how the first 30 days should run, and which technical choices make the public site
-      readable to both people and machines.
+      The OpenCMO blog explains product fit, self-hosted adoption, architecture,
+      comparisons with adjacent tools, and the technical choices that make the
+      public site readable to both people and machines.
     </p>
   </header>
   <section>
     <h2>Start with these notes</h2>
     <ul>
-      <li><a href="https://www.aidcmo.com/blog/who-should-use-opencmo">Who should use OpenCMO, and when it starts paying for itself</a></li>
-      <li><a href="https://www.aidcmo.com/blog/first-30-days-with-opencmo">Your first 30 days with OpenCMO: a practical rollout plan</a></li>
-      <li><a href="https://www.aidcmo.com/blog/ai-cmo-workspace">Why we refused to build another marketing dashboard</a></li>
-      <li><a href="https://www.aidcmo.com/blog/crawler-readable-brand-surface">How to make your site readable to Google and AI agents</a></li>
+      <li><a href="https://www.aidcmo.com/en/blog/opencmo-vs-mautic-posthog">OpenCMO vs Mautic and PostHog: which visibility problem each tool actually solves</a></li>
+      <li><a href="https://www.aidcmo.com/en/blog/who-should-use-opencmo">Who should use OpenCMO, and when it starts paying for itself</a></li>
+      <li><a href="https://www.aidcmo.com/en/blog/first-30-days-with-opencmo">Your first 30 days with OpenCMO: a practical rollout plan</a></li>
+      <li><a href="https://www.aidcmo.com/en/blog/inside-opencmo-workspace">Inside OpenCMO: what the workspace actually contains</a></li>
+      <li><a href="https://www.aidcmo.com/en/blog/what-is-a-cmo">What does a CMO do? Responsibilities, metrics, and why AI changes the role</a></li>
+      <li><a href="https://www.aidcmo.com/en/blog/what-is-product-marketing">What is product marketing? Responsibilities, examples, and where it fits</a></li>
     </ul>
   </section>
   <section>
     <h2>Why this page exists</h2>
     <p>
-      The blog is part of the public product surface. It helps buyers, operators,
-      search engines, and AI agents understand what OpenCMO does without entering
-      the private workspace routes.
+      The blog is part of the public product surface. It gives buyers, operators,
+      search engines, and AI agents long-form pages about positioning, adoption,
+      and product comparisons without requiring the private workspace routes.
     </p>
   </section>
 </main>
-""".strip()
+""".strip(),
+    "zh": """
+<main id="static-site-copy">
+  <header>
+    <p>OpenCMO Blog</p>
+    <h1>一组公开文章：解释 OpenCMO 是什么、适合谁，以及它和相邻工具的边界</h1>
+    <p>
+      OpenCMO 的 blog 会持续解释适用场景、自部署落地、架构导览、
+      和相邻工具的对比，以及这套站点为什么必须同时对人和机器可读。
+    </p>
+  </header>
+  <section>
+    <h2>先从这些文章开始</h2>
+    <ul>
+      <li><a href="https://www.aidcmo.com/zh/blog/opencmo-vs-mautic-posthog">OpenCMO vs Mautic vs PostHog：它们分别解决哪一层可见度问题</a></li>
+      <li><a href="https://www.aidcmo.com/zh/blog/who-should-use-opencmo">谁应该用 OpenCMO，以及它从什么时候开始值得</a></li>
+      <li><a href="https://www.aidcmo.com/zh/blog/first-30-days-with-opencmo">前 30 天怎么用 OpenCMO：一份可执行的上手路线</a></li>
+      <li><a href="https://www.aidcmo.com/zh/blog/inside-opencmo-workspace">OpenCMO 里到底有什么：从监控、报告到增长执行的完整链路</a></li>
+      <li><a href="https://www.aidcmo.com/zh/blog/what-is-a-cmo">CMO 是做什么的？职责、核心指标，以及 AI 为什么会改变这个角色</a></li>
+      <li><a href="https://www.aidcmo.com/zh/blog/what-is-product-marketing">什么是产品营销？职责、典型工作，以及它到底放在哪一层</a></li>
+    </ul>
+  </section>
+  <section>
+    <h2>为什么这个页面需要公开存在</h2>
+    <p>
+      Blog 是公开产品 surface 的一部分。它帮助买家、操盘手、搜索引擎和 AI agent
+      在不进入私有 workspace 的情况下，直接理解 OpenCMO 的定位、适用场景、
+      对比对象和工作方式。
+    </p>
+  </section>
+</main>
+""".strip(),
+}
 
 _BLOG_ARTICLE_METADATA = [
     {
+        "slug": "what-is-a-cmo",
+        "path": "/blog/what-is-a-cmo",
+        "title": "What does a CMO do? Responsibilities, metrics, and why AI changes the role",
+        "title_zh": "CMO 是做什么的？职责、核心指标，以及 AI 为什么会改变这个角色",
+        "summary": (
+            "CMO is one of the most overloaded titles in a company. In some teams it means "
+            "brand leadership. In others it also covers positioning, demand generation, "
+            "growth systems, and market intelligence."
+        ),
+        "summary_zh": (
+            "CMO 可能是公司里最容易被误解的职位之一。对有些团队它等于品牌负责人，"
+            "对另一些团队它又同时覆盖定位、需求获取、增长系统和市场情报。"
+        ),
+        "thesis": (
+            "The core CMO job is to connect market insight, brand narrative, demand creation, "
+            "and organizational execution. AI changes the speed and surface area of that work, "
+            "but not the need for judgment."
+        ),
+        "thesis_zh": "CMO 的核心工作，是把市场洞察、品牌叙事、需求创造和组织执行连起来。AI 改变的是速度和覆盖面，不会消灭判断本身。",
+    },
+    {
+        "slug": "what-is-product-marketing",
+        "path": "/blog/what-is-product-marketing",
+        "title": "What is product marketing? Responsibilities, examples, and where it fits",
+        "title_zh": "什么是产品营销？职责、典型工作，以及它到底放在哪一层",
+        "summary": (
+            "Product marketing usually gets confused with content, launch support, or sales "
+            "enablement alone. In reality, the role connects customer insight, positioning, "
+            "messaging, launch execution, and market feedback."
+        ),
+        "summary_zh": (
+            "很多团队会把产品营销理解成写发布文案、做 launch 配合或给销售做材料，"
+            "但真正的产品营销，是把客户洞察、定位、信息架构、发布执行和市场反馈接成一条线。"
+        ),
+        "thesis": (
+            "Product marketing sits between product reality and market understanding. Its job "
+            "is to make sure the right people understand why the product matters and how it is different."
+        ),
+        "thesis_zh": "产品营销站在“产品真实能力”和“市场实际理解”之间，它的任务是确保正确的人真正理解产品为什么重要、又为什么和别家不同。",
+    },
+    {
+        "slug": "what-is-go-to-market-strategy",
+        "path": "/blog/what-is-go-to-market-strategy",
+        "title": "What is go-to-market strategy? GTM, marketing strategy, and execution explained",
+        "title_zh": "什么是 Go-to-Market Strategy？GTM、营销战略和执行到底怎么区分",
+        "summary": (
+            "Go-to-market strategy is often reduced to a launch checklist. A real GTM strategy "
+            "decides which customers matter, what promise the company will make, which channels "
+            "carry that promise, and how teams turn that plan into repeatable revenue."
+        ),
+        "summary_zh": (
+            "很多人把 GTM 理解成一张 launch 清单，但真正的 GTM 策略，是决定先服务谁、"
+            "向市场承诺什么、通过哪些渠道交付这个承诺，以及团队如何把这套计划变成可重复收入。"
+        ),
+        "thesis": (
+            "A GTM strategy is not a slide about launch day. It is the operating choice about "
+            "who you serve first, how you frame the offer, and how the organization turns that framing into pipeline."
+        ),
+        "thesis_zh": "GTM 策略不是 launch 当天的幻灯片，而是关于“先服务谁、怎样 framing 这个 offer、组织如何把它变成 pipeline”的经营选择。",
+    },
+    {
+        "slug": "what-is-brand-positioning",
+        "path": "/blog/what-is-brand-positioning",
+        "title": "What is brand positioning? How teams define the story the market remembers",
+        "title_zh": "什么是品牌定位？团队如何定义市场真正记住的那句话",
+        "summary": (
+            "Brand positioning is not a slogan workshop. It is the decision about what role "
+            "your company should play in a buyer's mind, which alternatives you are compared with, "
+            "and which idea you want the market to associate with your name."
+        ),
+        "summary_zh": (
+            "品牌定位不是一次 slogan workshop。它真正决定的是：你的公司在买家脑子里"
+            "应该扮演什么角色、默认会被拿来和谁比较，以及市场最终想起你时会联想到哪一个概念。"
+        ),
+        "thesis": (
+            "Brand positioning is the strategic choice of the narrative territory you want to own. "
+            "Messaging, content, and campaigns only work cleanly when that choice is coherent."
+        ),
+        "thesis_zh": "品牌定位是你选择想占据哪块叙事领地。只有这个选择清楚了，后面的 messaging、内容和 campaign 才会变得干净。",
+    },
+    {
+        "slug": "demand-generation-vs-lead-generation",
+        "path": "/blog/demand-generation-vs-lead-generation",
+        "title": "Demand generation vs lead generation: what B2B teams should actually optimize",
+        "title_zh": "Demand Generation 和 Lead Generation 有什么区别？B2B 团队到底该优化什么",
+        "summary": (
+            "Demand generation and lead generation are often used interchangeably, but they solve "
+            "different problems. Demand generation creates awareness, education, and buying intent "
+            "before a form fill. Lead generation captures that intent once it exists."
+        ),
+        "summary_zh": (
+            "Demand generation 和 lead generation 经常被混着说，但它们解决的不是同一个问题。"
+            "Demand generation 负责在表单提交之前创造认知、教育和购买意图；lead generation 负责在意图已经出现后把它捕获下来。"
+        ),
+        "thesis": (
+            "Demand generation is about creating and shaping buying intent across time. "
+            "Lead generation is about converting some of that intent into identifiable pipeline."
+        ),
+        "thesis_zh": "Demand generation 是持续塑造购买意图，lead generation 是把其中一部分意图转成可识别 pipeline。",
+    },
+    {
         "slug": "ai-cmo-workspace",
+        "path": "/blog/ai-cmo-workspace",
         "title": "Why we refused to build another marketing dashboard",
+        "title_zh": "为什么我们拒绝再做一个营销仪表盘",
         "summary": (
             "OpenCMO started with a simple frustration: teams had data, but not continuity. "
             "Every tool could show a slice of the truth, but almost none could carry that truth "
             "into the next decision."
         ),
+        "summary_zh": "OpenCMO 的起点并不是“把更多数据放到一个页面里”，而是一种更深的挫败感：团队明明已经拿到了很多信息，却依然很难把同一份真相带进下一次判断和下一步动作。",
         "thesis": (
             "A real AI CMO layer should reduce context loss between monitoring, interpretation, "
             "coordination, and execution."
         ),
-        "takeaways": [
-            "Dashboards optimize display. Workspaces optimize shared judgment.",
-            "Most teams do not suffer from missing data. They suffer from broken context.",
-            "AI is most useful when it helps teams reach better decisions faster, not when it pretends to replace them.",
-        ],
+        "thesis_zh": "真正的 AI CMO 层，应该减少监控、解释、协同和执行之间的上下文损耗，而不是只多做一个总览页。",
     },
     {
         "slug": "visibility-operating-system",
+        "path": "/blog/visibility-operating-system",
         "title": "Why SEO, GEO, SERP, and community signals belong in the same war room",
+        "title_zh": "为什么 SEO、GEO、SERP 和社区信号必须放进同一个战情室",
         "summary": (
             "A modern prospect does not move through one neat funnel. They bounce between Google, "
             "AI assistants, social proof, public threads, and your site. If those surfaces tell "
             "different stories, trust erodes before conversion even begins."
         ),
+        "summary_zh": "今天的潜在客户不会沿着一条整齐的漏斗前进。他们会在 Google、AI 助手、公开讨论和你的网站之间来回跳。如果这些表面讲的是不同的故事，信任会在转化开始前就先流失。",
         "thesis": (
             "You cannot manage perception with one channel's metrics when the user's understanding "
             "is formed across several channels at once."
         ),
-        "takeaways": [
-            "A good SERP position does not guarantee a clear AI summary.",
-            "Community language often predicts the search language people will use next.",
-            "The best operating decisions come from seeing how the surfaces reinforce or contradict one another.",
-        ],
+        "thesis_zh": "当用户的认知是在多个渠道同时形成时，你不可能只靠某一个渠道的指标来管理整体感知。",
     },
     {
         "slug": "crawler-readable-brand-surface",
+        "path": "/blog/crawler-readable-brand-surface",
         "title": "How to make one site readable to Google, AI agents, and humans",
+        "title_zh": "怎样让 Google、AI agent 和真实用户读到同一个品牌故事",
         "summary": (
             "A public site is no longer just a conversion page. It is also the place where "
             "search engines and AI systems learn what the product is, which routes matter, "
             "and how to retell the brand to someone else."
         ),
+        "summary_zh": "今天的公开站点已经不只是转化页，它同时也是搜索引擎和 AI 系统学习你是什么、哪些路由重要、以及该如何复述你的品牌的地方。",
         "thesis": (
             "Readable public surfaces require both strong copy and strong crawl signals; one "
             "without the other leaves the system guessing."
         ),
-        "takeaways": [
-            "A polished client-rendered app shell is not a sufficient public explanation layer.",
-            "Homepage, blog, sitemap, and llms.txt each play a different role in machine interpretation.",
-            "Separating the public narrative layer from the private workspace reduces confusion for both crawlers and users.",
-        ],
+        "thesis_zh": "想让公开 surface 真正可读，强文案和强 crawl 信号缺一不可；缺任何一边，系统都只能靠猜。",
     },
     {
         "slug": "inside-opencmo-workspace",
+        "path": "/blog/inside-opencmo-workspace",
         "title": "Inside OpenCMO: what the workspace actually contains",
+        "title_zh": "OpenCMO 里到底有什么：从监控、报告到增长执行的完整链路",
         "summary": (
             "The philosophy matters, but operators still need to know what is in the product. "
             "OpenCMO is built as a chain: collect signals, review them, preserve brand context, "
             "and turn them into actions the team can ship."
         ),
+        "summary_zh": "理念重要，但操盘手仍然需要知道产品里到底有什么。OpenCMO 不是一堆散页拼起来的 UI，而是一条完整链路：收集信号、复核问题、保存品牌上下文，再把它们变成团队真正能执行的动作。",
         "thesis": (
             "OpenCMO modules are valuable because they close loops together, not because any "
             "single page is novel in isolation."
         ),
-        "takeaways": [
-            "The monitoring pages capture different surfaces of visibility.",
-            "The reasoning and approval layers prevent insights from getting lost between tools.",
-            "Reports, brand context, and action surfaces exist to make execution reusable.",
-        ],
+        "thesis_zh": "OpenCMO 的价值不在单个页面有多新奇，而在于这些模块能一起闭环。",
+    },
+    {
+        "slug": "opencmo-vs-mautic-posthog",
+        "path": "/blog/opencmo-vs-mautic-posthog",
+        "title": "OpenCMO vs Mautic and PostHog: which visibility problem each tool actually solves",
+        "title_zh": "OpenCMO vs Mautic vs PostHog：它们分别解决哪一层可见度问题",
+        "summary": (
+            "Mautic automates lifecycle messaging. PostHog explains product behavior. "
+            "OpenCMO monitors how the market discovers and narrates the product across "
+            "search, AI answers, and community threads."
+        ),
+        "summary_zh": (
+            "Mautic 负责生命周期自动化，PostHog 负责产品行为分析，OpenCMO "
+            "负责搜索、AI 回答和社区里的公开可见度与叙事监控。"
+        ),
+        "thesis": (
+            "Use OpenCMO when the problem is discoverability and narrative drift before "
+            "the click, Mautic when the problem is lifecycle orchestration after capture, "
+            "and PostHog when the problem is product understanding after activation."
+        ),
+        "thesis_zh": (
+            "如果问题发生在点击之前的可发现性和叙事偏移，用 OpenCMO；如果问题"
+            "发生在获客之后的生命周期编排，用 Mautic；如果问题发生在激活之后"
+            "的产品理解，用 PostHog。"
+        ),
     },
     {
         "slug": "who-should-use-opencmo",
+        "path": "/blog/who-should-use-opencmo",
         "title": "Who should use OpenCMO, and when it starts paying for itself",
+        "title_zh": "谁应该用 OpenCMO，以及它从什么时候开始值得",
         "summary": (
             "OpenCMO is not for every website. It becomes valuable when visibility work is "
             "already spread across search, AI answers, community discussion, and internal team handoffs."
         ),
+        "summary_zh": "OpenCMO 不是给所有网站准备的。当搜索、AI 回答、社区讨论和团队协作已经分散成多个表面时，它的价值才会真正出现。",
         "thesis": (
             "OpenCMO fits teams whose public narrative now changes across several surfaces faster "
             "than the team can track and act on it manually."
         ),
-        "takeaways": [
-            "Best for teams already juggling multiple visibility surfaces.",
-            "Less useful if you only need a one-time SEO checklist.",
-            "Value shows up as faster prioritization, cleaner narrative, and fewer dropped actions.",
-        ],
+        "thesis_zh": "当品牌叙事已经在多个表面上变化得比团队手工跟进更快时，OpenCMO 才真正适配。",
     },
     {
         "slug": "first-30-days-with-opencmo",
+        "path": "/blog/first-30-days-with-opencmo",
         "title": "Your first 30 days with OpenCMO: a practical rollout plan",
+        "title_zh": "前 30 天怎么用 OpenCMO：一份可执行的上手路线",
         "summary": (
             "The fastest way to get value is not to click every page. It is to establish a baseline, "
             "identify one narrative gap, and ship one response loop the team will actually keep using."
         ),
+        "summary_zh": "最快起效的方法不是把每个页面都点一遍，而是先建立基线，找出一个关键叙事缺口，再做出一个团队真的会持续执行的响应闭环。",
         "thesis": (
             "The right onboarding sequence is baseline, narrative review, prioritization, and execution; "
             "everything else is secondary in month one."
         ),
-        "takeaways": [
-            "Start by defining a baseline, not by chasing every alert.",
-            "Use the first scans to find one major narrative mismatch.",
-            "Turn the first report into a repeatable weekly operating rhythm.",
-        ],
+        "thesis_zh": "第一个月最有效的顺序是：基线、叙事复核、优先级判断、执行闭环；其余都是第二位。",
     },
 ]
 
-for _article in _BLOG_ARTICLE_METADATA:
-    _article["url"] = f'https://www.aidcmo.com/blog/{_article["slug"]}'
-
 _BLOG_ARTICLE_METADATA_BY_SLUG = {article["slug"]: article for article in _BLOG_ARTICLE_METADATA}
 
+def _localized_article_value(article: dict[str, object], field: str, locale: str) -> str:
+    if locale == "zh":
+        localized = article.get(f"{field}_zh")
+        if isinstance(localized, str) and localized.strip():
+            return localized
+    return str(article[field])
 
-def _build_blog_json_ld() -> str:
+
+def _public_path(path: str, locale: str | None = None) -> str:
+    normalized = path.strip("/")
+    if locale:
+        return f"/{locale}" if not normalized else f"/{locale}/{normalized}"
+    return "/" if not normalized else f"/{normalized}"
+
+
+def _public_url(path: str, locale: str | None = None) -> str:
+    return f'https://www.aidcmo.com{_public_path(path, locale)}'
+
+
+def _build_blog_json_ld(locale: str | None = None) -> str:
+    localized = locale or "en"
     return json.dumps(
         {
             "@context": "https://schema.org",
             "@type": "Blog",
-            "name": "OpenCMO Blog",
+            "name": "OpenCMO Blog" if localized == "en" else "OpenCMO 博客",
             "description": (
-                "A public field guide to what OpenCMO is, who it is for, and how the system "
-                "should be used."
+                "A public field guide to OpenCMO positioning, adoption, architecture, "
+                "comparisons, and the technical foundations that make the site machine-readable."
+                if localized == "en"
+                else "一组公开文章，解释 OpenCMO 的定位、适用场景、架构导览、工具对比，以及站点机器可读性的技术基础。"
             ),
-            "url": "https://www.aidcmo.com/blog",
+            "url": _public_url("/blog", locale),
             "publisher": {
                 "@type": "Organization",
                 "name": "OpenCMO",
@@ -195,9 +471,9 @@ def _build_blog_json_ld() -> str:
             "blogPost": [
                 {
                     "@type": "BlogPosting",
-                    "headline": article["title"],
-                    "url": article["url"],
-                    "description": article["summary"],
+                    "headline": _localized_article_value(article, "title", localized),
+                    "url": _public_url(str(article["path"]), locale),
+                    "description": _localized_article_value(article, "summary", localized),
                 }
                 for article in _BLOG_ARTICLE_METADATA
             ],
@@ -206,15 +482,17 @@ def _build_blog_json_ld() -> str:
     )
 
 
-def _build_blog_article_json_ld(article: dict[str, object]) -> str:
+def _build_blog_article_json_ld(article: dict[str, object], locale: str | None = None) -> str:
+    localized = locale or "en"
+    article_url = _public_url(str(article["path"]), locale)
     return json.dumps(
         {
             "@context": "https://schema.org",
             "@type": "BlogPosting",
-            "headline": article["title"],
-            "description": article["summary"],
-            "url": article["url"],
-            "mainEntityOfPage": article["url"],
+            "headline": _localized_article_value(article, "title", localized),
+            "description": _localized_article_value(article, "summary", localized),
+            "url": article_url,
+            "mainEntityOfPage": article_url,
             "publisher": {
                 "@type": "Organization",
                 "name": "OpenCMO",
@@ -222,23 +500,22 @@ def _build_blog_article_json_ld(article: dict[str, object]) -> str:
             },
             "isPartOf": {
                 "@type": "Blog",
-                "name": "OpenCMO Blog",
-                "url": "https://www.aidcmo.com/blog",
+                "name": "OpenCMO Blog" if localized == "en" else "OpenCMO 博客",
+                "url": _public_url("/blog", locale),
             },
         },
         separators=(",", ":"),
     )
 
 
-def _render_blog_article_static_site_copy(article: dict[str, object]) -> str:
-    title = escape(str(article["title"]))
-    summary = escape(str(article["summary"]))
-    thesis = escape(str(article["thesis"]))
-    url = escape(str(article["url"]))
-    takeaways = "".join(
-        f"<li>{escape(str(item))}</li>"
-        for item in article["takeaways"]
-    )
+def _render_blog_article_static_site_copy(article: dict[str, object], locale: str | None = None) -> str:
+    localized = locale or "en"
+    title = escape(_localized_article_value(article, "title", localized))
+    summary = escape(_localized_article_value(article, "summary", localized))
+    thesis = escape(_localized_article_value(article, "thesis", localized))
+    url = escape(_public_url(str(article["path"]), locale))
+    thesis_title = "Core thesis" if localized == "en" else "核心观点"
+    canonical_title = "Canonical article URL" if localized == "en" else "规范文章地址"
     return f"""
 <main id="static-site-copy">
   <article>
@@ -248,25 +525,19 @@ def _render_blog_article_static_site_copy(article: dict[str, object]) -> str:
       <p>{summary}</p>
     </header>
     <section>
-      <h2>Core thesis</h2>
+      <h2>{thesis_title}</h2>
       <p>{thesis}</p>
     </section>
     <section>
-      <h2>Key takeaways</h2>
-      <ul>{takeaways}</ul>
-    </section>
-    <section>
-      <h2>Canonical article URL</h2>
+      <h2>{canonical_title}</h2>
       <p><a href="{url}">{url}</a></p>
     </section>
   </article>
 </main>
 """.strip()
 
-
-_BLOG_JSON_LD = _build_blog_json_ld()
-
-_SAMPLE_AUDIT_STATIC_SITE_COPY = """
+_SAMPLE_AUDIT_STATIC_SITE_COPY_BY_LOCALE = {
+    "en": """
 <main id="static-site-copy">
   <header>
     <p>OpenCMO Sample Audit</p>
@@ -293,33 +564,267 @@ _SAMPLE_AUDIT_STATIC_SITE_COPY = """
     </p>
   </section>
 </main>
+""".strip(),
+    "zh": """
+<main id="static-site-copy">
+  <header>
+    <p>OpenCMO 示例审计</p>
+    <h1>面向开源开发者产品的一份真实感 OpenCMO 审计</h1>
+    <p>
+      这个静态摘要对应示例审计页面，说明 OpenCMO 如何把 SEO 问题、
+      AI 搜索缺口、竞品语境、社区机会和下一步行动整理成可复核的操作者简报。
+    </p>
+  </header>
+  <section>
+    <h2>这个公开页面包含什么</h2>
+    <ul>
+      <li>解释抓取、元数据和站点健康缺口的 SEO 发现</li>
+      <li>展示回答引擎如何理解品牌定位的 AI 搜索说明</li>
+      <li>影响公开叙事的社区机会和竞品语境</li>
+      <li>可以进入复核、批准和执行的优先级行动</li>
+    </ul>
+  </section>
+  <section>
+    <h2>为什么它需要公开</h2>
+    <p>
+      它给搜索引擎、买家和回答引擎一个具体样本，让外部系统无需进入私有工作台，
+      也能理解 OpenCMO 的输出结构。
+    </p>
+  </section>
+</main>
+""".strip(),
+}
+
+
+_SERVICE_PAGE_METADATA_BY_PATH = {
+    # Phase 1 repositioning: b2b-leads / seo-geo / sample-data / data-policy
+    # entries removed. Old paths are 301'd to /services or / via _REDIRECTS_301.
+    "services": {
+        "title": "OpenCMO private customization | aidCMO",
+        "title_zh": "OpenCMO 私有化定制 | aidCMO",
+        "description": (
+            "Private OpenCMO customization for teams that want self-hosting, "
+            "BYOK, workflow adaptation, and operator support."
+        ),
+        "description_zh": "为需要自部署、BYOK、工作流适配和操作者支持的团队提供 OpenCMO 私有化定制。",
+        "heading": "OpenCMO private customization",
+        "heading_zh": "OpenCMO 私有化定制",
+        "bullets": [
+            "Private deployment and self-host support.",
+            "BYOK and data-control friendly setup.",
+            "Workflow adaptation for SEO, GEO, SERP, community, and reports.",
+            "Operator support for teams that want OpenCMO fitted to their process.",
+        ],
+        "bullets_zh": [
+            "私有部署与自部署支持。",
+            "支持 BYOK 和数据控制。",
+            "适配 SEO、GEO、SERP、社区和报告工作流。",
+            "为希望把 OpenCMO 嵌入自身流程的团队提供操作者支持。",
+        ],
+    },
+    "hosted": {
+        "title": "Try the deployed OpenCMO workspace | aidCMO",
+        "title_zh": "试用已部署版 OpenCMO | aidCMO",
+        "description": "Open the deployed OpenCMO workspace, then decide whether to self-host or request private customization.",
+        "description_zh": "先打开已部署版 OpenCMO 工作台,再决定从 GitHub 自部署还是做私有化定制。",
+        "heading": "Try the deployed OpenCMO workspace",
+        "heading_zh": "试用已部署版 OpenCMO",
+        "bullets": [
+            "Open the live workspace at /workspace.",
+            "Review the product surface before private customization.",
+            "Self-host from GitHub if your team wants full control.",
+        ],
+        "bullets_zh": [
+            "直接打开 /workspace 里的真实工作台。",
+            "先看产品界面,再决定是否私有化定制。",
+            "如果团队需要完全控制,可以从 GitHub 自部署。",
+        ],
+    },
+    "open-source": {
+        "title": "OpenCMO Open-Source Growth System | aidCMO",
+        "title_zh": "OpenCMO 开源增长系统 | aidCMO",
+        "description": (
+            "OpenCMO is the open-source system behind aidCMO's SEO, GEO, SERP, "
+            "community, and AI visibility methodology."
+        ),
+        "description_zh": "OpenCMO 是 aidCMO SEO、GEO、SERP、社区和 AI 可见度方法论背后的开源系统。",
+        "heading": "OpenCMO technical support",
+        "heading_zh": "OpenCMO 技术支持",
+        "bullets": [
+            "OpenCMO remains a public Apache 2.0 open-source project.",
+            "It analyzes SEO, GEO, SERP, community discussion, and AI visibility signals.",
+            "aidCMO uses this method in visibility diagnosis, content strategy, and growth execution.",
+            "The public site links directly to the live OpenCMO workspace for operators who want to inspect the product surface.",
+        ],
+        "bullets_zh": [
+            "OpenCMO 保留为 Apache 2.0 开源项目。",
+            "它用于分析 SEO、GEO、SERP、社区讨论和 AI 可见度信号。",
+            "aidCMO 将这套方法用于可见度诊断、内容策略和增长执行。",
+            "公开站会直接链接到真实 OpenCMO 工作台，方便操作者查看产品界面。",
+        ],
+    },
+    "contact": {
+        "title": "Contact aidCMO | OpenCMO private customization",
+        "title_zh": "联系 aidCMO | OpenCMO 私有化定制",
+        "description": (
+            "Contact aidCMO for OpenCMO private customization, self-host help, "
+            "or deployed workspace questions."
+        ),
+        "description_zh": "联系 aidCMO 咨询 OpenCMO 私有化定制、自部署支持,或已部署版试用问题。",
+        "heading": "Contact aidCMO",
+        "heading_zh": "联系 aidCMO",
+        "bullets": [
+            "Email: hello@aidcmo.com",
+            "For private customization, share your deployment target and workflow needs.",
+            "For self-host help, mention which deployment target (Docker, bare metal, etc.).",
+            "For a deployed trial, open /workspace.",
+        ],
+        "bullets_zh": [
+            "邮箱: hello@aidcmo.com",
+            "私有化定制:请提供部署目标和需要适配的工作流。",
+            "自部署支持:请告知部署目标(Docker、裸机等)。",
+            "已部署版试用:请打开 /workspace。",
+        ],
+    },
+}
+
+
+def _localized_service_value(page: dict[str, object], field: str, locale: str) -> str:
+    if locale == "zh":
+        localized = page.get(f"{field}_zh")
+        if isinstance(localized, str) and localized.strip():
+            return localized
+    return str(page[field])
+
+
+def _localized_service_bullets(page: dict[str, object], locale: str) -> list[str]:
+    if locale == "zh" and isinstance(page.get("bullets_zh"), list):
+        return [str(item) for item in page["bullets_zh"]]
+    return [str(item) for item in page["bullets"]]
+
+
+def _render_service_static_site_copy(route: str, page: dict[str, object], locale: str | None = None) -> str:
+    localized = locale or "en"
+    heading = escape(_localized_service_value(page, "heading", localized))
+    description = escape(_localized_service_value(page, "description", localized))
+    url = escape(_public_url(f"/{route}", locale))
+    bullets = "\n".join(f"      <li>{escape(item)}</li>" for item in _localized_service_bullets(page, localized))
+    section_title = "What this page covers" if localized == "en" else "这个页面包含什么"
+    canonical_title = "Canonical URL" if localized == "en" else "规范页面地址"
+    return f"""
+<main id="static-site-copy">
+  <article>
+    <header>
+      <p>aidCMO</p>
+      <h1>{heading}</h1>
+      <p>{description}</p>
+    </header>
+    <section>
+      <h2>{section_title}</h2>
+      <ul>
+{bullets}
+      </ul>
+    </section>
+    <section>
+      <h2>{canonical_title}</h2>
+      <p><a href="{url}">{url}</a></p>
+    </section>
+  </article>
+</main>
 """.strip()
 
-_SAMPLE_AUDIT_JSON_LD = json.dumps(
-    {
-        "@context": "https://schema.org",
-        "@type": "WebPage",
-        "name": "OpenCMO Sample Audit",
-        "description": (
-            "A public walkthrough of a sample OpenCMO visibility audit covering SEO, "
-            "AI search, community signal review, competitors, and next actions."
-        ),
-        "url": "https://www.aidcmo.com/sample-audit",
-        "isPartOf": {
-            "@type": "WebSite",
-            "name": "OpenCMO",
-            "url": "https://www.aidcmo.com/",
+
+def _build_service_json_ld(route: str, page: dict[str, object], locale: str | None = None) -> str:
+    localized = locale or "en"
+    service_url = _public_url(f"/{route}", locale)
+    return json.dumps(
+        {
+            "@context": "https://schema.org",
+            "@type": "Service",
+            "name": _localized_service_value(page, "heading", localized),
+            "description": _localized_service_value(page, "description", localized),
+            "url": service_url,
+            "provider": {
+                "@type": "Organization",
+                "name": "aidCMO",
+                "url": _public_url("/", locale),
+                "sameAs": ["https://github.com/study8677/OpenCMO"],
+            },
+            "areaServed": "International",
+            "serviceType": _localized_service_value(page, "heading", localized),
         },
-        "about": {
-            "@type": "SoftwareApplication",
-            "name": "OpenCMO",
-            "url": "https://www.aidcmo.com/",
-            "applicationCategory": "BusinessApplication",
-            "operatingSystem": "Web",
+        separators=(",", ":"),
+    )
+
+
+def _build_home_json_ld(locale: str | None = None) -> str:
+    localized = locale or "en"
+    return json.dumps(
+        {
+            "@context": "https://schema.org",
+            "@type": "ProfessionalService",
+            "name": "aidCMO",
+            "url": _public_url("/", locale),
+            "image": "https://www.aidcmo.com/logo.png",
+            "description": (
+                "aidCMO supports private OpenCMO customization, GitHub self-hosting, "
+                "and a deployed trial workspace."
+                if localized == "en"
+                else "aidCMO 支持 OpenCMO 私有化定制、GitHub 自部署和已部署版试用。"
+            ),
+            "serviceType": [
+                "OpenCMO private customization",
+                "OpenCMO self-host support",
+                "Deployed workspace trial",
+                "SEO audit",
+                "GEO and AI search visibility audit",
+            ],
+            "areaServed": "International",
+            "sameAs": [
+                "https://github.com/study8677/OpenCMO",
+            ],
+            "hasOfferCatalog": {
+                "@type": "OfferCatalog",
+                "name": "OpenCMO adoption paths",
+                "itemListElement": [
+                    {"@type": "Offer", "itemOffered": {"@type": "Service", "name": "OpenCMO private customization"}},
+                    {"@type": "Offer", "itemOffered": {"@type": "Service", "name": "OpenCMO self-host support"}},
+                ],
+            },
         },
-    },
-    separators=(",", ":"),
-)
+        separators=(",", ":"),
+    )
+
+
+def _build_sample_audit_json_ld(locale: str | None = None) -> str:
+    localized = locale or "en"
+    return json.dumps(
+        {
+            "@context": "https://schema.org",
+            "@type": "WebPage",
+            "name": "OpenCMO Sample Audit" if localized == "en" else "OpenCMO 示例审计",
+            "description": (
+                "A public walkthrough of a sample OpenCMO visibility audit covering SEO, "
+                "AI search, community signal review, competitors, and next actions."
+                if localized == "en"
+                else "一份公开示例，展示 OpenCMO 如何复核 SEO、AI 搜索、社区信号、竞品和后续动作。"
+            ),
+            "url": _public_url("/sample-audit", locale),
+            "isPartOf": {
+                "@type": "WebSite",
+                "name": "OpenCMO",
+                "url": _public_url("/", locale),
+            },
+            "about": {
+                "@type": "SoftwareApplication",
+                "name": "OpenCMO",
+                "url": _public_url("/", locale),
+                "applicationCategory": "BusinessApplication",
+                "operatingSystem": "Web",
+            },
+        },
+        separators=(",", ":"),
+    )
 
 _APP_STATIC_SITE_COPY = """
 <main id="static-site-copy">
@@ -351,7 +856,13 @@ _CANONICAL_HOST_REDIRECTS = {
 
 def _replace_metadata(rendered: str, replacements: list[tuple[str, str]]) -> str:
     for pattern, replacement in replacements:
-        rendered = re.sub(pattern, replacement, rendered, count=1, flags=re.IGNORECASE | re.DOTALL)
+        rendered = re.sub(
+            pattern,
+            lambda _match, replacement=replacement: replacement,
+            rendered,
+            count=1,
+            flags=re.IGNORECASE | re.DOTALL,
+        )
     return rendered
 
 
@@ -363,6 +874,43 @@ def _replace_static_site_copy(rendered: str, static_copy: str) -> str:
         count=1,
         flags=re.DOTALL,
     )
+
+
+def _replace_html_lang(rendered: str, locale: str | None) -> str:
+    lang = _HREFLANG_BY_LOCALE.get(locale or "en", "en")
+    return re.sub(r'<html\s+lang="[^"]*">', f'<html lang="{lang}">', rendered, count=1, flags=re.IGNORECASE)
+
+
+def _build_alternate_link_tags(path: str) -> str:
+    return "".join(
+        f'<link rel="alternate" hreflang="{href_lang}" href="{_public_url(path, locale)}" />'
+        for href_lang, locale in [
+            ("x-default", None),
+            (_HREFLANG_BY_LOCALE["en"], "en"),
+            (_HREFLANG_BY_LOCALE["zh"], "zh"),
+        ]
+    )
+
+
+def _replace_canonical_and_alternates(rendered: str, canonical_url: str, path: str) -> str:
+    replacement = f'<link rel="canonical" href="{canonical_url}" />{_build_alternate_link_tags(path)}'
+    return re.sub(
+        r'<link\s+rel="canonical"\s+href="[^"]*"\s*/?>',
+        replacement,
+        rendered,
+        count=1,
+        flags=re.IGNORECASE,
+    )
+
+
+def _split_public_locale(full_path: str) -> tuple[str | None, str]:
+    normalized = full_path.strip("/")
+    if not normalized:
+        return None, ""
+    first, *rest = normalized.split("/", 1)
+    if first in _SEO_PUBLIC_LOCALES:
+        return first, rest[0] if rest else ""
+    return None, normalized
 
 
 def _is_app_surface(full_path: str) -> bool:
@@ -377,7 +925,10 @@ def _is_app_surface(full_path: str) -> bool:
 
 
 def _apply_public_route_metadata(html: str, full_path: str) -> str:
-    normalized = full_path.strip("/")
+    route_locale, normalized = _split_public_locale(full_path)
+    locale_key = route_locale or "en"
+    rendered = _replace_html_lang(html, route_locale)
+
     if _is_app_surface(normalized):
         canonical_url = f"https://www.aidcmo.com/{normalized}" if normalized else "https://www.aidcmo.com/"
         replacements = [
@@ -392,10 +943,6 @@ def _apply_public_route_metadata(html: str, full_path: str) -> str:
             (
                 r'<meta\s+name="robots"\s+content="[^"]*"\s*/?>',
                 '<meta name="robots" content="noindex,nofollow,noarchive,nosnippet" />',
-            ),
-            (
-                r'<link\s+rel="canonical"\s+href="[^"]*"\s*/?>',
-                f'<link rel="canonical" href="{canonical_url}" />',
             ),
             (
                 r'<meta\s+property="og:title"\s+content="[^"]*"\s*/?>',
@@ -419,19 +966,48 @@ def _apply_public_route_metadata(html: str, full_path: str) -> str:
             ),
         ]
 
-        rendered = _replace_metadata(html, replacements)
+        rendered = _replace_metadata(rendered, replacements)
+        rendered = re.sub(
+            r'<link\s+rel="canonical"\s+href="[^"]*"\s*/?>',
+            f'<link rel="canonical" href="{canonical_url}" />',
+            rendered,
+            count=1,
+            flags=re.IGNORECASE,
+        )
         return _replace_static_site_copy(rendered, _APP_STATIC_SITE_COPY)
+
+    service_page = _SERVICE_PAGE_METADATA_BY_PATH.get(normalized)
+    if service_page:
+        title = _localized_service_value(service_page, "title", locale_key)
+        description = _localized_service_value(service_page, "description", locale_key)
+        canonical_url = _public_url(f"/{normalized}", route_locale)
+        replacements = [
+            (r"<title>.*?</title>", f"<title>{title}</title>"),
+            (r'<meta\s+name="description"\s+content="[^"]*"\s*/?>', f'<meta name="description" content="{description}" />'),
+            (r'<meta\s+property="og:title"\s+content="[^"]*"\s*/?>', f'<meta property="og:title" content="{title}" />'),
+            (r'<meta\s+property="og:description"\s+content="[^"]*"\s*/?>', f'<meta property="og:description" content="{description}" />'),
+            (r'<meta\s+property="og:url"\s+content="[^"]*"\s*/?>', f'<meta property="og:url" content="{canonical_url}" />'),
+            (r'<meta\s+name="twitter:title"\s+content="[^"]*"\s*/?>', f'<meta name="twitter:title" content="{title}" />'),
+            (r'<meta\s+name="twitter:description"\s+content="[^"]*"\s*/?>', f'<meta name="twitter:description" content="{description}" />'),
+            (
+                r'<script\s+type="application/ld\+json">.*?</script>',
+                f'<script type="application/ld+json">{_build_service_json_ld(normalized, service_page, route_locale)}</script>',
+            ),
+        ]
+        rendered = _replace_metadata(rendered, replacements)
+        rendered = _replace_canonical_and_alternates(rendered, canonical_url, f"/{normalized}")
+        return _replace_static_site_copy(rendered, _render_service_static_site_copy(normalized, service_page, route_locale))
 
     if normalized.startswith("blog/"):
         slug = normalized.split("/", 1)[1]
         article = _BLOG_ARTICLE_METADATA_BY_SLUG.get(slug)
         if not article:
-            return html
+            return rendered
 
-        article_title = str(article["title"])
-        article_summary = str(article["summary"])
-        article_url = str(article["url"])
-        article_json_ld = _build_blog_article_json_ld(article)
+        article_title = _localized_article_value(article, "title", locale_key)
+        article_summary = _localized_article_value(article, "summary", locale_key)
+        article_url = _public_url(str(article["path"]), route_locale)
+        article_json_ld = _build_blog_article_json_ld(article, route_locale)
         replacements = [
             (
                 r"<title>.*?</title>",
@@ -440,10 +1016,6 @@ def _apply_public_route_metadata(html: str, full_path: str) -> str:
             (
                 r'<meta\s+name="description"\s+content="[^"]*"\s*/?>',
                 f'<meta name="description" content="{article_summary}" />',
-            ),
-            (
-                r'<link\s+rel="canonical"\s+href="[^"]*"\s*/?>',
-                f'<link rel="canonical" href="{article_url}" />',
             ),
             (
                 r'<meta\s+property="og:type"\s+content="[^"]*"\s*/?>',
@@ -475,100 +1047,96 @@ def _apply_public_route_metadata(html: str, full_path: str) -> str:
             ),
         ]
 
-        rendered = _replace_metadata(html, replacements)
-        return _replace_static_site_copy(rendered, _render_blog_article_static_site_copy(article))
+        rendered = _replace_metadata(rendered, replacements)
+        rendered = _replace_canonical_and_alternates(rendered, article_url, str(article["path"]))
+        return _replace_static_site_copy(rendered, _render_blog_article_static_site_copy(article, route_locale))
 
-    route_configs = {
-        "blog": {
-            "replacements": [
-                (
-                    r"<title>.*?</title>",
-                    "<title>OpenCMO Blog | Field Guide to Visibility Operations and OpenCMO</title>",
-                ),
-                (
-                    r'<meta\s+name="description"\s+content="[^"]*"\s*/?>',
-                    '<meta name="description" content="Read the public OpenCMO field guide covering adoption fit, first-30-day rollout, crawler-readable surfaces, and visibility operations." />',
-                ),
-                (
-                    r'<link\s+rel="canonical"\s+href="[^"]*"\s*/?>',
-                    '<link rel="canonical" href="https://www.aidcmo.com/blog" />',
-                ),
-                (
-                    r'<meta\s+property="og:title"\s+content="[^"]*"\s*/?>',
-                    '<meta property="og:title" content="OpenCMO Blog | Field Guide to Visibility Operations and OpenCMO" />',
-                ),
-                (
-                    r'<meta\s+property="og:description"\s+content="[^"]*"\s*/?>',
-                    '<meta property="og:description" content="Read the public OpenCMO field guide covering adoption fit, rollout, crawler-readable surfaces, and visibility operations." />',
-                ),
-                (
-                    r'<meta\s+property="og:url"\s+content="[^"]*"\s*/?>',
-                    '<meta property="og:url" content="https://www.aidcmo.com/blog" />',
-                ),
-                (
-                    r'<meta\s+name="twitter:title"\s+content="[^"]*"\s*/?>',
-                    '<meta name="twitter:title" content="OpenCMO Blog | Field Guide to Visibility Operations and OpenCMO" />',
-                ),
-                (
-                    r'<meta\s+name="twitter:description"\s+content="[^"]*"\s*/?>',
-                    '<meta name="twitter:description" content="Read the public OpenCMO field guide covering adoption fit, rollout, crawler-readable surfaces, and visibility operations." />',
-                ),
-                (
-                    r'<script\s+type="application/ld\+json">.*?</script>',
-                    f'<script type="application/ld+json">{_BLOG_JSON_LD}</script>',
-                ),
-            ],
-            "static_copy": _BLOG_STATIC_SITE_COPY,
-        },
-        "sample-audit": {
-            "replacements": [
-                (
-                    r"<title>.*?</title>",
-                    "<title>OpenCMO Sample Audit | Public walkthrough of a visibility operating report</title>",
-                ),
-                (
-                    r'<meta\s+name="description"\s+content="[^"]*"\s*/?>',
-                    '<meta name="description" content="See a public OpenCMO sample audit covering SEO, AI visibility, community signals, competitors, and the next actions an operator would ship." />',
-                ),
-                (
-                    r'<link\s+rel="canonical"\s+href="[^"]*"\s*/?>',
-                    '<link rel="canonical" href="https://www.aidcmo.com/sample-audit" />',
-                ),
-                (
-                    r'<meta\s+property="og:title"\s+content="[^"]*"\s*/?>',
-                    '<meta property="og:title" content="OpenCMO Sample Audit | Public walkthrough of a visibility operating report" />',
-                ),
-                (
-                    r'<meta\s+property="og:description"\s+content="[^"]*"\s*/?>',
-                    '<meta property="og:description" content="A public example of how OpenCMO reviews SEO, AI search, community narrative, competitors, and execution priorities." />',
-                ),
-                (
-                    r'<meta\s+property="og:url"\s+content="[^"]*"\s*/?>',
-                    '<meta property="og:url" content="https://www.aidcmo.com/sample-audit" />',
-                ),
-                (
-                    r'<meta\s+name="twitter:title"\s+content="[^"]*"\s*/?>',
-                    '<meta name="twitter:title" content="OpenCMO Sample Audit | Public walkthrough of a visibility operating report" />',
-                ),
-                (
-                    r'<meta\s+name="twitter:description"\s+content="[^"]*"\s*/?>',
-                    '<meta name="twitter:description" content="See a public OpenCMO sample audit covering SEO, AI visibility, community signals, competitors, and the next actions an operator would ship." />',
-                ),
-                (
-                    r'<script\s+type="application/ld\+json">.*?</script>',
-                    f'<script type="application/ld+json">{_SAMPLE_AUDIT_JSON_LD}</script>',
-                ),
-            ],
-            "static_copy": _SAMPLE_AUDIT_STATIC_SITE_COPY,
-        },
-    }
+    if normalized == "":
+        title = (
+            "aidCMO — OpenCMO private customization, GitHub, and deployed trial"
+            if locale_key == "en"
+            else "aidCMO — OpenCMO 私有化定制、GitHub 与已部署版试用"
+        )
+        description = (
+            "OpenCMO is an open-source AI CMO workspace. Choose private customization, "
+            "review the GitHub repo, or try the deployed workspace."
+            if locale_key == "en"
+            else "OpenCMO 是开源 AI CMO 工作台。你可以选择私有化定制、查看 GitHub 源码，或直接试用已部署版。"
+        )
+        canonical_url = _public_url("/", route_locale)
+        replacements = [
+            (r"<title>.*?</title>", f"<title>{title}</title>"),
+            (r'<meta\s+name="description"\s+content="[^"]*"\s*/?>', f'<meta name="description" content="{description}" />'),
+            (r'<meta\s+property="og:title"\s+content="[^"]*"\s*/?>', f'<meta property="og:title" content="{title}" />'),
+            (r'<meta\s+property="og:description"\s+content="[^"]*"\s*/?>', f'<meta property="og:description" content="{description}" />'),
+            (r'<meta\s+property="og:url"\s+content="[^"]*"\s*/?>', f'<meta property="og:url" content="{canonical_url}" />'),
+            (r'<meta\s+name="twitter:title"\s+content="[^"]*"\s*/?>', f'<meta name="twitter:title" content="{title}" />'),
+            (r'<meta\s+name="twitter:description"\s+content="[^"]*"\s*/?>', f'<meta name="twitter:description" content="{description}" />'),
+            (r'<script\s+type="application/ld\+json">.*?</script>', f'<script type="application/ld+json">{_build_home_json_ld(route_locale)}</script>'),
+        ]
+        rendered = _replace_metadata(rendered, replacements)
+        rendered = _replace_canonical_and_alternates(rendered, canonical_url, "/")
+        return _replace_static_site_copy(rendered, _HOME_STATIC_SITE_COPY_BY_LOCALE[locale_key])
 
-    route_config = route_configs.get(normalized)
-    if not route_config:
-        return html
+    if normalized == "blog":
+        title = (
+            "OpenCMO Blog | CMO, Product Marketing, GTM, and AI CMO Field Guide"
+            if locale_key == "en"
+            else "OpenCMO Blog | CMO、产品营销、GTM 与 AI CMO 公开说明"
+        )
+        description = (
+            "Read the public OpenCMO field guide on CMO work, product marketing, GTM strategy, brand positioning, demand generation, AI CMO workflows, and crawler-readable public surfaces."
+            if locale_key == "en"
+            else "阅读 OpenCMO 的公开文章，了解 CMO、产品营销、GTM、品牌定位、需求生成、AI CMO 工作方式，以及站点机器可读性。"
+        )
+        canonical_url = _public_url("/blog", route_locale)
+        replacements = [
+            (r"<title>.*?</title>", f"<title>{title}</title>"),
+            (r'<meta\s+name="description"\s+content="[^"]*"\s*/?>', f'<meta name="description" content="{description}" />'),
+            (r'<meta\s+property="og:title"\s+content="[^"]*"\s*/?>', f'<meta property="og:title" content="{title}" />'),
+            (r'<meta\s+property="og:description"\s+content="[^"]*"\s*/?>', f'<meta property="og:description" content="{description}" />'),
+            (r'<meta\s+property="og:url"\s+content="[^"]*"\s*/?>', f'<meta property="og:url" content="{canonical_url}" />'),
+            (r'<meta\s+name="twitter:title"\s+content="[^"]*"\s*/?>', f'<meta name="twitter:title" content="{title}" />'),
+            (r'<meta\s+name="twitter:description"\s+content="[^"]*"\s*/?>', f'<meta name="twitter:description" content="{description}" />'),
+            (r'<script\s+type="application/ld\+json">.*?</script>', f'<script type="application/ld+json">{_build_blog_json_ld(route_locale)}</script>'),
+        ]
+        rendered = _replace_metadata(rendered, replacements)
+        rendered = _replace_canonical_and_alternates(rendered, canonical_url, "/blog")
+        return _replace_static_site_copy(rendered, _BLOG_STATIC_SITE_COPY_BY_LOCALE[locale_key])
 
-    rendered = _replace_metadata(html, route_config["replacements"])
-    return _replace_static_site_copy(rendered, route_config["static_copy"])
+    if normalized == "sample-audit":
+        title = (
+            "OpenCMO Sample Audit | Public walkthrough of a visibility operating report"
+            if locale_key == "en"
+            else "示例审计 | OpenCMO"
+        )
+        description = (
+            "See a public OpenCMO sample audit covering SEO, AI visibility, community signals, competitors, and the next actions an operator would ship."
+            if locale_key == "en"
+            else "查看一份 OpenCMO 种子示例审计，包含 SEO 问题、AI 搜索缺口、竞品语境、社区机会和下一步行动。"
+        )
+        keywords = (
+            "OpenCMO, sample audit, SEO audit, AI search visibility, community signals, open-source growth tools"
+            if locale_key == "en"
+            else "OpenCMO, 示例审计, SEO 问题, AI 搜索缺口, 竞品语境, 社区机会, 开源增长工具"
+        )
+        canonical_url = _public_url("/sample-audit", route_locale)
+        replacements = [
+            (r"<title>.*?</title>", f"<title>{title}</title>"),
+            (r'<meta\s+name="description"\s+content="[^"]*"\s*/?>', f'<meta name="description" content="{description}" />'),
+            (r'<meta\s+name="keywords"\s+content="[^"]*"\s*/?>', f'<meta name="keywords" content="{keywords}" />'),
+            (r'<meta\s+property="og:title"\s+content="[^"]*"\s*/?>', f'<meta property="og:title" content="{title}" />'),
+            (r'<meta\s+property="og:description"\s+content="[^"]*"\s*/?>', f'<meta property="og:description" content="{description}" />'),
+            (r'<meta\s+property="og:url"\s+content="[^"]*"\s*/?>', f'<meta property="og:url" content="{canonical_url}" />'),
+            (r'<meta\s+name="twitter:title"\s+content="[^"]*"\s*/?>', f'<meta name="twitter:title" content="{title}" />'),
+            (r'<meta\s+name="twitter:description"\s+content="[^"]*"\s*/?>', f'<meta name="twitter:description" content="{description}" />'),
+            (r'<script\s+type="application/ld\+json">.*?</script>', f'<script type="application/ld+json">{_build_sample_audit_json_ld(route_locale)}</script>'),
+        ]
+        rendered = _replace_metadata(rendered, replacements)
+        rendered = _replace_canonical_and_alternates(rendered, canonical_url, "/sample-audit")
+        return _replace_static_site_copy(rendered, _SAMPLE_AUDIT_STATIC_SITE_COPY_BY_LOCALE[locale_key])
+
+    return rendered
 
 
 # ---------------------------------------------------------------------------
@@ -600,6 +1168,7 @@ async def _startup_runtime_services():
     """Start optional runtime services after DB bootstrap."""
     from opencmo import scheduler
     from opencmo.background.executors import (
+        run_blog_generation_executor,
         run_github_enrich_executor,
         run_graph_expansion_executor,
         run_report_executor,
@@ -612,7 +1181,12 @@ async def _startup_runtime_services():
     worker.register_executor("report", run_report_executor)
     worker.register_executor("graph_expansion", run_graph_expansion_executor)
     worker.register_executor("github_enrich", run_github_enrich_executor)
+    worker.register_executor("blog_generation", run_blog_generation_executor)
     await worker.start()
+
+    if not scheduler.is_scheduler_enabled():
+        logger.info("Scheduler disabled by OPENCMO_ENABLE_SCHEDULER; timed monitors will remain inactive.")
+        return
 
     if not scheduler.is_scheduler_available():
         logger.info("APScheduler not installed; scheduled monitors will remain inactive.")
@@ -715,6 +1289,7 @@ async def api_v1_health():
 # ---------------------------------------------------------------------------
 
 from opencmo.web.routers.approvals import router as approvals_router
+from opencmo.web.routers.blog_gen import router as blog_gen_router
 from opencmo.web.routers.brand_kit import router as brand_kit_router
 from opencmo.web.routers.campaigns import router as campaigns_router
 from opencmo.web.routers.chat import router as chat_router
@@ -751,6 +1326,87 @@ app.include_router(brand_kit_router)
 app.include_router(performance_router)
 app.include_router(quick_actions_router)
 app.include_router(github_router)
+app.include_router(blog_gen_router)
+
+
+# ---------------------------------------------------------------------------
+# Public marketing endpoints — registered inline (no router) since they're
+# small, public, and tightly coupled to the marketing site copy. Keep these
+# BEFORE the SPA catch-all below or they'll be swallowed.
+# ---------------------------------------------------------------------------
+
+from typing import Literal  # noqa: E402
+from typing import Optional as _Optional
+
+from pydantic import BaseModel, Field  # noqa: E402
+
+
+class _WaitlistSubmit(BaseModel):
+    """Hosted-version waitlist signup payload."""
+    email: str = Field(..., min_length=5, max_length=254)
+    source: _Optional[Literal["home_inline", "hosted_page"]] = None
+
+
+@app.post("/api/v1/waitlist")
+async def api_v1_waitlist(payload: _WaitlistSubmit):
+    if not storage.is_valid_email(payload.email):
+        return JSONResponse({"ok": False, "error": "invalid_email"}, status_code=400)
+    accepted = await storage.add_to_waitlist(payload.email, source=payload.source or "")
+    if not accepted:
+        return JSONResponse({"ok": False, "error": "rejected"}, status_code=400)
+    return JSONResponse({"ok": True})
+
+
+@app.get("/api/v1/github-stats")
+async def api_v1_github_stats():
+    from opencmo.web.github_stats import get_github_stats
+    return JSONResponse(await get_github_stats())
+
+
+# ---------------------------------------------------------------------------
+# Legacy → new positioning 301 redirects (locale-preserving, GET + HEAD)
+# Keep at least 6 months for inbound links from blogs/SERPs.
+# ---------------------------------------------------------------------------
+
+_REDIRECTS_301 = {
+    "b2b-leads":   "/services",
+    "sample-data": "/services",
+    "data-policy": "/",
+    "seo-geo":     "/services",
+}
+
+
+def _make_redirect(target: str):
+    """Factory captures `target` in closure — no late-binding bug."""
+    async def _redirect(request: Request) -> RedirectResponse:  # noqa: ARG001
+        return RedirectResponse(url=target, status_code=301)
+    return _redirect
+
+
+def _build_redirect_target(prefix: str, new: str) -> str:
+    """Preserve the locale prefix on redirect targets.
+
+    Examples:
+      ("",     "/services") -> "/services"
+      ("en/",  "/services") -> "/en/services"
+      ("zh/",  "/")          -> "/zh"
+      ("",     "/")          -> "/"
+    """
+    locale = prefix.rstrip("/")  # "" | "en" | "zh"
+    if new == "/":
+        return f"/{locale}" if locale else "/"
+    return f"/{locale}{new}" if locale else new
+
+
+for _old, _new in _REDIRECTS_301.items():
+    for _prefix in ("", "en/", "zh/"):
+        _path = f"/{_prefix}{_old}"
+        _target = _build_redirect_target(_prefix, _new)
+        app.add_api_route(
+            _path,
+            _make_redirect(_target),
+            methods=["GET", "HEAD"],
+        )
 
 
 # ---------------------------------------------------------------------------

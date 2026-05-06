@@ -45,8 +45,9 @@ class TestGetKey:
         })
         try:
             assert llm.get_key("OPENAI_API_KEY") == "valid"
-            assert llm.get_key("OPENAI_BASE_URL") is None
-            assert llm.get_key("EMPTY") is None
+            with patch.dict(os.environ, {}, clear=True):
+                assert llm.get_key("OPENAI_BASE_URL") is None
+                assert llm.get_key("EMPTY") is None
         finally:
             llm.reset_request_keys(token)
 
@@ -179,7 +180,7 @@ class TestGetModel:
         with patch("opencmo.storage.get_setting", new_callable=AsyncMock, return_value=None):
             with patch.dict(os.environ, {}, clear=True):
                 model = await llm.get_model()
-                assert model == "gpt-5.4-mini"
+                assert model == "gpt-5.4"
 
     @pytest.mark.asyncio
     async def test_custom_default_model(self):

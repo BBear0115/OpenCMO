@@ -11,6 +11,7 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import logging
+import os
 from collections.abc import Awaitable, Callable
 
 from opencmo.background import service as bg_service
@@ -191,10 +192,32 @@ class BackgroundWorker:
 _default_worker: BackgroundWorker | None = None
 
 
+def _get_positive_int_env(name: str, default: int) -> int:
+    raw = os.environ.get(name)
+    if raw is None:
+        return default
+    try:
+        value = int(raw)
+    except (TypeError, ValueError):
+        return default
+    return max(1, value)
+
+
+def _default_kind_concurrency() -> dict[str, int]:
+    return {
+        "scan": _get_positive_int_env("OPENCMO_SCAN_CONCURRENCY", 1),
+        "report": _get_positive_int_env("OPENCMO_REPORT_CONCURRENCY", 1),
+        "graph_expansion": _get_positive_int_env("OPENCMO_GRAPH_EXPANSION_CONCURRENCY", 1),
+        "github_enrich": _get_positive_int_env("OPENCMO_GITHUB_ENRICH_CONCURRENCY", 1),
+        "blog_generation": _get_positive_int_env("OPENCMO_BLOG_GENERATION_CONCURRENCY", 1),
+    }
+
+
 def get_background_worker() -> BackgroundWorker:
     global _default_worker
     if _default_worker is None:
         _default_worker = BackgroundWorker(
-            max_concurrency=100,
+            max_concurrency=_get_positive_int_env("OPENCMO_WORKER_MAX_CONCURRENCY", 4),
+            kind_concurrency=_default_kind_concurrency(),
         )
     return _default_worker

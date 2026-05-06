@@ -4,6 +4,8 @@ import logging
 
 from agents import function_tool
 
+from opencmo.tools.browser_pool import browser_slot
+
 logger = logging.getLogger(__name__)
 
 
@@ -61,8 +63,9 @@ async def web_search(query: str) -> str:
         from opencmo.tools.crawl import _extract_markdown
 
         url = f"https://www.google.com/search?q={query.replace(' ', '+')}&num=5"
-        async with AsyncWebCrawler() as crawler:
-            result = await crawler.arun(url=url)
+        async with browser_slot():
+            async with AsyncWebCrawler() as crawler:
+                result = await crawler.arun(url=url)
         content = _extract_markdown(result)
         return content[:4000] if content else "No search results found."
     except Exception as e:

@@ -10,6 +10,10 @@ REPORT_KINDS = ("strategic", "periodic")
 REPORT_AUDIENCES = ("human", "agent")
 
 
+def _record_is_usable(record: dict) -> bool:
+    return record.get("generation_status") == "completed" and bool((record.get("content") or "").strip())
+
+
 def _row_to_dict(row) -> dict:
     return {
         "id": row[0],
@@ -59,22 +63,25 @@ async def create_report_bundle(
         created_ids: list[int] = []
         for audience in audiences:
             record = records[audience]
-            await db.execute(
-                """UPDATE reports
-                   SET is_latest = 0
-                   WHERE project_id = ? AND kind = ? AND audience = ?""",
-                (project_id, kind, audience),
-            )
+            mark_latest = _record_is_usable(record)
+            if mark_latest:
+                await db.execute(
+                    """UPDATE reports
+                       SET is_latest = 0
+                       WHERE project_id = ? AND kind = ? AND audience = ?""",
+                    (project_id, kind, audience),
+                )
             insert = await db.execute(
                 """INSERT INTO reports (
                        project_id, kind, audience, version, is_latest, source_run_id,
                        window_start, window_end, generation_status, content, content_html, meta_json
-                   ) VALUES (?, ?, ?, ?, 1, ?, ?, ?, ?, ?, ?, ?)""",
+                   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 (
                     project_id,
                     kind,
                     audience,
                     version,
+                    1 if mark_latest else 0,
                     source_run_id,
                     window_start,
                     window_end,

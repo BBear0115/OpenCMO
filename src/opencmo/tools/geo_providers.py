@@ -8,6 +8,7 @@ from dataclasses import dataclass
 
 from crawl4ai import AsyncWebCrawler
 
+from opencmo.tools.browser_pool import browser_slot
 from opencmo.tools.crawl import _extract_markdown
 
 # ---------------------------------------------------------------------------
@@ -290,21 +291,22 @@ class PerplexityProvider(GeoProvider):
         snippet_chars = _get_snippet_chars()
         url = f"https://www.perplexity.ai/search?q={query.replace(' ', '+')}"
         try:
-            async with AsyncWebCrawler() as crawler:
-                crawl_result = await crawler.arun(url=url)
-                content = _extract_markdown(crawl_result)
-                mentioned, mention_count, position_pct = _analyze_text(
-                    content, brand_name
-                )
-                return GeoProviderResult(
-                    platform=self.name,
-                    mentioned=mentioned,
-                    mention_count=mention_count,
-                    position_pct=position_pct,
-                    content_snippet=content[:snippet_chars],
-                    error=None,
-                    query=query,
-                )
+            async with browser_slot():
+                async with AsyncWebCrawler() as crawler:
+                    crawl_result = await crawler.arun(url=url)
+                    content = _extract_markdown(crawl_result)
+                    mentioned, mention_count, position_pct = _analyze_text(
+                        content, brand_name
+                    )
+                    return GeoProviderResult(
+                        platform=self.name,
+                        mentioned=mentioned,
+                        mention_count=mention_count,
+                        position_pct=position_pct,
+                        content_snippet=content[:snippet_chars],
+                        error=None,
+                        query=query,
+                    )
         except Exception as e:
             return GeoProviderResult(
                 platform=self.name,
@@ -335,21 +337,22 @@ class YouDotComProvider(GeoProvider):
         snippet_chars = _get_snippet_chars()
         url = f"https://you.com/search?q={query.replace(' ', '+')}"
         try:
-            async with AsyncWebCrawler() as crawler:
-                crawl_result = await crawler.arun(url=url)
-                content = _extract_markdown(crawl_result)
-                mentioned, mention_count, position_pct = _analyze_text(
-                    content, brand_name
-                )
-                return GeoProviderResult(
-                    platform=self.name,
-                    mentioned=mentioned,
-                    mention_count=mention_count,
-                    position_pct=position_pct,
-                    content_snippet=content[:snippet_chars],
-                    error=None,
-                    query=query,
-                )
+            async with browser_slot():
+                async with AsyncWebCrawler() as crawler:
+                    crawl_result = await crawler.arun(url=url)
+                    content = _extract_markdown(crawl_result)
+                    mentioned, mention_count, position_pct = _analyze_text(
+                        content, brand_name
+                    )
+                    return GeoProviderResult(
+                        platform=self.name,
+                        mentioned=mentioned,
+                        mention_count=mention_count,
+                        position_pct=position_pct,
+                        content_snippet=content[:snippet_chars],
+                        error=None,
+                        query=query,
+                    )
         except Exception as e:
             return GeoProviderResult(
                 platform=self.name,

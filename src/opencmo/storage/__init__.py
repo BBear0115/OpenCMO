@@ -32,6 +32,16 @@ from opencmo.storage.approvals import (
     update_approval_status,
 )
 
+# --- Blog Drafts ---
+from opencmo.storage.blog_drafts import (
+    count_blog_drafts,
+    create_blog_draft,
+    get_blog_draft,
+    get_blog_drafts_by_task,
+    list_blog_drafts,
+    update_blog_draft,
+)
+
 # --- Brand Kit ---
 from opencmo.storage.brand_kit import (
     build_brand_kit_prompt,
@@ -105,6 +115,12 @@ from opencmo.storage.github import (
     upsert_github_lead,
 )
 
+# --- GitHub stats cache (Built-in-open block) ---
+from opencmo.storage.github_stats_cache import (
+    get_cached_github_stats,
+    set_cached_github_stats,
+)
+
 # --- Graph expansion ---
 from opencmo.storage.graph import (
     add_expansion_edge,
@@ -130,6 +146,7 @@ from opencmo.storage.insights import (
     is_insight_duplicate,
     is_project_autopilot_enabled,
     list_insights,
+    mark_all_insights_read,
     mark_insight_read,
     save_insight,
     snapshot_project_metrics,
@@ -214,6 +231,13 @@ from opencmo.storage.site_stats import (
     increment_site_counter,
 )
 
+# --- Waitlist (hosted version signups) ---
+from opencmo.storage.waitlist import (
+    add_to_waitlist,
+    count_waitlist,
+    is_valid_email,
+)
+
 
 def __getattr__(name: str):
     if name == "_DB_PATH":
@@ -278,6 +302,10 @@ __all__ = [
     "get_setting", "set_setting", "delete_setting",
     # site stats
     "get_site_counter", "increment_site_counter",
+    # waitlist
+    "add_to_waitlist", "count_waitlist", "is_valid_email",
+    # github stats cache
+    "get_cached_github_stats", "set_cached_github_stats",
     # approvals
     "create_approval", "get_approval", "list_approvals",
     "update_approval_status", "create_approval_with_source",
@@ -296,7 +324,7 @@ __all__ = [
     "get_campaign_run", "list_campaign_runs",
     # insights
     "save_insight", "is_insight_duplicate", "list_insights",
-    "mark_insight_read", "get_insights_summary",
+    "mark_insight_read", "mark_all_insights_read", "get_insights_summary",
     "get_pending_actionable_insights", "update_insight_execution",
     "snapshot_project_metrics", "is_project_autopilot_enabled",
     "count_recent_autopilot_approvals",
@@ -315,4 +343,7 @@ __all__ = [
     "update_lead_score", "batch_update_enrichment", "get_unenriched_leads",
     "delete_github_leads", "create_discovery_run", "update_discovery_run",
     "list_discovery_runs", "get_github_lead_stats",
+    # blog_drafts
+    "create_blog_draft", "update_blog_draft", "get_blog_draft",
+    "list_blog_drafts", "get_blog_drafts_by_task", "count_blog_drafts",
 ]

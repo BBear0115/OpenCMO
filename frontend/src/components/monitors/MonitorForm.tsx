@@ -72,10 +72,10 @@ export function MonitorForm({
             }`}
           >
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                <div className="flex items-start gap-3">
-                  {keysReady ? (
-                    <CheckCircle2 size={18} className="mt-0.5 text-emerald-600" />
-                  ) : (
+              <div className="flex items-start gap-3">
+                {keysReady ? (
+                  <CheckCircle2 size={18} className="mt-0.5 text-emerald-600" />
+                ) : (
                   <KeyRound size={18} className="mt-0.5 text-amber-600" />
                 )}
                 <div>
@@ -88,24 +88,6 @@ export function MonitorForm({
                   <p className={`mt-2 text-xs ${keysReady ? "text-emerald-800/70" : "text-amber-800/70"}`}>
                     {t("onboarding.privacyHint")}
                   </p>
-                  <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                    <div className="rounded-2xl bg-white/80 px-3 py-3">
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">
-                        {t(keysReady ? "onboarding.fullModeTitle" : "onboarding.limitedModeWorksTitle")}
-                      </p>
-                      <p className="mt-2 text-sm leading-6 text-slate-700">
-                        {t(keysReady ? "onboarding.fullModeDesc" : "onboarding.limitedModeWorks")}
-                      </p>
-                    </div>
-                    <div className="rounded-2xl bg-white/80 px-3 py-3">
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">
-                        {t(keysReady ? "onboarding.privacyTitle" : "onboarding.limitedModeNeedsKeyTitle")}
-                      </p>
-                      <p className="mt-2 text-sm leading-6 text-slate-700">
-                        {t(keysReady ? "onboarding.privacyDesc" : "onboarding.limitedModeNeedsKey")}
-                      </p>
-                    </div>
-                  </div>
                 </div>
               </div>
 

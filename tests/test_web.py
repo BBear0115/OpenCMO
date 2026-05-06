@@ -157,6 +157,51 @@ def test_api_v1_projects_crud(client):
     assert resp.status_code == 404
 
 
+def test_api_v1_blog_skills_lists_marketing_frameworks(client):
+    resp = client.get("/api/v1/blog/skills")
+
+    assert resp.status_code == 200
+    skills = resp.json()
+    assert any(skill["id"] == "ai_seo" for skill in skills)
+    assert all(skill["license"] == "MIT" for skill in skills)
+
+
+def test_api_v1_generate_blog_rejects_unknown_marketing_skill(client):
+    pid = _seed_project("Blog Skill", "https://blog-skill.test")
+
+    resp = client.post(
+        f"/api/v1/projects/{pid}/blog/generate",
+        json={"style": "launch", "skill_id": "unknown"},
+    )
+
+    assert resp.status_code == 400
+    assert "Invalid marketing skill" in resp.json()["error"]
+
+
+def test_api_v1_generate_blog_enqueues_skill_payload(client):
+    from opencmo.web.routers import blog_gen as blog_gen_router
+
+    pid = _seed_project("Blog Queue", "https://blog-queue.test")
+
+    with patch.object(blog_gen_router.bg_service, "find_active_task_by_dedupe_key", AsyncMock(return_value=None)) as find_active, \
+         patch.object(blog_gen_router.bg_service, "enqueue_task", AsyncMock(return_value={"task_id": "blog-task-1"})) as enqueue:
+        resp = client.post(
+            f"/api/v1/projects/{pid}/blog/generate",
+            json={"style": "comparison", "skill_id": "ai_seo", "bilingual": True},
+        )
+
+    assert resp.status_code == 202
+    payload = resp.json()
+    assert payload["skill_id"] == "ai_seo"
+    assert payload["skill_name"] == "AI SEO"
+
+    find_active.assert_awaited_once_with(f"blog_generation:project:{pid}:comparison:ai_seo:bilingual:1")
+    enqueue_kwargs = enqueue.await_args.kwargs
+    assert enqueue_kwargs["kind"] == "blog_generation"
+    assert enqueue_kwargs["payload"]["skill_id"] == "ai_seo"
+    assert enqueue_kwargs["payload"]["bilingual"] is True
+
+
 def test_api_v1_community_discussions_include_match_metadata(client):
     pid = _seed_project("Signals", "https://signals.test")
 
@@ -343,11 +388,73 @@ def test_api_v1_task_artifacts_summarize_scan_story(client):
     assert payload["overview"]["findings_count"] == 2
     assert payload["overview"]["recommendations_count"] == 1
     assert payload["overview"]["focus_domains"] == ["community", "seo"]
+    assert payload["quality"]["level"] == "partial"
+    assert payload["watchouts"][0]["kind"] == "fallback"
     assert payload["brief"]["top_findings"][0]["title"] == "No direct mentions in high-value communities"
     assert payload["brief"]["top_recommendations"][0]["title"] == "Reply to active comparison threads this week"
     assert payload["stage_cards"][1]["stage"] == "signal_collect"
+    assert payload["stage_cards"][1]["kind"] == "fallback"
     assert payload["issues"][0]["stage"] == "signal_collect"
-    assert "fallback" in payload["issues"][0]["resolution"].lower()
+    assert "backup source" in payload["issues"][0]["resolution"].lower()
+
+
+def test_api_v1_task_artifacts_mark_keywords_gap_as_limited(client):
+    from opencmo.background import service as bg_service
+
+    pid = _seed_project("Coverage Gap", "https://coverage-gap.test")
+    task = asyncio.run(
+        bg_service.enqueue_task(
+            kind="scan",
+            project_id=pid,
+            payload={
+                "monitor_id": 19,
+                "project_id": pid,
+                "job_type": "full",
+                "job_id": 19,
+            },
+            dedupe_key=None,
+        )
+    )
+    run_id = asyncio.run(storage.create_scan_run(task["task_id"], 19, pid, "full"))
+    asyncio.run(storage.replace_scan_artifacts(run_id, findings=[], recommendations=[]))
+    asyncio.run(
+        bg_service.append_event(
+            task["task_id"],
+            event_type="progress",
+            phase="context_build",
+            status="warning",
+            summary="AI analysis did not extract any keywords. Downstream SEO and SERP checks will have limited coverage.",
+            payload={
+                "stage": "context_build",
+                "status": "warning",
+                "summary": "AI analysis did not extract any keywords. Downstream SEO and SERP checks will have limited coverage.",
+                "code": "keywords_missing",
+                "kind": "coverage_gap",
+                "hint": "Seed initial keywords or rerun after crawl access is fixed so downstream SEO and SERP checks have coverage.",
+                "blocking": True,
+            },
+        )
+    )
+    asyncio.run(
+        bg_service.complete_task(
+            task["task_id"],
+            result={
+                "run_id": run_id,
+                "summary": "Scan completed with incomplete keyword coverage.",
+                "findings_count": 0,
+                "recommendations_count": 0,
+            },
+        )
+    )
+
+    resp = client.get(f"/api/v1/tasks/{task['task_id']}/artifacts")
+    assert resp.status_code == 200
+    payload = resp.json()
+
+    assert payload["quality"]["level"] == "limited"
+    assert payload["quality"]["blocking"] is True
+    assert payload["watchouts"][0]["code"] == "keywords_missing"
+    assert payload["stage_cards"][0]["kind"] == "degraded"
 
 
 def test_api_v1_task_artifacts_include_opportunities_and_cluster_summary(client):
@@ -605,6 +712,7 @@ def test_api_v1_monitors_create_url_only(client):
 def test_web_lifecycle_starts_and_stops_scheduler(tmp_path):
     db_path = tmp_path / "test.db"
     with patch.object(storage, "_DB_PATH", db_path), \
+         patch("opencmo.scheduler.is_scheduler_enabled", return_value=True), \
          patch("opencmo.scheduler.is_scheduler_available", return_value=True), \
          patch("opencmo.scheduler.load_jobs_from_db", new_callable=AsyncMock, return_value=0) as mock_load, \
          patch("opencmo.scheduler.start_scheduler") as mock_start, \
@@ -615,6 +723,23 @@ def test_web_lifecycle_starts_and_stops_scheduler(tmp_path):
 
         mock_load.assert_awaited_once()
         mock_start.assert_called_once()
+        mock_stop.assert_called_once()
+
+
+def test_web_lifecycle_skips_scheduler_when_disabled(tmp_path):
+    db_path = tmp_path / "test.db"
+    with patch.object(storage, "_DB_PATH", db_path), \
+         patch("opencmo.scheduler.is_scheduler_enabled", return_value=False), \
+         patch("opencmo.scheduler.is_scheduler_available", return_value=True), \
+         patch("opencmo.scheduler.load_jobs_from_db", new_callable=AsyncMock) as mock_load, \
+         patch("opencmo.scheduler.start_scheduler") as mock_start, \
+         patch("opencmo.scheduler.stop_scheduler") as mock_stop:
+        with TestClient(app) as test_client:
+            resp = test_client.get("/api/v1/health")
+            assert resp.status_code == 200
+
+        mock_load.assert_not_called()
+        mock_start.assert_not_called()
         mock_stop.assert_called_once()
 
 
@@ -919,11 +1044,14 @@ def test_api_v1_reports_lifecycle(client):
     })
     pid = resp.json()["project_id"]
 
-    with patch("opencmo.reports._generate_llm_markdown", new_callable=AsyncMock) as mock_llm:
-        mock_llm.side_effect = [
+    with patch("opencmo.report_pipeline.run_deep_report_pipeline", new_callable=AsyncMock) as mock_pipeline, \
+         patch("opencmo.reports._generate_llm_markdown", new_callable=AsyncMock) as mock_llm:
+        mock_pipeline.side_effect = [
             "# Strategic Human",
-            "# Strategic Agent",
             "# Weekly Human",
+        ]
+        mock_llm.side_effect = [
+            "# Strategic Agent",
             "# Weekly Agent",
         ]
 
@@ -961,6 +1089,36 @@ def test_api_v1_reports_lifecycle(client):
         summary = client.get(f"/api/v1/projects/{pid}/summary")
         assert summary.status_code == 200
         assert summary.json()["latest_reports"]["strategic"]["human"]["id"] == report_id
+
+
+def test_api_v1_report_task_fails_when_human_report_is_not_usable(client):
+    resp = client.post("/api/v1/monitors", json={
+        "brand": "RepFail", "url": "https://repfail.com", "category": "dev"
+    })
+    pid = resp.json()["project_id"]
+
+    with patch("opencmo.report_pipeline.run_deep_report_pipeline", new_callable=AsyncMock) as mock_pipeline, \
+         patch("opencmo.reports._generate_llm_markdown", new_callable=AsyncMock) as mock_llm:
+        mock_pipeline.side_effect = RuntimeError("Pipeline exploded")
+        mock_llm.side_effect = RuntimeError("LLM unavailable")
+
+        strategic = client.post(f"/api/v1/projects/{pid}/reports/strategic/regenerate")
+        assert strategic.status_code == 200
+
+        strategic_task = _wait_for_report_task(client, strategic.json()["task_id"])
+        assert strategic_task["status"] == "failed"
+        assert "LLM unavailable" in strategic_task["error"]
+
+        latest = client.get(f"/api/v1/projects/{pid}/reports/latest")
+        assert latest.status_code == 200
+        latest_payload = latest.json()
+        assert latest_payload["strategic"]["human"] is None
+        assert latest_payload["strategic"]["agent"] is None
+
+        listed = client.get(f"/api/v1/projects/{pid}/reports")
+        assert listed.status_code == 200
+        assert len(listed.json()) == 2
+        assert all(item["is_latest"] is False for item in listed.json())
 
 
 def test_api_v1_graph_expansion_progress_uses_background_runtime(client):
@@ -1423,10 +1581,46 @@ def test_spa_catchall_blog_route_injects_public_metadata(client, tmp_path):
     with patch.object(app_module, "_SPA_DIR", spa_dir):
         resp = client.get("/blog")
         assert resp.status_code == 200
-        assert "OpenCMO Blog | Field Guide to Visibility Operations and OpenCMO" in resp.text
+        assert "OpenCMO Blog | CMO, Product Marketing, GTM, and AI CMO Field Guide" in resp.text
         assert 'href="https://www.aidcmo.com/blog"' in resp.text
-        assert "A public field guide to what OpenCMO is, who it is for, and how the system should be used" in resp.text
-        assert "Who should use OpenCMO, and when it starts paying for itself" in resp.text
+        assert 'hreflang="x-default"' in resp.text
+        assert 'href="https://www.aidcmo.com/en/blog"' in resp.text
+        assert "A public field guide to what OpenCMO is, how it fits the stack, and how teams should use it" in resp.text
+        assert "What is product marketing? Responsibilities, examples, and where it fits" in resp.text
+
+
+def test_spa_catchall_zh_blog_route_injects_localized_metadata(client, tmp_path):
+    spa_dir = tmp_path / "spa_dist"
+    spa_dir.mkdir()
+    (spa_dir / "index.html").write_text(
+        """
+        <html lang="en">
+          <head>
+            <title>OpenCMO | Home</title>
+            <meta name="description" content="home desc" />
+            <link rel="canonical" href="https://www.aidcmo.com/" />
+            <meta property="og:title" content="OpenCMO | Home" />
+            <meta property="og:description" content="home desc" />
+            <meta property="og:url" content="https://www.aidcmo.com/" />
+            <meta name="twitter:title" content="OpenCMO | Home" />
+            <meta name="twitter:description" content="home desc" />
+            <script type="application/ld+json">{}</script>
+          </head>
+          <body>
+            <main id="static-site-copy"><h1>Home</h1></main>
+          </body>
+        </html>
+        """
+    )
+
+    with patch.object(app_module, "_SPA_DIR", spa_dir):
+        resp = client.get("/zh/blog")
+        assert resp.status_code == 200
+        assert '<html lang="zh-CN">' in resp.text
+        assert "OpenCMO Blog | CMO、产品营销、GTM 与 AI CMO 公开说明" in resp.text
+        assert 'href="https://www.aidcmo.com/zh/blog"' in resp.text
+        assert 'hreflang="zh-CN"' in resp.text
+        assert "一组公开文章：解释 OpenCMO 是什么、适合谁，以及它和相邻工具的边界" in resp.text
 
 
 def test_spa_catchall_no_dist(client, tmp_path):

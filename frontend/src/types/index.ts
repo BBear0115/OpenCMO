@@ -63,7 +63,7 @@ export interface MonitorRun {
 
 export interface TaskRecord {
   task_id: string;
-  task_kind?: "scan" | "report" | "graph_expansion";
+  task_kind?: "scan" | "report" | "graph_expansion" | "blog_generation";
   monitor_id?: number;
   project_id: number;
   job_type?: string;
@@ -81,6 +81,12 @@ export interface TaskRecord {
   current_wave?: number;
   nodes_discovered?: number;
   nodes_explored?: number;
+  style?: BlogStyle;
+  skill_id?: MarketingSkillId;
+  skill_name?: string;
+  bilingual?: boolean;
+  draft_ids?: number[];
+  quality_scores?: BlogQualityScores;
 }
 
 export interface TaskArtifactStageCard {
@@ -89,6 +95,8 @@ export interface TaskArtifactStageCard {
   summary: string;
   agent: string;
   event_count: number;
+  kind?: "normal" | "fallback" | "degraded";
+  hint?: string;
 }
 
 export interface TaskArtifactIssue {
@@ -96,6 +104,26 @@ export interface TaskArtifactIssue {
   status: "warning" | "failed";
   summary: string;
   resolution: string;
+}
+
+export interface TaskArtifactWatchout {
+  stage: string;
+  status: "started" | "running" | "completed" | "failed" | "warning";
+  kind: "source_limit" | "fallback" | "coverage_gap" | "task_error";
+  code: string;
+  title: string;
+  summary: string;
+  resolution: string;
+  blocking: boolean;
+}
+
+export interface TaskArtifactQuality {
+  level: "reliable" | "partial" | "limited";
+  headline: string;
+  summary: string;
+  blocking: boolean;
+  fallbacks_used: string[];
+  source_warnings: string[];
 }
 
 export interface TaskArtifactOpportunity {
@@ -125,7 +153,9 @@ export interface TaskArtifacts {
     recommendations_count: number;
     focus_domains: string[];
   };
+  quality: TaskArtifactQuality;
   stage_cards: TaskArtifactStageCard[];
+  watchouts: TaskArtifactWatchout[];
   issues: TaskArtifactIssue[];
   brief: {
     top_findings: Finding[];
@@ -353,6 +383,59 @@ export interface ProjectSummary {
   keyword_count?: number;
   competitor_count?: number;
   pending_approvals?: number;
+  blog_drafts_count?: number;
+}
+
+export type BlogStyle = "launch" | "case_study" | "comparison" | "thought_leadership";
+export type MarketingSkillId =
+  | "content_strategy"
+  | "copywriting"
+  | "ai_seo"
+  | "competitor_alternatives"
+  | "programmatic_seo"
+  | "directory_submissions";
+
+export interface BlogQualityScores {
+  seo: number;
+  readability: number;
+  keyword_coverage: number;
+  structure: number;
+  overall: number;
+  framework?: number;
+  [key: string]: number | string | undefined;
+}
+
+export interface BlogDraftMeta {
+  marketing_skill?: {
+    id: MarketingSkillId;
+    name: string;
+    description?: string;
+    source_path?: string;
+    source_url?: string;
+    source_commit?: string;
+    license?: string;
+  };
+  source_commit?: string;
+  translated_from_draft_id?: number;
+  [key: string]: unknown;
+}
+
+export interface BlogDraft {
+  id: number;
+  project_id: number;
+  task_id: string;
+  style: BlogStyle;
+  language: string;
+  status: string;
+  title: string;
+  content?: string;
+  content_preview?: string;
+  quality_scores: BlogQualityScores;
+  paired_draft_id: number | null;
+  approval_id: number | null;
+  meta?: BlogDraftMeta;
+  created_at: string;
+  completed_at: string | null;
 }
 
 export type ReportKind = "strategic" | "periodic";

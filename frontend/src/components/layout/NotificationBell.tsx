@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import { Bell, ChevronRight, Loader2 } from "lucide-react";
+import { Bell, CheckCheck, ChevronRight, Loader2 } from "lucide-react";
 import { useLocation, useNavigate } from "react-router";
 import type { InsightActionParams, InsightSeverity, InsightSummaryItem } from "../../api/insights";
-import { useInsightsSummary, useMarkInsightRead } from "../../hooks/useInsights";
+import { useInsightsSummary, useMarkAllInsightsRead, useMarkInsightRead } from "../../hooks/useInsights";
 import { useI18n } from "../../i18n";
+import { getSeverityLabelKey } from "../../utils/severity";
+import { utcDate } from "../../utils/time";
 
 function getSeverityStyles(severity: InsightSeverity) {
   switch (severity) {
@@ -30,8 +32,6 @@ function getInsightRoute(actionParams: InsightActionParams): string | null {
     ? actionParams.route
     : null;
 }
-
-import { utcDate } from "../../utils/time";
 
 function formatTimeAgo(value: string, locale: string) {
   const timestamp = utcDate(value).getTime();
@@ -77,6 +77,7 @@ export function NotificationBell() {
 
   const { data, isLoading } = useInsightsSummary(currentProjectId);
   const markInsightRead = useMarkInsightRead();
+  const markAllInsightsRead = useMarkAllInsightsRead();
 
   const recentInsights = data?.recent ?? [];
   const unreadCount = data?.unread_count ?? 0;
@@ -127,6 +128,14 @@ export function NotificationBell() {
     }
   }
 
+  async function handleClearAll() {
+    try {
+      await markAllInsightsRead.mutateAsync(currentProjectId);
+    } catch {
+      // The optimistic cache update is rolled back by the hook if the request fails.
+    }
+  }
+
   return (
     <div ref={containerRef} className="relative">
       <button
@@ -148,7 +157,7 @@ export function NotificationBell() {
 
       {open && (
         <div className="absolute right-0 top-[calc(100%+0.75rem)] z-40 w-[min(24rem,calc(100vw-2rem))] overflow-hidden rounded-[1.5rem] border border-white/60 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.92))] p-3 shadow-[0_24px_60px_rgba(15,23,42,0.16)] backdrop-blur-2xl ring-1 ring-slate-950/5">
-          <div className="mb-2 flex items-center justify-between px-2 py-1">
+          <div className="mb-2 flex items-start justify-between gap-3 px-2 py-1">
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">
                 {t("insights.proactive")}
@@ -156,9 +165,26 @@ export function NotificationBell() {
               <h3 className="text-sm font-semibold text-slate-900">{t("insights.title")}</h3>
             </div>
             {unreadCount > 0 && (
-              <span className="rounded-full bg-slate-900 px-2.5 py-1 text-[11px] font-semibold text-white">
-                {unreadCount}
-              </span>
+              <div className="flex shrink-0 items-center gap-2">
+                <span className="rounded-full bg-slate-900 px-2.5 py-1 text-[11px] font-semibold text-white">
+                  {unreadCount}
+                </span>
+                <button
+                  type="button"
+                  disabled={markAllInsightsRead.isPending}
+                  onClick={() => {
+                    void handleClearAll();
+                  }}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-600 transition-colors hover:border-slate-300 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {markAllInsightsRead.isPending ? (
+                    <Loader2 size={12} className="animate-spin" />
+                  ) : (
+                    <CheckCheck size={12} />
+                  )}
+                  {t("insights.clearAll")}
+                </button>
+              </div>
             )}
           </div>
 
@@ -188,7 +214,7 @@ export function NotificationBell() {
                           <p className="text-sm font-semibold text-slate-900">{insight.title}</p>
                           <div className="mt-1 flex items-center gap-2">
                             <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] ring-1 ${severity.badge}`}>
-                              {insight.severity}
+                              {t(getSeverityLabelKey(insight.severity))}
                             </span>
                             <span className="text-[11px] text-slate-400">
                               {formatTimeAgo(insight.created_at, locale)}

@@ -171,6 +171,7 @@ npm run build
 ## Contributors
 
 - [study8677](https://github.com/study8677) - Creator and maintainer
+- [Lling0000](https://github.com/Lling0000) - 가장 주요한 기여자
 - [ParakhJaggi](https://github.com/ParakhJaggi) - Tavily integration ([#2](https://github.com/study8677/OpenCMO/pull/2), [#3](https://github.com/study8677/OpenCMO/pull/3))
 - [BBear0115](https://github.com/BBear0115) - BYOK 키 격리, base_url 정규화 및 리포트 버그 수정 ([#9](https://github.com/study8677/OpenCMO/pull/9))
 - 전체 목록은 [CONTRIBUTORS.md](CONTRIBUTORS.md) 참고

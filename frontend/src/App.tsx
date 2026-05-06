@@ -1,7 +1,11 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, type ReactNode } from "react";
 import { BrowserRouter, Routes, Route } from "react-router";
 import { AppShell } from "./components/layout/AppShell";
+import { PublicLocaleSync } from "./components/marketing/PublicLocaleSync";
 import { LandingPage } from "./pages/LandingPage";
+import { PublicServicePage, type PublicServicePageKind } from "./pages/PublicServicePage";
+import { ServicesPage } from "./pages/ServicesPage";
+import { HostedWaitlistPage } from "./pages/HostedWaitlistPage";
 import { BlogPage } from "./pages/BlogPage";
 import { BlogArticlePage } from "./pages/BlogArticlePage";
 import { DashboardPage } from "./pages/DashboardPage";
@@ -15,6 +19,7 @@ import { ApprovalsPage } from "./pages/ApprovalsPage";
 import { BrandKitPage } from "./pages/BrandKitPage";
 import { ProjectMonitorsPage } from "./pages/ProjectMonitorsPage";
 import { GitHubLeadsPage } from "./pages/GitHubLeadsPage";
+import { ContentPage } from "./pages/ContentPage";
 
 // Heavy pages lazy-loaded: Three.js graph, react-markdown reports/chat, recharts performance
 const GraphPage = lazy(() =>
@@ -40,13 +45,53 @@ function LazyFallback() {
   );
 }
 
+function LocalizedPublicPage({
+  locale,
+  children,
+}: {
+  locale: "en" | "zh";
+  children: ReactNode;
+}) {
+  return (
+    <PublicLocaleSync locale={locale}>
+      {children}
+    </PublicLocaleSync>
+  );
+}
+
 function AppRoutes() {
+  const localizedService = (locale: "en" | "zh", kind: PublicServicePageKind) => (
+    <LocalizedPublicPage locale={locale}>
+      <PublicServicePage kind={kind} />
+    </LocalizedPublicPage>
+  );
+
   return (
     <Routes>
       <Route path="/" element={<LandingPage />} />
+      <Route path="/en" element={<LocalizedPublicPage locale="en"><LandingPage /></LocalizedPublicPage>} />
+      <Route path="/zh" element={<LocalizedPublicPage locale="zh"><LandingPage /></LocalizedPublicPage>} />
+      <Route path="/services" element={<ServicesPage />} />
+      <Route path="/en/services" element={<LocalizedPublicPage locale="en"><ServicesPage /></LocalizedPublicPage>} />
+      <Route path="/zh/services" element={<LocalizedPublicPage locale="zh"><ServicesPage /></LocalizedPublicPage>} />
+      <Route path="/hosted" element={<HostedWaitlistPage />} />
+      <Route path="/en/hosted" element={<LocalizedPublicPage locale="en"><HostedWaitlistPage /></LocalizedPublicPage>} />
+      <Route path="/zh/hosted" element={<LocalizedPublicPage locale="zh"><HostedWaitlistPage /></LocalizedPublicPage>} />
+      <Route path="/open-source" element={<PublicServicePage kind="open-source" />} />
+      <Route path="/en/open-source" element={localizedService("en", "open-source")} />
+      <Route path="/zh/open-source" element={localizedService("zh", "open-source")} />
+      <Route path="/contact" element={<PublicServicePage kind="contact" />} />
+      <Route path="/en/contact" element={localizedService("en", "contact")} />
+      <Route path="/zh/contact" element={localizedService("zh", "contact")} />
       <Route path="/sample-audit" element={<SampleAuditPage />} />
+      <Route path="/en/sample-audit" element={<LocalizedPublicPage locale="en"><SampleAuditPage /></LocalizedPublicPage>} />
+      <Route path="/zh/sample-audit" element={<LocalizedPublicPage locale="zh"><SampleAuditPage /></LocalizedPublicPage>} />
       <Route path="/blog" element={<BlogPage />} />
+      <Route path="/en/blog" element={<LocalizedPublicPage locale="en"><BlogPage /></LocalizedPublicPage>} />
+      <Route path="/zh/blog" element={<LocalizedPublicPage locale="zh"><BlogPage /></LocalizedPublicPage>} />
       <Route path="/blog/:slug" element={<BlogArticlePage />} />
+      <Route path="/en/blog/:slug" element={<LocalizedPublicPage locale="en"><BlogArticlePage /></LocalizedPublicPage>} />
+      <Route path="/zh/blog/:slug" element={<LocalizedPublicPage locale="zh"><BlogArticlePage /></LocalizedPublicPage>} />
       <Route
         path="*"
         element={(
@@ -57,6 +102,7 @@ function AppRoutes() {
                 <Route path="/approvals" element={<ApprovalsPage />} />
                 <Route path="/projects/:id" element={<ProjectPage />} />
                 <Route path="/projects/:id/reports" element={<ReportsPage />} />
+                <Route path="/projects/:id/content" element={<ContentPage />} />
                 <Route path="/projects/:id/brand-kit" element={<BrandKitPage />} />
                 <Route
                   path="/projects/:id/performance"

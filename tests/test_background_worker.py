@@ -179,6 +179,31 @@ async def test_worker_respects_kind_concurrency(tmp_path, monkeypatch):
     assert peak_report <= 1
 
 
+def test_get_background_worker_uses_env_backed_limits(monkeypatch):
+    from opencmo.background import worker as worker_module
+
+    monkeypatch.setenv("OPENCMO_WORKER_MAX_CONCURRENCY", "3")
+    monkeypatch.setenv("OPENCMO_SCAN_CONCURRENCY", "1")
+    monkeypatch.setenv("OPENCMO_REPORT_CONCURRENCY", "2")
+    monkeypatch.setenv("OPENCMO_GRAPH_EXPANSION_CONCURRENCY", "4")
+    monkeypatch.setenv("OPENCMO_GITHUB_ENRICH_CONCURRENCY", "5")
+
+    original_worker = worker_module._default_worker
+    worker_module._default_worker = None
+    try:
+        worker = worker_module.get_background_worker()
+        assert worker.max_concurrency == 3
+        assert worker._kind_limits == {
+            "scan": 1,
+            "report": 2,
+            "graph_expansion": 4,
+            "github_enrich": 5,
+            "blog_generation": 1,
+        }
+    finally:
+        worker_module._default_worker = original_worker
+
+
 @pytest.mark.asyncio
 async def test_run_after_delays_task_execution(tmp_path, monkeypatch):
     """Tasks with run_after in the future should not be claimed."""

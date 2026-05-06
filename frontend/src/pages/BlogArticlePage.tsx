@@ -7,26 +7,29 @@ import {
   BLOG_ARTICLES,
   PUBLIC_BLOG_NAV,
   findBlogArticleBySlug,
-  getBlogArticlePath,
+  getBlogIndexPath,
+  getLocalizedBlogArticlePath,
 } from "../content/marketing";
-import { usePageMetadata } from "../hooks/usePageMetadata";
+import { usePublicPageMetadata } from "../hooks/usePublicPageMetadata";
 import { useI18n } from "../i18n";
+import { getSeoLocaleFromLocale } from "../utils/publicRoutes";
 
 export function BlogArticlePage() {
   const { slug = "" } = useParams();
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
+  const seoLocale = getSeoLocaleFromLocale(locale);
   const article = findBlogArticleBySlug(slug);
 
   if (!article) {
-    return <Navigate to="/blog" replace />;
+    return <Navigate to={getBlogIndexPath(seoLocale)} replace />;
   }
 
   const relatedArticles = BLOG_ARTICLES.filter((item) => item.slug !== article.slug).slice(0, 3);
 
-  usePageMetadata({
+  usePublicPageMetadata({
     title: `${t(article.title)} | OpenCMO Blog`,
     description: t(article.summary),
-    canonicalPath: getBlogArticlePath(article.slug),
+    basePath: `/blog/${article.slug}`,
   });
 
   return (
@@ -39,7 +42,7 @@ export function BlogArticlePage() {
 
           <div className="relative mx-auto max-w-5xl px-4 py-16 lg:px-8 lg:py-20">
             <Link
-              to="/blog"
+              to={getBlogIndexPath(seoLocale)}
               className="inline-flex items-center gap-2 rounded-full border border-white/14 bg-white/8 px-4 py-2 text-sm font-semibold text-white transition-colors hover:border-white/28 hover:bg-white/12"
             >
               <ArrowLeft size={15} />
@@ -133,7 +136,7 @@ export function BlogArticlePage() {
               </h2>
             </div>
             <Link
-              to="/blog"
+              to={getBlogIndexPath(seoLocale)}
               className="inline-flex items-center gap-2 text-sm font-semibold text-slate-700 transition-colors hover:text-slate-950"
             >
               {t("landing.navBlog")}
@@ -145,7 +148,7 @@ export function BlogArticlePage() {
             {relatedArticles.map((item) => (
               <Link
                 key={item.slug}
-                to={getBlogArticlePath(item.slug)}
+                to={getLocalizedBlogArticlePath(item.slug, seoLocale)}
                 className="group rounded-[1.6rem] border border-black/8 bg-white/78 p-5 shadow-[0_18px_50px_rgba(8,32,50,0.05)] transition-transform duration-300 hover:-translate-y-1"
               >
                 <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
@@ -170,7 +173,7 @@ export function BlogArticlePage() {
         </SectionReveal>
 
         <div className="mx-auto max-w-5xl px-4 pt-16 lg:px-8">
-          <SiteFooter />
+          <SiteFooter variant="public" />
         </div>
       </main>
     </div>
