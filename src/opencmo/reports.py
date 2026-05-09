@@ -17,6 +17,8 @@ logger = logging.getLogger(__name__)
 _REPORT_MODEL_DEFAULT = "gpt-5.4"
 _PERIODIC_WINDOW_DAYS = 7
 _REPORT_LLM_TIMEOUT_SECONDS = 300.0
+_CHART_ASSET_SRC_RE = re.compile(r"^/api/v1/report-assets/[a-f0-9]{32}\.svg$")
+_CHART_ASSET_REF_RE = re.compile(r"/api/v1/report-assets/[a-f0-9]{32}\.svg")
 _REPORT_SYSTEM_COMMON = (
     "你是 AI CMO（首席营销官），拥有完整的多智能体营销系统：SEO审计专家、GEO(AI搜索可见性)分析师、"
     "SERP排名追踪器、社区舆情监控(Reddit/HN/Dev.to/知乎/V2EX/掘金等)、AI引文可信度(Citability)评估引擎、"
@@ -123,11 +125,13 @@ def _simple_markdown_to_html(markdown_text: str) -> str:
             continue
         image_match = re.fullmatch(r"!\[([^\]]*)\]\(([^)]+)\)", stripped)
         if image_match:
-            close_list()
-            alt = html.escape(image_match.group(1))
-            src = html.escape(image_match.group(2), quote=True)
-            html_lines.append(f'<figure><img src="{src}" alt="{alt}" /><figcaption>{alt}</figcaption></figure>')
-            continue
+            raw_src = image_match.group(2)
+            if _CHART_ASSET_SRC_RE.fullmatch(raw_src):
+                close_list()
+                alt = html.escape(image_match.group(1))
+                src = html.escape(raw_src, quote=True)
+                html_lines.append(f'<figure><img src="{src}" alt="{alt}" /><figcaption>{alt}</figcaption></figure>')
+                continue
         if stripped.startswith("### "):
             close_list()
             html_lines.append(f"<h3>{html.escape(stripped[4:])}</h3>")
@@ -190,7 +194,7 @@ def _insert_after_first_section(markdown_text: str, section: str) -> str:
 
 def _postprocess_human_report_content(content: str, charts_markdown: str) -> str:
     content = _normalize_report_headings(content)
-    if "## 数据图表速览" in content or "## 2. 数据图表速览" in content:
+    if _CHART_ASSET_REF_RE.search(content):
         return content
     chart_section = f"## 2. 数据图表速览\n\n{charts_markdown or '当前数据不足，未生成图表。'}"
     return _insert_after_first_section(content, chart_section)
@@ -857,9 +861,15 @@ async def _generate_report_record(
     report_model = model
     content = ""
     charts_markdown = ""
+    chart_asset_ids: list[str] = []
 
     if audience == "human":
         facts, meta, charts_markdown = _prepare_report_charts(kind, facts, meta)
+        chart_asset_ids = [
+            chart["asset_id"]
+            for chart in meta.get("charts", [])
+            if isinstance(chart.get("asset_id"), str)
+        ]
 
     # Human reports use the deep multi-agent pipeline;
     # Agent briefs stay single-call (they need to be concise).
@@ -896,6 +906,13 @@ async def _generate_report_record(
             except Exception as exc:
                 llm_error = str(exc) or exc.__class__.__name__
                 logger.exception("Report generation failed for %s/%s", kind, audience)
+                if chart_asset_ids:
+                    try:
+                        from opencmo.report_charts import delete_chart_assets
+
+                        delete_chart_assets(chart_asset_ids)
+                    except Exception:
+                        logger.exception("Failed to clean up chart assets for failed %s/%s report", kind, audience)
                 return _failed_report_payload(
                     meta,
                     model,

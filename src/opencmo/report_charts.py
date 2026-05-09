@@ -8,7 +8,7 @@ import re
 import uuid
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterable
 
 
 @dataclass(frozen=True)
@@ -41,6 +41,17 @@ def get_report_asset_path(asset_id: str) -> Path | None:
     if not re.fullmatch(r"[a-f0-9]{32}", asset_id):
         return None
     return get_report_asset_dir() / f"{asset_id}.svg"
+
+
+def delete_chart_assets(asset_ids: Iterable[str]) -> None:
+    for asset_id in asset_ids:
+        asset_path = get_report_asset_path(asset_id)
+        if not asset_path:
+            continue
+        try:
+            asset_path.unlink(missing_ok=True)
+        except OSError:
+            continue
 
 
 def charts_to_markdown(charts: list[ReportChart]) -> str:

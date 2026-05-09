@@ -1,15 +1,14 @@
 from __future__ import annotations
 
-import pytest
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.testclient import TestClient
 
-from opencmo.report_charts import build_report_charts, get_report_asset_path
+from opencmo.report_charts import build_report_charts, delete_chart_assets, get_report_asset_path
 from opencmo.reports import (
     _normalize_report_headings,
     _postprocess_human_report_content,
     _simple_markdown_to_html,
 )
-from opencmo.web.routers.report import api_v1_report_asset
+from opencmo.web.app import app
 
 
 def test_strategic_chart_builder_uses_real_fact_values(tmp_path, monkeypatch):
@@ -70,29 +69,66 @@ def test_report_heading_normalization_and_chart_section_insertion():
 
 
 def test_simple_markdown_to_html_supports_images():
-    html = _simple_markdown_to_html("![关键指标](/api/v1/report-assets/abc.svg)")
+    asset_id = "a" * 32
+    html = _simple_markdown_to_html(f"![关键指标](/api/v1/report-assets/{asset_id}.svg)")
 
-    assert '<img src="/api/v1/report-assets/abc.svg" alt="关键指标" />' in html
+    assert f'<img src="/api/v1/report-assets/{asset_id}.svg" alt="关键指标" />' in html
     assert "<figcaption>关键指标</figcaption>" in html
 
 
-@pytest.mark.asyncio
-async def test_report_asset_route_serves_svg(tmp_path, monkeypatch):
+def test_simple_markdown_to_html_rejects_external_images():
+    html = _simple_markdown_to_html("![x](https://attacker.com/pixel.gif)")
+
+    assert "<img" not in html
+    assert "<p>![x](https://attacker.com/pixel.gif)</p>" in html
+
+
+def test_simple_markdown_to_html_rejects_javascript_url():
+    html = _simple_markdown_to_html("![x](javascript:alert(1))")
+
+    assert "<img" not in html
+    assert "<p>![x](javascript:alert(1))</p>" in html
+
+
+def test_postprocess_skips_chart_section_when_already_referenced():
+    asset_id = "b" * 32
+    content = f"# 总标题\n\n## 二、数据图表速览\n\n正文 /api/v1/report-assets/{asset_id}.svg"
+
+    processed = _postprocess_human_report_content(content, "### 图表\n![图](/api/v1/report-assets/c.svg)")
+
+    assert processed == content
+    assert "## 2. 数据图表速览" not in processed
+
+
+def test_delete_chart_assets_removes_files_and_ignores_missing(tmp_path, monkeypatch):
+    monkeypatch.setenv("OPENCMO_REPORT_ASSET_DIR", str(tmp_path))
+    asset_ids = ["c" * 32, "d" * 32]
+    for asset_id in asset_ids:
+        (tmp_path / f"{asset_id}.svg").write_text("<svg></svg>", encoding="utf-8")
+
+    delete_chart_assets([*asset_ids, "e" * 32, "not-valid"])
+
+    assert not (tmp_path / f"{asset_ids[0]}.svg").exists()
+    assert not (tmp_path / f"{asset_ids[1]}.svg").exists()
+
+
+def test_report_asset_route_serves_svg(tmp_path, monkeypatch):
     monkeypatch.setenv("OPENCMO_REPORT_ASSET_DIR", str(tmp_path))
     asset_id = "a" * 32
     (tmp_path / f"{asset_id}.svg").write_text("<svg></svg>", encoding="utf-8")
 
-    response = await api_v1_report_asset(asset_id)
+    response = TestClient(app).get(f"/api/v1/report-assets/{asset_id}.svg")
 
-    assert isinstance(response, FileResponse)
-    assert response.media_type == "image/svg+xml"
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("image/svg+xml")
 
 
-@pytest.mark.asyncio
-async def test_report_asset_route_rejects_missing_or_invalid_assets(tmp_path, monkeypatch):
+def test_report_asset_route_rejects_missing_or_invalid_assets(tmp_path, monkeypatch):
     monkeypatch.setenv("OPENCMO_REPORT_ASSET_DIR", str(tmp_path))
+    client = TestClient(app)
 
-    response = await api_v1_report_asset("../bad")
+    invalid_response = client.get("/api/v1/report-assets/not-valid.svg")
+    missing_response = client.get(f"/api/v1/report-assets/{'f' * 32}.svg")
 
-    assert isinstance(response, JSONResponse)
-    assert response.status_code == 404
+    assert invalid_response.status_code == 404
+    assert missing_response.status_code == 404
